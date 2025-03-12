@@ -21,7 +21,7 @@ def space_covariance_matrix(X):
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
     """
     N = len(X)
-    ans = 0
+    ans = np.zeros((len(X[0]), len(X[0])), dtype = np.complex128)
     for i in range(len(X)):
         ans += X[i][:, None] @ X[i][:, None].conj().T
     return ans * (1/N)
