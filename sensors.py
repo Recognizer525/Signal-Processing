@@ -13,6 +13,9 @@ def CN(size:int, number:int, Gamma):
     D = B[:,:size] + 1j * B[:, size:]
     return D 
 
+def steering_vector(dist_ratio, angle, Num_sensors):
+    return np.exp(-2j * np.pi * dist_ratio * np.arange(Num_sensors) * np.sin(angle))
+    
 def space_covariance_matrix(X):
     """
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
