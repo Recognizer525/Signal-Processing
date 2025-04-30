@@ -1,0 +1,357 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathsf{M}}
+\newcommand{\Var}{\mathsf{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\XSig}{\mathbf{x}}
+\newcommand{\Ssig}{\mathbf{s}}
+\newcommand{\Nsig}{\mathbf{n}}
+\newcommand{\Rs}{\mathbf{R}_s}
+\newcommand{\Rn}{\mathbf{R}_n}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм для оценки направления прибытия сигнала}}
+\end{center}
+Введем некоторые условные обозначения:
+\begin{itemize}
+\item
+$\theta$ -- вектор направлений прибытия сигнала (DOA);
+\item
+$\tau$ -- итерация ЕМ-алгоритма, начальная оценка параметров $\theta$;
+\item
+$t$ -- момент времени (а заодно и номер кадра (snapshot));
+\item
+$L$ -- число датчиков;
+\item
+$M$ -- число источников (источники разделяют общую длину центральной волны $\chi$);
+\item
+$G$ -- число независимых кадров/снимков (snapshot), сделанных в разные моменты времени;
+\item
+$S$ -- набор сигналов (случайная величина), испускаемых источниками в моменты времени $t=\overline{1,G}$, $S_t$ соответствует сигналу в момент времени $t$;
+\item
+$N$ -- набор шумов (случайная величина), связанных с датчиками в моменты времени $t=\overline{1,G}$, $N_t$ соответствует шуму в момент времени $t$;
+\item
+$X$ -- набор сигналов (случайная величина), полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$;
+\item
+$s$ -- набор сигналов (реализация), испускаемых источниками в моменты времени $t=\overline{1,G}$, $s_t$ соответствует сигналу в момент времени $t$;
+\item
+$n$ -- набор шумов (реализация), связанных с датчиками в моменты времени $t=\overline{1,G}$, $n_t$ соответствует шуму в момент времени $t$;
+\item
+$x$ -- набор сигналов (реализация), полученных датчиками в моменты времени $t=\overline{1,G}$, $x_t$ соответствует сигналу в момент времени $t$;
+\item
+$O_{D_1 \times D_2}$ -- нулевая матрица размера $D_1 \times D_2$;
+\item
+Итоговый сигнал, получаемый массивом датчиков:
+\begin{equation}
+\begin{gathered}
+X_t=A(\theta)S_t+N_t,
+\end{gathered}
+\end{equation}
+где $S_t \sim CN(0,\Gamma_s),t=\overline{1,G}$, $N_t \sim CN(0,\Gamma_n), t=\overline{1,G}$, $S_t$ имеет размер $M \times 1$,  $N_t$ имеет размер $L \times 1$, $\theta=[\theta_1,...,\theta_M]$ -- вектор направлений прибытия сигнала, $A(\theta)$ (далее - $A$) представляет собой матрицу управляющих векторов размера $L \times M$, $\Gamma_s$ и $\Gamma_n$ предполагаются диагольными.
+\begin{gather}
+A(\theta) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi \frac{d}{\lambda}sin(\theta_M)}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_M)}\\
+\end{bmatrix}.
+\nonumber
+\end{gather}
+\end{itemize}
+Воспользуемся ЕМ-алгоритмом для того, чтобы определить значения параметров $\theta$, значения сигналов $S_t, t=\overline{1,G}$ рассматриваются как латентные переменные. 
+Пусть $X$, $S$ и $N$ набор итоговых сигналов полученных $L$ датчиками за моменты времени $t=\overline{1,G}$ и набор выпущенных $M$ источниками сигналов и набор шумов за моменты времени $t=\overline{1,G}$, соответственно. $X$, $S$ и $N$ представляют из себя матрицы размеров $G \times L$, $G \times M$ и $G \times L$ соответственно.
+\begin{center}
+\fontsize{16}{20}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+Требуется найти апостериорное распределение $P(S|X=x,\theta)$, воспользуемся формулой Байеса:
+\begin{gather}
+P(S|X=x,\theta) = \frac{P(X|S,\theta)P(S|\theta)}{P(X|\theta)}
+\end{gather}
+\begin{gather}
+P(S|\theta) = \prod_{t=1}^G \frac{1}{\pi^M |\Gamma_s|}e^{-S_t^H\Gamma_s^{-1}S_t},
+\end{gather}
+\begin{gather*}
+X_t = AS_t + N_t \\
+X_t \sim CN(0, A\Gamma_s A^H + \Gamma_n)
+\end{gather*}
+\begin{gather}
+P(X|\theta) = \prod_{t=1}^G \frac{1}{\pi^L |A\Gamma_s  A^H + \Gamma_n|}e^{-X_t^H (A\Gamma_s A^H + \Gamma_n)^{-1}X_t},
+\end{gather}
+Теперь следует определиться с тем, каким будет условное распределение $P(X|S=s, \theta)$
+\begin{gather*}
+X_t|S_t=s_t, \theta \, \sim CN(A s_t, \Gamma_n)
+\end{gather*}
+\begin{gather}
+P(X|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^L |\Gamma_n|}e^{-(X_t-A s_t)^H \Gamma_n^{-1}(X_t-A s_t)},
+\end{gather}
+\begin{gather}
+P(S|X=x,\theta) = \prod_{t=1}^G \frac{1}{\pi^M |\Gamma_n||\Gamma_s||(A\Gamma_s A^H + \Gamma_n)^{-1}|}e^{-(x_t-A\cdot S_t)^H \Gamma_n^{-1}(x_t-A\cdot S_t)-S_t^H\Gamma_s^{-1}S_t+x_t^H |(A\Gamma_s A^H + \Gamma_n)^{-1}|^{-1}x_t},
+\end{gather}
+Таким образом:
+\begin{gather}
+P(S|X=x,\theta) = \prod_{t=1}^G \frac{1}{\pi^M |K_{S_t|X_t}|}e^{-(S_t-\mu_{S_t|X_t})^H K_{S_t|X_t}^{-1} (S_t-\mu_{S_t|X_t})}
+\end{gather}
+Условное распределение также будет комплексным гауссовским, а его параметры будут определяться в соответствии с модифицированной теоремой о нормальной корреляции (см. файл Conditional\_Distribution.pdf).
+Определим кросс-ковариацию между $S$ и $X$.
+\begin{equation}
+\begin{gathered}
+Cov(S,X)=E[SX^H]=E[S(AS+N)^H]=E[S(AS)^H]+E[SN^H]=E[S(AS)^H]=\\E[SS^HA^H]=E[SS^H]A^H=\Gamma_sA^H
+\end{gathered}
+\end{equation}
+Данные переходы возможны ввиду свойств ковариации и независимости $N$ и $S$. $Cov(X,S)=(Cov(S,X))^H$:
+\begin{gather}
+Cov(X,S) = A\Gamma_s
+\end{gather}
+\begin{gather}
+\mu = \begin{pmatrix}
+O_{M\times1}\\
+O_{L\times1}
+\end{pmatrix},
+\Sigma = \begin{pmatrix}
+\Gamma_s&\Gamma_sA^H\\
+A\Gamma_s&A\Gamma_sA^H+\Gamma_n
+\end{pmatrix}.
+\end{gather}
+В соответствии с выкладками, полученными в файле  Conditional\_Distribution.pdf, параметры апостериорной плотности будут определяться по следующим формулам:
+\begin{equation}
+\left\{ \begin{gathered} 
+K_{S_t|X_t} = \Sigma_{S_t,S_t}-\Sigma_{S_t,X_t}\Sigma_{X_t,X_t}^{-1}\Sigma_{X_t,S_t} \\
+\mu_{S_t|X_t} = \mu_{S_t} + \Sigma_{S_t,X_t}\Sigma_{X_t,X_t}^{-1}(x_t-\mu_{X_t})
+\end{gathered} \right.
+\end{equation}
+Подствим в эту формулу полученные нами значения:
+\begin{equation}
+\left\{ \begin{gathered} 
+K_{S_t|X_t} = \Gamma_s-\Gamma_sA^H(A\Gamma_sA^H+\Gamma_n)^{-1}A\Gamma_s \\
+\mu_{S_t|X_t} = \Gamma_sA^H(A\Gamma_sA^H+\Gamma_n)^{-1} x_t
+\end{gathered} \right.
+\end{equation}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{red}{\textbf{M-шаг}}
+\end{center}
+Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
+\begin{gather}
+\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}]
+\end{gather}
+Обозначим приведенное выше условное математическое ожидание через $Q_t$. 
+Заметим, что \\ $\log P(X, \, S|\theta^{(\tau)}) = \log P(X|S,\theta^{(\tau)})P(S|\theta^{(\tau)}) = \log P(S|X,\theta^{(\tau)})P(X|\theta^{(\tau)})$.\\
+Можно заметить, что $P(X|S, S) = P(X, S)$. Работать с плотостью $P(X|S, S)$ удобнее: кросс-ковариция между $S$ и $X|S$ будет представлять из себя нулевую матрицу.
+Найдем совместную плотность $P(X|S, \, S|\theta^{(\tau)})$:
+\begin{gather}
+P(X|S, \, S|\theta^{(\tau)}) = \prod_{t=1}^G \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})},
+\end{gather}
+где:
+\begin{equation*}
+Z_t = \begin{pmatrix}
+S_t\\
+X_t|S_t
+\end{pmatrix},
+\mu_{Z_t} = \begin{pmatrix}
+\mu_{S_t}\\
+\mu_{X_t|S_t}
+\end{pmatrix}\\,
+\Sigma = 
+\begin{pmatrix}
+\Sigma_{S_t,S_t}&O_{M\times L}\\
+O_{L\times M}&\Sigma_{X_t|S_t,X_t|S_t}
+\end{pmatrix}
+\end{equation*}
+Найдем логарифм совместной плотности (т.е. полное правдоподобие) $\log P(X|S, \, S|\theta^{(\tau)})$:
+\begin{equation*}
+\log P(X|S, \, S|\theta^{(\tau)}) = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})\right)
+\end{equation*}
+Теперь попробуем раскрыть УМО полного правдоподобия для одного наблюдения, с учетом полученных сигналов и текущей оценки DOA:
+\begin{gather}
+P(X_t|S_t, \, S_t|\theta^{(\tau)}) = \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})}
+\end{gather}
+\begin{gather*}
+Q_t = E[\log P(X_t|S_t, \, S_t|\theta^{(\tau)})|X_t, \theta^{(\tau)}] \\ = E[-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] = \\
+=-(M+L)\log(\pi)-\log|\Sigma| - E[(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] 
+=-(M+L)\log(\pi)-\log|\Sigma| \\ -   E[(X_t|S_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(X_t|S_t-\mu_{X|S})|X_t=x_t, \theta^{(\tau)}] 
+- E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t, \theta^{(\tau)}] \\
+=-(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X|S})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})\\ - E[(S_t-\mu_{s_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+\end{gather*}
+\begin{equation}
+\begin{gathered}
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ - E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+\end{gathered}
+\end{equation}
+Заметим, что первые два слагаемые, составляющие $Q_t$, не зависят от $\theta$, соответственно требуемый $argmax [\cdot]$ можно найти без их учета.
+\begin{gather*}
+S_t|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}, K_{S_t|X_t}) \Rightarrow S_t-\mu_{S_t}|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}-\mu_{S_t}, K_{S_t|X_t})
+\end{gather*}
+\begin{gather*}
+\Rightarrow [\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}( S_t-\mu_{S_t})|(X_t=x_t, \theta^{(\tau)}) \sim CN([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}),[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H)
+\end{gather*}
+Учтем, что для комплексных векторов $Y$ выполняется следующее соотношение: 
+\begin{gather}
+E[YY^H]=E[Y]E[Y^H]+K_{YY}.
+\end{gather}
+\begin{gather*}
+ E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}]  =  E[[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] =\\
+= tr(E[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H]|X_t=x_t,\theta^{(\tau)})=\\
+= tr([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H) + 
+ tr([[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t})][[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}]^H) = \\
+= tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) + (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})
+\end{gather*}
+\begin{equation}
+\begin{gathered}
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t}) 
+\end{gathered}
+\end{equation}
+\begin{equation}
+\begin{gathered}
+ E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})  -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right)
+\end{gathered}
+\end{equation}
+Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] $ сводится к поиску
+\begin{equation}
+\begin{gathered}
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right).
+\end{gathered}
+\end{equation}
+Учтем, что $\mu_{S_t} = O_{M \times 1}$, $\mu_{X_t|S_t}=As_t$, в рамках задачи $s_t$ -- скрытая переменная, она оценивается так: $\hat{s}_t = \mu_{S_t|X_t}$.
+\begin{equation}
+\begin{gathered}
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right) = \\
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-A\mu_{S_t|X_t})^H\Gamma_n^{-1}(x_t-A\mu_{S_t|X_t}) +  tr([\Gamma_s^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-O_{M \times 1})^H\Gamma_s^{-1}(\mu_{S_t|X_t}-O_{M \times 1})\right) = \\
+\argmin_{\theta}  \sum_{t=1}^G \left(x_t^H\Gamma_n^{-1}x_t -(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
+\argmin_{\theta}  \sum_{t=1}^G \left(-(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
+\argmin_{\theta}  \sum_{t=1}^G \left(-\mu_{S_t|X_t}^HA^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right)
+\end{gathered}
+\end{equation}
+Теперь стоит подумать о том, как вычислить минимум для этой функции. Для начала определим первую производную для минимизируемой функции.
+Обозначим выражение, для которого мы ищем argmin, через $\tilde{Q}$. 
+\begin{equation}
+\begin{gathered}
+\frac{\partial \tilde{Q}}{\partial \theta_i} = 
+\sum_{t=1}^G \frac{\partial}{\partial \theta_i} \left(-x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t}-\mu_{S_t|X_t}^HA^H\Gamma_n^{-1}x_t  + \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) = \\
+\sum_{t=1}^G \left(-x_t^H\Gamma_n^{-1}\left(\frac{\partial A}{\partial \theta_i}\right)\mu_{S_t|X_t}-\mu_{S_t|X_t}^H\left(\frac{\partial A}{\partial \theta_i}\right)^H\Gamma_n^{-1}x_t  + \mu_{S_t|X_t}^H\left(\frac{\partial A}{\partial \theta_i}\right)^H\Gamma_n^{-1}A\mu_{S_t|X_t}  \right. \\
++ \left. \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}\left(\frac{\partial A}{\partial \theta_i}\right)\mu_{S_t|X_t} \right) 
+\end{gathered}
+\end{equation}
+\\Теперь о том, что из себя представляет производная для матрицы $A$:
+\begin{gather*}
+A = \begin{bmatrix}
+1&\dots&1&\dots&1\\
+e^{-2j\pi \frac{d}{\lambda}\sin(\theta_1)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_i)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_M)}\\
+\dots&\ddots&\dots&\ddots&\vdots\\
+e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_1)}&\dots&e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_i)}&\dots&e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_M)}
+\end{bmatrix}
+\end{gather*}
+Пусть $h=-2j\pi\frac{d}{\lambda}$,
+\begin{gather}
+\frac{\partial A(\theta)}{\partial \theta_i} = \begin{bmatrix}
+0&\dots&0&\dots&0\\
+0&\dots&h\cos(\theta_i)e^{h \sin(\theta_i)}&\dots&0\\
+\dots&\ddots&\dots&\ddots&\vdots\\
+0&\dots&h(L-1)\cos(\theta_i)e^{h(L-1)\sin(\theta_i)}&\dots&0
+\end{bmatrix}.
+\end{gather}
+Проблема заключается в том, что оптимизируемая функция $\tilde{Q}(\theta)$ -- вещественнозначная, $\theta \in \mathbf{R}^M$  а ее производная -- комплекснозначная. Будем находить экстремум по следующей схеме:
+\begin{gather}
+\hat{\theta}^{(\tau+1, k)}=\hat{\theta}^{(\tau+1, k-1)} - \eta Re(\grad \tilde{Q}(\theta^{(\tau)})),
+\end{gather}
+где $\hat{\theta}^{(\tau+1, k)}$ -- оценка $\theta^{\tau+1}$ на $k$-м шаге градиентного спуска, $\hat{\theta}^{(\tau+1, 0)} = \theta^{(\tau)}$.
+
+\begin{center}
+\fontsize{16}{20}\selectfont \color{red}{\textbf{Ранние неверные выкладки}}
+\end{center}
+\begin{gather*}
+-(x_t-A S_t)^H \Gamma_n^{-1}(x_t-A S_t)-S_t^H\Gamma_s^{-1}S_t+x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -(S_t-\mu_{S_t|X_t})^H K_{S_t|X_t}^{-1}(S_t-\mu_{S_t|X_t})
+\nonumber
+\end{gather*}
+\begin{gather*}
+-x_t^H\Gamma_n^{-1}x_t + x_t^H\Gamma_n^{-1}A S_t + (A S_t)^H\Gamma_n^{-1}x_t - (A S_t)^H \Gamma_n^{-1} A S_t -S_t^H\Gamma_s^{-1}S_t \\
++x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t  =-S_t^H K_{S_t|X_t}^{-1}S_t + \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t   + S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} - \mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}
+\end{gather*}
+\begin{equation*}
+\left\{ \begin{aligned} 
+ -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
+(A S_t)^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H\Gamma_s^{-1}S_t - (A S_t)^H \Gamma_n^{-1} A S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+\end{aligned} \right.
+\end{equation*}
+\begin{equation*}
+\left\{ \begin{aligned} 
+ -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H\Gamma_s^{-1}S_t - S_t^H A^H \Gamma_n^{-1} A S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+\end{aligned} \right.
+\end{equation*}
+\begin{equation*}
+\left\{ \begin{aligned} 
+ -x_t^H(\Gamma_n^{-1}- (A\Gamma_s  A^H+\Gamma_n)^{-1})x_t  = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+\end{aligned} \right.
+\end{equation*}
+Предполагая обратимость матрицы $\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A$,
+\begin{equation*}
+-S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H K_{S_t|X_t}^{-1}S_t  \Rightarrow \Gamma_s^{-1}+ A^H \Gamma_n^{-1} A= K_{S_t|X_t}^{-1} \Rightarrow K_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1}
+\end{equation*}
+\begin{gather*}
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}
+\end{gather*}
+Равенство выше должно выполняться для любых реализаций $S_t$, множитель $S_t^H$ является первым множителем в обоих произведениях, соответственно, равенство останется верным после удаления этих множителей.
+\begin{gather*}
+-A^H\Gamma_n^{-1}x_t = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1} \mu_{S_t|X_t} \Rightarrow \mu_{S_t|X_t} =- (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A) A^H\Gamma_n^{-1}x_t
+\end{gather*}
+\begin{equation}
+\left\{ \begin{gathered} 
+K_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1} \\
+\mu_{S_t|X_t} =- (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A) A^H\Gamma_n^{-1}x_t
+\end{gathered} \right.
+\end{equation}
+\end{document}

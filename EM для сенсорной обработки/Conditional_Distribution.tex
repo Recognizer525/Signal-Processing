@@ -1,0 +1,282 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathsf{M}}
+\newcommand{\Var}{\mathsf{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\XSig}{\mathbf{x}}
+\newcommand{\Ssig}{\mathbf{s}}
+\newcommand{\Nsig}{\mathbf{n}}
+\newcommand{\Rs}{\mathbf{R}_s}
+\newcommand{\Rn}{\mathbf{R}_n}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{О добавлении неопределенности в случае комплексного нормального распределения}}
+\end{center}
+Комплексное нормальное распределение $CN(m_x,K_x)$  имеет следующую плотность:
+\begin{gather}
+f(x) = \frac{1}{|\pi K_x|} \cdot \exp\{-(x^H-m_x^H)K_x^{-1}(x-m_x)\},
+\end{gather}
+где $m_x$ имеет размерность $n\times 1$, $K_x$ имеет размерность $n\times n$.
+Вынесем константу из под определителя, учитывая, что каждый столбец матрицы умножается на нее.
+$$
+f(x) = \frac{1}{\pi^n |K_x|} \cdot \exp\{-(x^H-m_x^H)K_x^{-1}(x-m_x)\},
+$$
+Пусть вектор $x$ составлен из элементов вектора $x_1$ и элементов вектора $x_2$:
+$$
+x=\begin{bmatrix}
+x_1\\
+x_2
+\end{bmatrix}.
+$$
+Тогда, вектор $x_2$ имеет распределение
+\begin{gather}
+f(x_2) = \frac{1}{\pi^{n_2} |K_{x_2}|} \cdot \exp\{-(x_2^H-m_{x_2}^H)K_{x_2}^{-1}(x_2-m_{x_2})\}.
+\end{gather}
+Плотность вектора $x$ можно рассматривать как совместную плотность $x_1$, $x_2$: $f(x)=f(x_1,x_2).$
+Условная плотность $x_1$ при условии $x_2$ должна иметь вид:
+\begin{gather}
+f(x_1|x_2)=\frac{f(x_1,x_2)}{f(x_2)},
+\end{gather}
+преобразуя выражение, получаем следующее:
+\begin{gather}
+f(x_1|x_2)=\frac{\frac{1}{\pi^n |K_x|} \cdot \exp\{-(x^H-m_x^H)K_x^{-1}(x-m_x)\}}{\frac{1}{\pi^{n_2} |K_{x_2}|} \cdot \exp\{-(x_2^H-m_{x_2}^H)K_{x_2}^{-1}(x_2-m_{x_2})\}}.
+\end{gather}
+Ковариацию вектора $x$ и обратную к ней матрицу представим в виде блочных матриц:
+$$
+K_X=\begin{bmatrix}
+K_{11}&K_{12}\\
+K_{21}&K_{22}
+\end{bmatrix}, 
+K_X^{-1}=\begin{bmatrix}
+K^{11}&K^{12}\\
+K^{21}&K^{22}
+\end{bmatrix}.
+$$
+
+$$
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot\frac{\exp\{-(x^H-m_x^H)K_x^{-1}(x-m_x)\}}{\exp\{-(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})\}}.
+$$
+Преобразуем дальше:
+$$
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp[-(x^H-m_x^H)K_x^{-1}(x-m_x)+(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})]
+$$
+Выделим блоки $K_x^{-1}$:
+
+\begin{equation*}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp \left[
+-\left(\begin{bmatrix}
+x_1^H\\
+x_2^H
+\end{bmatrix}-
+\begin{bmatrix}
+m_{x_1}^H\\
+m_{x_2}^H
+\end{bmatrix}\right)
+\begin{bmatrix}
+K^{11}&K^{12}\\
+K^{21}&K^{22}
+\end{bmatrix}
+\left(\begin{bmatrix}
+x_1\\
+x_2
+\end{bmatrix}-
+\begin{bmatrix}
+m_{x_1}\\
+m_{x_2}
+\end{bmatrix}\right) \right. \\
+\left.+(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})\right]
+\end{gathered}
+\end{equation*}
+
+\begin{gather*}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp \left[-
+\begin{bmatrix}
+x_1^H-m_{x_1}^H\\
+x_2^H-m_{x_2}^H
+\end{bmatrix}
+\begin{bmatrix}
+K^{11}&K^{12}\\
+K^{21}&K^{22}
+\end{bmatrix}
+\begin{bmatrix}
+x_1-m_{x_1}\\
+x_2-m_{x_2}
+\end{bmatrix}
+\right. \\
+\left.
++(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})\right]
+\end{gather*}
+
+
+
+\begin{equation*}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp \left[-\left((x_1^H-m_{x_1}^H)K^{11}(x_1-m_{x_1})+(x_2^H-m_{x_2}^H)K^{21}(x_1-m_{x_1})+
+\right. \right.
+\\
+\left.+(x_1^H-m_{x_1}^H)K^{12}(x_2-m_{x_2})+(x_2^H-m_{x_2}^H)K^{22}(x_2-m_{x_2})\right)+
+\\
+\left.
++(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})\right]
+\end{gathered}
+\end{equation*}
+Теперь нужно определить, как вычислить элементы матрицы $K^{-1}$:
+\begin{align}
+\begin{bmatrix}
+A& B\\
+C& D
+\end{bmatrix}^{-1}
+=
+\begin{bmatrix}
+(A-BD^{-1}C)^{-1} & -(A-BD^{-1}C)^{-1}BD^{-1}\\
+-D^{-1}C(A-BD^{-1}C)^{-1} & D^{-1}+D^{-1}C(A-BD^{-1}C)^{-1}BD^{-1}
+\end{bmatrix},
+\nonumber
+\end{align}
+таким образом:
+\begin{align}
+\begin{bmatrix}
+K_{11} & K_{12}\\
+K_{21} & K_{22}
+\end{bmatrix}^{-1}
+=
+\begin{bmatrix}
+(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1} & -(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1}\\
+-K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1} & K_{22}^{-1}+K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1}
+\end{bmatrix}
+\nonumber.
+\end{align}
+
+\begin{equation*}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp \left[-\left((x_1^H-m_{x_1}^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(x_1-m_{x_1})+ \right.\right. 
+\\
++(x_2^H-m_{x_2}^H)(-K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1})(x_1-m_{x_1})+
+\\
++(x_1^H-m_{x_1}^H)(-(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1})(x_2-m_{x_2})+
+\\
+\left.+(x_2^H-m_{x_2}^H)(K_{22}^{-1}+K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1})(x_2-m_{x_2})\right)+
+\\
+\left.+(x_2^H-m_{x_2}^H)K_{22}^{-1}(x_2-m_{x_2})\right]
+\end{gathered}
+\end{equation*}
+
+\begin{equation*}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{|K_{22}|}{|K|}\cdot \exp \left[-\left((x_1^H-m_{x_1}^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(x_1-m_{x_1})+ \right.\right.
+\\
++(x_2^H-m_{x_2}^H)(-K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1})(x_1-m_{x_1})+
+\\
++(x_1^H-m_{x_1}^H)(-(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1})(x_2-m_{x_2})+
+\\
+\left.\left.+(x_2^H-m_{x_2}^H)(K_{22}^{-1}K_{21}(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}K_{12}K_{22}^{-1})(x_2-m_{x_2})\right)\right]
+\end{gathered}
+\end{equation*}
+
+Определитель блочной матрицы вычисляется следующим образом:
+\begin{gather}
+\begin{vmatrix}
+A & B \\
+C & D
+\end{vmatrix}
+=
+|D|\cdot |A-BD^{-1}C|.
+\end{gather}
+Соответственно, для ковариационной матрицы будет выполняться следующее:
+\begin{align}
+\begin{vmatrix}
+K_{11} & K_{12} \\
+K_{21} & K_{22}
+\end{vmatrix}
+=
+|K_{22}|\cdot |K_{11}-K_{12}K_{22}^{-1}K_{21}|.
+\nonumber
+\end{align}
+
+
+
+Используем этот факт, чтобы упростить соотношение определителей в условной плотности, заодно учтем, что $-K_{22}^{-1}K_{21}=(-K_{12}K_{22}^{-1})^H$:
+\begin{equation*}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{1}{ |K_{11}-K_{12}K_{22}^{-1}K_{21}|}\cdot \exp \left[-\left((x_1^H-m_{x_1}^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(x_1-m_{x_1})+ \right.\right.
+\\
++(x_2^H-m_{x_2}^H)(-K_{12}K_{22}^{-1})^H(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(x_1-m_{x_1})+
+\\
++(x_1^H-m_{x_1}^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(-K_{12}K_{22}^{-1})(x_2-m_{x_2})+
+\\
+\left.\left.+(x_2^H-m_{x_2}^H)(-K_{12}K_{22}^{-1})^H(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(-K_{12}K_{22}^{-1})(x_2-m_{x_2})\right)\right]
+\end{gathered}
+\end{equation*}
+
+Немного перегруппируем составляющие показателя степени:
+\begin{equation}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{1}{ |K_{11}-K_{12}K_{22}^{-1}K_{21}|}\cdot \exp \left[-\left(((x_1^H-m_{x_1}^H)+(x_2^H-m_{x_2}^H) \right.\right. \\
+\cdot(-K_{12}K_{22}^{-1})^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(x_1-m_{x_1})+ \\
+\left.\left.+(x_1^H-m_{x_1}^H+(x_2^H-m_{x_2}^H)(-K_{12}K_{22}^{-1})^H)(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}(-K_{12}K_{22}^{-1})(x_2-m_{x_2})\right)\right]
+\end{gathered}
+\end{equation}
+Еще раз перегруппируем составляющие показателя степени:
+\begin{equation}
+\begin{gathered}
+f(x_1|x_2)=\frac{1}{\pi^{n-n_2}}\cdot \frac{1}{ |K_{11}-K_{12}K_{22}^{-1}K_{21}|}\cdot \exp \left[-\left(((x_1^H-m_{x_1}^H)+(x_2^H-m_{x_2}^H)\cdot(-K_{12}K_{22}^{-1})^H) \right.\right. \\
+\left.\left. \cdot(K_{11}-K_{12}K_{22}^{-1}K_{21})^{-1}((x_1-m_{x_1})+(-K_{12}K_{22}^{-1})(x_2-m_{x_2}))\right)\right]
+\end{gathered}
+\end{equation}
+Тогда,
+\begin{equation}
+\left\{ \begin{gathered} 
+K_{x_1|x_2} = K_{11}-K_{12}K_{22}^{-1}K_{21} \\
+m_{x_1|x_2} = m_{x_1} + K_{12}K_{22}^{-1}\cdot(x_2-m_{x_2}),
+\end{gathered} \right.
+\end{equation}
+\end{document}
