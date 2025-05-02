@@ -69,7 +69,7 @@ def f(theta, Ga_s, Ga_n, X, K, mu):
     M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.zeros((L, M), dtype=np.complex128)
     for i2 in range(M):
-        A[:,i2] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i2,0]))
+        A[:,i2] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i2]))
     A_H = A.conj().T
     inv_Ga_s = np.linalg.inv(Ga_s)
     inv_Ga_n = np.linalg.inv(Ga_n)
@@ -78,7 +78,7 @@ def f(theta, Ga_s, Ga_n, X, K, mu):
         ans += -X[k].conj() @ inv_Ga_n @ A @ mu[:, k]
         ans += -mu[:,k].conj().T @ A_H @ inv_Ga_n @ X[k]
         ans += mu[:,k].conj().T @ A_H @ inv_Ga_n @ A @ mu[:,k]      
-    return ans
+    return ans.real
 
 def pdce(i, theta, Ga_s, Ga_n, X, K, mu):
     """
@@ -94,7 +94,7 @@ def pdce(i, theta, Ga_s, Ga_n, X, K, mu):
     M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.zeros((L, M), dtype=np.complex128)
     for i2 in range(M):
-        A[:,i2] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i2,0]))
+        A[:,i2] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i2]))
     #print(f"A={A}")
     A_H = A.conj().T
     deriv_A = dA(theta[i,0], L, M, i) 
@@ -123,6 +123,7 @@ def gradient_descent(theta, deriv_func, lr = 0.1, iters = 5):
         for k in range(G.shape[0]):
             G[k,0] = deriv_func(i=k, theta=ans)
         ans = ans - lr * G
+        print('lr*G', lr*G)
     return ans
 
 def correcter(theta):
@@ -146,16 +147,17 @@ def equation_solver(theta, Ga_s, Ga_n, X, K, mu):
     K - ковариация апостериорного распределения;
     mu - мат.ожидание апостериорного распределения.
     """
-    #simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
-    pdce_real_wp = partial(pdce_real, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
-    ans = gradient_descent(theta=theta, deriv_func=pdce_real_wp)
+    simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
+    ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
+    #pdce_real_wp = partial(pdce_real, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
+    #ans = gradient_descent(theta=theta, deriv_func=pdce_real_wp)
     #print(f"not_corrected_theta={ans}")
-    ans = correcter(ans)
+    #ans = correcter(ans)
     print(f'theta_new={ans}') 
     return ans
 
 
-def EM(X, Ga_s, Ga_n, max_iter=50, eps=1e-4):
+def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     """
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -166,6 +168,7 @@ def EM(X, Ga_s, Ga_n, max_iter=50, eps=1e-4):
     M = Ga_s.shape[0]
     L = Ga_n.shape[0]
     theta = np.random.RandomState(30).uniform(-np.pi, np.pi, M).reshape(M,1)
+    init_theta = theta.copy()
     print(f"Initial theta = {theta}")
     inv_Ga_s = np.linalg.inv(Ga_s)
     inv_Ga_n = np.linalg.inv(Ga_n)
@@ -173,7 +176,7 @@ def EM(X, Ga_s, Ga_n, max_iter=50, eps=1e-4):
         #E-step
         A = np.zeros((L, M), dtype=np.complex128)
         for i in range(M):
-            A[:,i] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i,0]))
+            A[:,i] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i]))
         A_H = A.conj().T
         K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
         mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
@@ -182,10 +185,38 @@ def EM(X, Ga_s, Ga_n, max_iter=50, eps=1e-4):
         #M-step
         theta_new = np.zeros(theta.shape)
         theta_new = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
-        no_conv = np.linalg.norm(theta - theta_new) >= eps       
+        no_conv = np.linalg.norm(theta - theta_new) >= eps
+        if not no_conv:
+            print(f"norm={np.linalg.norm(theta - theta_new)}")
         iteration += 1
         print(f"Iteration={iteration}")
+        theta = theta_new
     theta = theta_new
     return theta
-     
+
+
+def goal_function(X, Ga_s, Ga_n, num_of_points):
+    """
+    Данный метод реализует Е-шаг алгоритма, затем, в отрезке [-pi; pi] выделяется заданное число равноудаленных точек, для каждой из которых вычисляется
+    значение функции, которую нужно минимизировать на М-шаге.
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
+    X - коллекция полученных сигналов.
+    """
+    initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1).reshape(1,1)
+    L = np.shape(Ga_n)[0]
+    M = np.shape(Ga_s)[0]
+    A = np.zeros((L, M), dtype=np.complex128)
+    for i in range(M):
+        A[:,i] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(initial_theta[i,0]))
+    A_H = A.conj().T
+    K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
+    mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
+    funct = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
+    B = np.linspace(-np.pi, np.pi, num_of_points)
+    f_B = np.zeros(num_of_points, dtype=np.complex128)
+    for i in range(num_of_points):
+        f_B[i] = funct(np.array([[B[i]]]))
+    return B, f_B
+
 
