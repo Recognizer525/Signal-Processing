@@ -83,7 +83,7 @@ def equation_solver(theta, Ga_s, Ga_n, X, K, mu):
     return ans, simplified_f(ans)
 
 
-def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
+def EM(theta, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     """
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -92,9 +92,8 @@ def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     no_conv = True
     iteration = 0
     M, L = Ga_s.shape[0], Ga_n.shape[0]
-    theta = np.random.RandomState(30).uniform(-np.pi, np.pi, M).reshape(M,1)
-    init_theta = theta.copy()
-    print(f"Initial theta = {theta}")
+    #theta = np.random.RandomState(30).uniform(-np.pi, np.pi, M).reshape(M,1)
+    #print(f"Initial theta = {theta}")
     inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
     while no_conv and iteration < max_iter:
         #E-step
@@ -110,11 +109,23 @@ def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         if not no_conv:
             print(f"norm={np.linalg.norm(theta - theta_new)}")
         iteration += 1
-        print(f"Iteration={iteration}, theta_new={theta_new}, -likelihood = {neg_likelihood}")
+        print(f"Iteration={iteration}, theta_new={theta_new:}, -likelihood = {neg_likelihood:.5f}")
         theta = theta_new
-    theta = theta_new
-    return theta
+    return theta, neg_likelihood
 
+
+def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
+    best_neg_lhd = np.inf
+    best_theta = None
+    for i in range(num_of_starts):
+        print(f'{i}-th start')
+        M = Ga_s.shape[0]
+        theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
+        est_theta, neg_lhd = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
+        if neg_lhd < best_neg_lhd:
+            best_neg_lhd = neg_lhd
+            best_theta = est_theta
+    return best_theta, best_neg_lhd
 
 def goal_function(X, Ga_s, Ga_n, num_of_points):
     """
