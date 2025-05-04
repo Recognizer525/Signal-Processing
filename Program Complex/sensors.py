@@ -11,9 +11,8 @@ def CN(size:int, number:int, Gamma):
     Gamma - ковариационная матрица
     size - размер вектора
     number - количество векторов
-    """
-    # Размер ковариационной матрицы совместного распределения 
-    n = 2 * size
+    """ 
+    n = 2 * size # Размер ковариационной матрицы совместного распределения
     C = np.zeros((n,n), dtype=np.float64)
     C[:size,:size] = Gamma.real
     C[size:,size:] = Gamma.real
@@ -92,7 +91,6 @@ def EM(theta, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     no_conv = True
     iteration = 0
     M, L = Ga_s.shape[0], Ga_n.shape[0]
-    #theta = np.random.RandomState(30).uniform(-np.pi, np.pi, M).reshape(M,1)
     #print(f"Initial theta = {theta}")
     inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
     while no_conv and iteration < max_iter:
@@ -115,6 +113,12 @@ def EM(theta, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
 
 
 def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
+    """
+    num_of_starts - число запусков;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
+    X - коллекция полученных сигналов.
+    """
     best_neg_lhd = np.inf
     best_theta = None
     for i in range(num_of_starts):
