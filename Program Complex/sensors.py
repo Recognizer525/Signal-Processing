@@ -58,10 +58,7 @@ def f(theta, Ga_s, Ga_n, X, K, mu):
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
     inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
-    
-    inv_Ga_A = inv_Ga_n @ A
-    A_H_inv_Ga = A_H @ inv_Ga_n
-    A_H_inv_Ga_A = A_H @ inv_Ga_n @ A
+    inv_Ga_A, A_H_inv_Ga, A_H_inv_Ga_A = inv_Ga_n @ A, A_H @ inv_Ga_n, A_H @ inv_Ga_n @ A
     ans = 0
     for k in range(G):
         ans += -X[k].conj() @ inv_Ga_A @ mu[:, k]
@@ -81,12 +78,9 @@ def equation_solver(theta, Ga_s, Ga_n, X, K, mu):
     """
     simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
     ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
-    #pdce_real_wp = partial(pdce_real, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
-    #ans = gradient_descent(theta=theta, deriv_func=pdce_real_wp)
-    #print(f"not_corrected_theta={ans}")
-    #ans = correcter(ans)
-    print(f'theta_new={ans}') 
-    return ans
+    #print(f'inversed_likelihood={simplified_f(ans)}')
+    #print(f'theta_new={ans}') 
+    return ans, simplified_f(ans)
 
 
 def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
@@ -108,15 +102,15 @@ def EM(X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         A_H = A.conj().T
         K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
         mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
-        print(f"K={K}")
+        #print(f"K={K}")
         #print(f"mu={mu}")
         #M-step
-        theta_new = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
+        theta_new, neg_likelihood = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
         no_conv = np.linalg.norm(theta - theta_new) >= eps
         if not no_conv:
             print(f"norm={np.linalg.norm(theta - theta_new)}")
         iteration += 1
-        print(f"Iteration={iteration}")
+        print(f"Iteration={iteration}, theta_new={theta_new}, -likelihood = {neg_likelihood}")
         theta = theta_new
     theta = theta_new
     return theta
