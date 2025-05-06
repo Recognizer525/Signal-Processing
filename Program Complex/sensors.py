@@ -19,7 +19,7 @@ def CN(size:int, number:int, Gamma):
     C[:size,size:] = -Gamma.imag
     C[size:,:size] = Gamma.imag
     mu = np.zeros(n)
-    B = np.random.multivariate_normal(mu, 0.5*C, number)
+    B = np.random.RandomState(70).multivariate_normal(mu, 0.5*C, number)
     D = B[:,:size] + 1j * B[:, size:]
     return D 
 
@@ -82,7 +82,7 @@ def equation_solver(theta, Ga_s, Ga_n, X, K, mu):
     return ans, simplified_f(ans)
 
 
-def EM(theta, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
+def EM(theta, X, Ga_s, Ga_n, max_iter=50, eps=1e-6):
     """
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -109,7 +109,7 @@ def EM(theta, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         iteration += 1
         print(f"Iteration={iteration}, theta_new={theta_new:}, -likelihood = {neg_likelihood:.5f}")
         theta = theta_new
-    return theta, neg_likelihood
+    return theta, neg_likelihood, K, mu
 
 
 def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
@@ -125,11 +125,11 @@ def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         print(f'{i}-th start')
         M = Ga_s.shape[0]
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        est_theta, neg_lhd = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
+        est_theta, neg_lhd, K, mu = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd = neg_lhd
             best_theta = est_theta
-    return best_theta, best_neg_lhd
+    return best_theta, best_neg_lhd, K, mu
 
 def goal_function(X, Ga_s, Ga_n, num_of_points):
     """
