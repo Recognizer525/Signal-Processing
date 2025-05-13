@@ -5,6 +5,20 @@ from functools import partial
 
 dist_ratio = 0.5
 
+def deg_to_rad(X):
+    """
+    Переводит из градусов в радианы.
+    """
+    return X * np.pi / 180
+
+
+def rad_to_deg(X):
+    """
+    Переводит из радианов в градусы.
+    """
+    return X * 180 / np.pi
+
+
 def CN(size:int, number:int, Gamma):
     """
     Генерирует комплексные нормальные вектора (circularly-symmetric case).
@@ -59,10 +73,14 @@ def f(theta, Ga_s, Ga_n, X, K, mu):
     inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
     inv_Ga_A, A_H_inv_Ga, A_H_inv_Ga_A = inv_Ga_n @ A, A_H @ inv_Ga_n, A_H @ inv_Ga_n @ A
     ans = 0
-    for k in range(G):
-        ans += -X[k].conj() @ inv_Ga_A @ mu[:, k]
-        ans += -mu[:,k].conj().T @ A_H_inv_Ga @ X[k]
-        ans += mu[:,k].conj().T @ A_H_inv_Ga_A @ mu[:,k] 
+    ans1 = sum([-X[k].conj() @ inv_Ga_A @ mu[:, k] for k in range(G)])
+    ans2 = sum([-mu[:,k].conj().T @ A_H_inv_Ga @ X[k] for k in range(G)])
+    ans3 = sum([mu[:,k].conj().T @ A_H_inv_Ga_A @ mu[:,k] for k in range(G)])
+    ans = ans1 + ans2 + ans3
+    #for k in range(G):
+        #ans += -X[k].conj() @ inv_Ga_A @ mu[:, k]
+        #ans += -mu[:,k].conj().T @ A_H_inv_Ga @ X[k]
+        #ans += mu[:,k].conj().T @ A_H_inv_Ga_A @ mu[:,k] 
     return ans.real
 
 
