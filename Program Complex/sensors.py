@@ -77,10 +77,6 @@ def f(theta, Ga_s, Ga_n, X, K, mu):
     ans2 = sum([-mu[:,k].conj().T @ A_H_inv_Ga @ X[k] for k in range(G)])
     ans3 = sum([mu[:,k].conj().T @ A_H_inv_Ga_A @ mu[:,k] for k in range(G)])
     ans = ans1 + ans2 + ans3
-    #for k in range(G):
-        #ans += -X[k].conj() @ inv_Ga_A @ mu[:, k]
-        #ans += -mu[:,k].conj().T @ A_H_inv_Ga @ X[k]
-        #ans += mu[:,k].conj().T @ A_H_inv_Ga_A @ mu[:,k] 
     return ans.real
 
 
@@ -130,6 +126,21 @@ def EM(theta, X, Ga_s, Ga_n, max_iter=50, eps=1e-6):
     return theta, neg_likelihood, K, mu
 
 
+def angle_correcter(theta):
+    for i in range(len(theta)):
+        while theta[i] > np.pi:
+            theta[i] -= 2*np.pi
+        while theta[i] < -np.pi:
+            theta[i] += 2*np.pi
+
+    for i in range(len(theta)):
+        if theta[i] > np.pi/2:
+            theta[i] = np.pi - theta[i]
+        elif theta[i] < -np.pi/2:
+            theta[i] = - np.pi - theta[i]
+    return theta
+
+
 def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     """
     num_of_starts - число запусков;
@@ -147,6 +158,7 @@ def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         if neg_lhd < best_neg_lhd:
             best_neg_lhd = neg_lhd
             best_theta = est_theta
+    best_theta = angle_correcter(best_theta)
     return best_theta, best_neg_lhd, K, mu
 
 def goal_function(X, Ga_s, Ga_n, num_of_points):
@@ -234,14 +246,3 @@ def gradient_descent(theta, deriv_func, lr = 0.1, iters = 5):
         print('lr*G', lr*G)
     return ans
 
-def correcter(theta):
-    """
-    Работает с углами, удаляя дополнительные периоды. Т.е., мы вычитаем/добавляем 2*pi, до тех пор, пока угол не будет принадлежать отрезку [-2*pi, 2*pi]
-    """
-    for i in range(theta.shape[0]):
-        while theta[i,0] > np.pi:
-            theta[i,0] -= 2*np.pi
-        while theta[i,0] < -np.pi:
-            theta[i,0] += 2*np.pi
-    #print(f'theta={theta}')
-    return theta
