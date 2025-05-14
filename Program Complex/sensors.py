@@ -91,8 +91,6 @@ def equation_solver(theta, Ga_s, Ga_n, X, K, mu):
     """
     simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
     ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
-    #print(f'inversed_likelihood={simplified_f(ans)}')
-    #print(f'theta_new={ans}') 
     return ans, simplified_f(ans)
 
 
@@ -160,8 +158,7 @@ def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
         est_theta, neg_lhd, K, mu = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
         if neg_lhd < best_neg_lhd:
-            best_neg_lhd = neg_lhd
-            best_theta = est_theta
+            best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_neg_lhd, K, mu
 
