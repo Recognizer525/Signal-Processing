@@ -150,8 +150,7 @@ def multi_start(num_of_starts, X, Ga_s, Ga_n, max_iter=20, eps=1e-6):
     Ga_n - ковариация шума;
     X - коллекция полученных сигналов.
     """
-    best_neg_lhd = np.inf
-    best_theta = None
+    best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
         M = Ga_s.shape[0]
@@ -171,8 +170,7 @@ def goal_function(X, Ga_s, Ga_n, num_of_points):
     X - коллекция полученных сигналов.
     """
     initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1)
-    L = np.shape(Ga_n)[0]
-    M = np.shape(Ga_s)[0]
+    L, M = np.shape(Ga_n)[0], np.shape(Ga_s)[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(initial_theta).reshape(1,-1))
     A_H = A.conj().T
     K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
