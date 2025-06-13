@@ -176,28 +176,6 @@ def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_sta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_neg_lhd, K, mu
 
-def goal_function(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_points: int):
-    """
-    Данный метод реализует Е-шаг алгоритма, затем, в отрезке [-pi; pi] выделяется заданное число равноудаленных точек, для каждой из которых вычисляется
-    значение функции, которую нужно минимизировать на М-шаге.
-    Ga_s - ковариация сигнала;
-    Ga_n - ковариация шума;
-    X - коллекция полученных сигналов;
-    num_of_points - число точек, для которых определяем значение функции.
-    """
-    initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1)
-    L, M = np.shape(Ga_n)[0], np.shape(Ga_s)[0]
-    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(initial_theta).reshape(1,-1))
-    A_H = A.conj().T
-    K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
-    mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
-    funct = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
-    B = np.linspace(-np.pi, np.pi, num_of_points)
-    f_B = np.zeros(num_of_points, dtype=np.complex128)
-    for i in range(num_of_points):
-        f_B[i] = funct(np.array([[B[i]]]))
-    return B, f_B
-
 
 def dA(theta: float, L: int, M: int, i: int):
     """
@@ -227,25 +205,25 @@ def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
     dev_cov = dev_A @ Ga_s @ A_H + A @ Ga_s @ dev_A_H
     return dev_cov
 
-def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: int, M: int, i: int):
+def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: int, M: int):
     """
+    Вычисление градиента функции ML2.
     X - коллекция полученных сигналов;
     theta - начальная оценка направлений прибытия сигнала;
     Ga_s - ковариация сигнала;
     sigma2 - величина на которую умножаем единичную матрицу, чтобы получить ковариацию шума;
     L - число датчиков;
-    M - число источников;
-    i - номер компоненты theta, по которой ищем частную производную.
+    M - число источников.
     """
     N = len(X)
-    dev_Cov = dCov(theta, Ga_s, L, M, i)
+    dev_Cov = [dCov(theta, Ga_s, L, M, i) for i in range(M)]
     I = np.eye(L, dtype=np.float64)
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
     Cov = A @ Ga_s @ A_H + sigma2 * I
     inv_Cov = np.linalg.inv(Cov)
     R = space_covariance_matrix(X)
-    dev_ML2 = N*np.trace((I - inv_Cov @ R) @ inv_Cov @ dev_Cov)
+    dev_ML2 = [N*np.trace((I - inv_Cov @ R) @ inv_Cov @ dev_Cov[i]).real for i in range(M)]
     return dev_ML2
 
 
@@ -265,10 +243,10 @@ def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray,
     Cov = A @ Ga_s @ A_H + sigma2 * I
     R = space_covariance_matrix(X)
     L2 = N * np.log(np.linalg.det(Cov)) + N * np.trace(np.linalg.inv(Cov) @ R)
-    return L2
+    return L2.real
 
 
-def ML_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray):
+def ML2_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, method: str = 'Nelder-Mead'):
     """
     Запуск поиска параметров со случайно выбранной начальной точки.
     theta - начальная оценка DoA;
@@ -280,10 +258,15 @@ def ML_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.nda
     L = Ga_n.shape[0]
     M = Ga_s.shape[0]
     ML2_with_one_arg = partial(ML2, L=L, M=M, Ga_s=Ga_s, sigma2=sigma2, X=X)
-    ans = scipy.optimize.minimize(ML2_with_one_arg, theta.reshape(-1,), method='Nelder-Mead').x
-    return ans, ML2_with_one_arg(ans).real
+    if method == 'Nelder-Mead':
+        ans = scipy.optimize.minimize(ML2_with_one_arg, theta.reshape(-1,), method='Nelder-Mead').x
+        return ans, ML2_with_one_arg(ans).real
+    if method in ['BFGS', 'Newton-CG', 'CG']:
+        dev_ML2 = d_ML2(X, theta, Ga_s, sigma2, L, M)
+        ans = scipy.optimize.minimize(ML2_with_one_arg, theta.reshape(-1,), jac=dev_ML2, method=method).x
+        return ans, ML2_with_one_arg(ans).real
 
-def multi_start_ML(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20):
+def multi_start_ML2(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, method: str = 'Nelder-Mead'):
     """
     Метод реализует нахождение углов, соответствующих максимальному правдоподобию (на основе статьи Рао 1994 года). 
     Для нахождения глобального оптимума используется мультистарт.
@@ -297,13 +280,34 @@ def multi_start_ML(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_sta
         print(f'{i}-th start')
         M = Ga_s.shape[0]
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        est_theta, func_val = ML_solution(theta, X, Ga_s, Ga_n)
+        est_theta, func_val = ML2_solution(theta, X, Ga_s, Ga_n, method)
         if func_val < best_func_val:
             best_func_val, best_theta = func_val, est_theta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_func_val
 
 
+def goal_function_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_points: int):
+    """
+    Данный метод реализует Е-шаг алгоритма, затем, в отрезке [-pi; pi] выделяется заданное число равноудаленных точек, для каждой из которых вычисляется
+    значение функции, которую нужно минимизировать на М-шаге.
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
+    X - коллекция полученных сигналов;
+    num_of_points - число точек, для которых определяем значение функции.
+    """
+    initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1)
+    L, M = np.shape(Ga_n)[0], np.shape(Ga_s)[0]
+    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(initial_theta).reshape(1,-1))
+    A_H = A.conj().T
+    K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
+    mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
+    funct = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
+    B = np.linspace(-np.pi, np.pi, num_of_points)
+    f_B = np.zeros(num_of_points, dtype=np.complex128)
+    for i in range(num_of_points):
+        f_B[i] = funct(np.array([[B[i]]]))
+    return B, f_B
 '''
 Методы, не используемые в текущей версии.
 '''
