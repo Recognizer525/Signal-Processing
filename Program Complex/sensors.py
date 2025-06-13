@@ -8,6 +8,7 @@ dist_ratio = 0.5
 def deg_to_rad(X: np.ndarray):
     """
     Переводит из градусов в радианы.
+    X - вектор углов, заданных в градусах.
     """
     return X * np.pi / 180
 
@@ -15,6 +16,7 @@ def deg_to_rad(X: np.ndarray):
 def rad_to_deg(X: np.ndarray):
     """
     Переводит из радианов в градусы.
+    X - вектор углов, заданных в радианах.
     """
     return X * 180 / np.pi
 
@@ -22,9 +24,9 @@ def rad_to_deg(X: np.ndarray):
 def CN(size: int, number: int, Gamma: np.ndarray):
     """
     Генерирует комплексные нормальные вектора (circularly-symmetric case).
-    Gamma - ковариационная матрица
-    size - размер вектора
-    number - количество векторов
+    size - размер вектора;
+    number - количество векторов;
+    Gamma - ковариационная матрица.
     """ 
     n = 2 * size # Размер ковариационной матрицы совместного распределения
     C = np.zeros((n,n), dtype=np.float64)
@@ -35,17 +37,12 @@ def CN(size: int, number: int, Gamma: np.ndarray):
     mu = np.zeros(n)
     B = np.random.RandomState(70).multivariate_normal(mu, 0.5*C, number)
     D = B[:,:size] + 1j * B[:, size:]
-    return D 
-
-def steering_vector(dist_ratio: float, angle: float, Num_sensors: int):
-    """
-    Метод генерирует управляющий вектор.
-    """
-    return np.exp(-2j * np.pi * dist_ratio * np.arange(Num_sensors) * np.sin(angle))
+    return D
     
 def space_covariance_matrix(X: np.ndarray):
     """
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
+    X - коллекция полученных сигналов.
     """
     N = len(X)
     ans = np.zeros((len(X[0]), len(X[0])), dtype = np.complex128)
@@ -53,20 +50,32 @@ def space_covariance_matrix(X: np.ndarray):
         ans += X[i][:, None] @ X[i][:, None].conj().T
     return ans * (1/N)
 
-def bartlett_func(a: np.ndarray, R: np.ndarray):
+def bartlett_func(A: np.ndarray, R: np.ndarray):
     """
     Выходная мощность для формирователя луча Bartlett.
+    A - матрица управляющих векторов;
+    R - матрица пространственной ковариации.
     """
-    return (a[:,None].conj().T @ R @ a[:, None] / (a[:,None].conj().T @ a[:, None]))[0,0]
+    return (A[:,None].conj().T @ R @ A[:, None] / (A[:,None].conj().T @ A[:, None]))[0,0]
 
-def capon_func(a: np.ndarray, R: np.ndarray):
+def capon_func(A: np.ndarray, R: np.ndarray):
     """
     Выходная мощность для формирователя луча CAPON.
+    A - матрица управляющих векторов;
+    R - матрица пространственной ковариации.
     """
-    return 1/(a[:,None].conj().T @ np.linalg.inv(R) @ a[:,None])[0,0]
+    return 1/(A[:,None].conj().T @ np.linalg.inv(R) @ A[:,None])[0,0]
 
 
 def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
+    """
+    theta - вектор углов, которые соответствуют DOA;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
+    X - коллекция полученных сигналов;
+    K - ковариация апостериорного распределения;
+    mu - мат.ожидание апостериорного распределения.
+    """
     M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
@@ -96,9 +105,12 @@ def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np
 
 def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
+    theta - вектор углов, которые соответствуют DOA;
+    X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
-    X - коллекция полученных сигналов.
+    max_iter - предельное число итерация;
+    eps - величина, используемая для проверки сходимости последних итераций.
     """
     no_conv = True
     iteration = 0
@@ -128,6 +140,7 @@ def angle_correcter(theta: np.ndarray):
     """
     Набор углов преобразуется таким образом, чтобы все углы были в области [-pi/2; pi/2], для этого по мере необходимости добавляется/вычитается 2*pi 
     требуемое число раз, кроме того, учитывается тот факт, что синус симметричен относительно pi/2 и -pi/2.
+    theta - вектор углов, которые соответствуют DOA.
     """
     for i in range(len(theta)):
         while theta[i] > np.pi:
@@ -145,10 +158,12 @@ def angle_correcter(theta: np.ndarray):
 
 def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
-    num_of_starts - число запусков;
+    X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
-    X - коллекция полученных сигналов.
+    num_of_starts - число запусков;
+    max_iter - предельное число итерация;
+    eps - величина, используемая для проверки сходимости последних итераций.
     """
     best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
@@ -167,7 +182,8 @@ def goal_function(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_poin
     значение функции, которую нужно минимизировать на М-шаге.
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
-    X - коллекция полученных сигналов.
+    X - коллекция полученных сигналов;
+    num_of_points - число точек, для которых определяем значение функции.
     """
     initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1)
     L, M = np.shape(Ga_n)[0], np.shape(Ga_s)[0]
@@ -183,19 +199,12 @@ def goal_function(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_poin
     return B, f_B
 
 
-# Functions for case, when X has unobsevred part
-def EM2():
-    pass
-
-def multistart2():
-    pass
-
 def dA(theta: float, L: int, M: int, i: int):
     """
-    theta - точка, в которой ищем производную;
-    i - компонент theta, по которому ищем производную;
+    theta - оценка DoA, по которой составляется производная матрицы управляющих векторов;
     L - число датчиков;
-    M - число источников.
+    M - число источников;
+    i - компонент theta, по которому происходит дифференцирование матрицы.
     """
     dev_A = np.zeros((L, M), dtype=np.complex128)
     dev_A[:, i] = -2j * np.pi * dist_ratio * np.cos(theta) * np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta))
@@ -204,6 +213,13 @@ def dA(theta: float, L: int, M: int, i: int):
 
 
 def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
+    """
+    theta - оценка DoA, по которой составляется матрица управляющих векторов;
+    Ga_s - ковариация сигнала;
+    L - число датчиков;
+    M - число источников;
+    i - номер компоненты theta, по которой ищем частную производную.
+    """
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
     dev_A = dA(theta, L, M, i)
@@ -212,6 +228,15 @@ def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
     return dev_cov
 
 def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: int, M: int, i: int):
+    """
+    X - коллекция полученных сигналов;
+    theta - начальная оценка направлений прибытия сигнала;
+    Ga_s - ковариация сигнала;
+    sigma2 - величина на которую умножаем единичную матрицу, чтобы получить ковариацию шума;
+    L - число датчиков;
+    M - число источников;
+    i - номер компоненты theta, по которой ищем частную производную.
+    """
     N = len(X)
     dev_Cov = dCov(theta, Ga_s, L, M, i)
     I = np.eye(L, dtype=np.float64)
@@ -225,6 +250,14 @@ def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: 
 
 
 def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray, X: np.ndarray):
+    """
+    theta - начальная оценка DoA;
+    L - число датчиков;
+    M - число источников;
+    Ga_s - ковариация сигнала;
+    sigma2 - величина на которую умножаем единичную матрицу, чтобы получить ковариацию шума;
+    X - коллекция полученных сигналов.
+    """
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
     N = len(X)
@@ -236,6 +269,12 @@ def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray,
 
 
 def ML_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray):
+    """
+    theta - начальная оценка DoA;
+    X - коллекция полученных сигналов;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума.
+    """
     sigma2 = Ga_n[0,0]
     L = Ga_n.shape[0]
     M = Ga_s.shape[0]
@@ -323,4 +362,12 @@ def gradient_descent(theta: np.ndarray, deriv_func, lr: float = 0.1, iters: int 
         ans = ans - lr * G
         print('lr*G', lr*G)
     return ans
+
+
+# Functions for case, when X has unobsevred part
+def EM2():
+    pass
+
+def multistart2():
+    pass
 
