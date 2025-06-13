@@ -205,6 +205,83 @@ def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
     dev_cov = dev_A @ Ga_s @ A_H + A @ Ga_s @ dev_A_H
     return dev_cov
 
+def d_ML1(X: np.ndarray, theta: np.ndarray, L: int, M: int):
+    """
+    Вычисление градиента функции ML1.
+    X - коллекция полученных сигналов;
+    theta - начальная оценка направлений прибытия сигнала;
+    L - число датчиков;
+    M - число источников.
+    """
+    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    A_H = A.conj().T
+    W2 = A_H @ A
+    inv_W2 = np.linalg.inv(W2)
+    I = np.eye(L, dtype=np.float64)
+    P = I - A @ inv_W2 @ A_H
+    R = space_covariance_matrix(X)
+    
+    est_sigma2 = np.trace(P@R)/(L-M)
+    est_Gamma = inv_W2 @ A_H @ (R - est_sigma2*I) @ A @ inv_W2
+
+    inv1 = np.linalg.inv(A_H @ R @ A)
+    inv2 = np.linalg.inv(A_H @ A)
+    left_expr = (inv1 - inv2 / est_sigma) @ A_H @ R @ P
+    dev_A = [dA(theta, L, M, i) for i in range(M)]
+    dev_ML2 = [2*np.trace(left_expr @ dev_A[i]).real for i in range(M)]
+    return dev_ML2
+
+def ML1(theta: np.ndarray, L: int, M: int, X: np.ndarray):
+    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    A_H = A.conj().T
+    R = space_covariance_matrix(X)
+    W1 = A_H @ R @ A
+    W2 = A_H @ A
+    inv_W2 = np.linalg.inv(W2)
+    I = np.eye(L, dtype=np.float64)
+    P = I - A @ inv_W2 @ A_H
+    L1 = (L - M) * np.log(np.trace(P @ R)) + np.log(np.linalg.det(W1)) - np.log(np.linalg.det(W2))
+    return L1
+
+def ML1_solution(theta: np.ndarray, X: np.ndarray, L: int, M: int, method: str = 'Nelder-Mead'):
+    """
+    Запуск поиска параметров со случайно выбранной начальной точки.
+    theta - начальная оценка DoA;
+    L - число датчиков;
+    M - число источников;
+    X - коллекция полученных сигналов;
+    method - используемый метод оптимизации.
+    """
+
+    ML1_with_one_arg = partial(ML1, L=L, M=M, X=X)
+    if method == 'Nelder-Mead':
+        ans = scipy.optimize.minimize(ML1_with_one_arg, theta.reshape(-1,), method='Nelder-Mead').x
+        return ans, ML1_with_one_arg(ans).real
+    if method in ['BFGS', 'Newton-CG', 'CG']:
+        dev_ML1 = d_ML1(X, theta, L, M)
+        ans = scipy.optimize.minimize(ML1_with_one_arg, theta.reshape(-1,), jac=dev_ML1, method=method).x
+        return ans, ML1_with_one_arg(ans).real
+
+def multi_start_ML1(X: np.ndarray, L: int, M: int, num_of_starts: int = 20, method: str = 'Nelder-Mead'):
+    """
+    Метод реализует нахождение углов, соответствующих максимальному правдоподобию (на основе статьи Рао 1994 года). 
+    Для нахождения глобального оптимума используется мультистарт.
+    X - коллекция полученных сигналов;
+    L - число датчиков;
+    M - число источников;
+    num_of_starts - число запусков.
+    """
+    best_func_val, best_theta = np.inf, None
+    for i in range(num_of_starts):
+        print(f'{i}-th start')
+        theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
+        est_theta, func_val = ML1_solution(theta, X, L, M, method)
+        if func_val < best_func_val:
+            best_func_val, best_theta = func_val, est_theta
+    best_theta = angle_correcter(best_theta)
+    return best_theta, best_func_val
+
+
 def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: int, M: int):
     """
     Вычисление градиента функции ML2.
@@ -312,17 +389,6 @@ def goal_function_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_p
 Методы, не используемые в текущей версии.
 '''
 
-def ML1(theta: np.ndarray, L: int, M: int, X: np.ndarray):
-    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-    A_H = A.conj().T
-    R = space_covariance_matrix(X)
-    W1 = A_H @ R @ A
-    W2 = A_H @ A
-    inv_W2 = np.linalg.inv(W2)
-    I = np.eye(L, dtype=np.float64)
-    P = I - A @ inv_W2 @ A_H
-    L1 = (L - M) * np.log(np.trace(P @ R)) + np.log(np.linalg.det(W1)) - np.log(np.linalg.det(W2))
-    return L1
 
 def pdce(i: int, theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
