@@ -226,7 +226,7 @@ def d_ML1(X: np.ndarray, theta: np.ndarray, L: int, M: int):
 
     inv1 = np.linalg.inv(A_H @ R @ A)
     inv2 = np.linalg.inv(A_H @ A)
-    left_expr = (inv1 - inv2 / est_sigma) @ A_H @ R @ P
+    left_expr = (inv1 - inv2 / est_sigma2) @ A_H @ R @ P
     dev_A = [dA(theta, L, M, i) for i in range(M)]
     dev_ML2 = [2*np.trace(left_expr @ dev_A[i]).real for i in range(M)]
     return dev_ML2
@@ -241,7 +241,7 @@ def ML1(theta: np.ndarray, L: int, M: int, X: np.ndarray):
     I = np.eye(L, dtype=np.float64)
     P = I - A @ inv_W2 @ A_H
     L1 = (L - M) * np.log(np.trace(P @ R)) + np.log(np.linalg.det(W1)) - np.log(np.linalg.det(W2))
-    return L1
+    return L1.real
 
 def ML1_solution(theta: np.ndarray, X: np.ndarray, L: int, M: int, method: str = 'Nelder-Mead'):
     """
