@@ -270,6 +270,7 @@ def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray,
 
 def ML_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray):
     """
+    Запуск поиска параметров со случайно выбранной начальной точки.
     theta - начальная оценка DoA;
     X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
@@ -284,6 +285,8 @@ def ML_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.nda
 
 def multi_start_ML(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20):
     """
+    Метод реализует нахождение углов, соответствующих максимальному правдоподобию (на основе статьи Рао 1994 года). 
+    Для нахождения глобального оптимума используется мультистарт.
     X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
