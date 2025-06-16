@@ -69,6 +69,7 @@ def capon_func(A: np.ndarray, R: np.ndarray):
 
 def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
+    Минимизируемая, на М-шаге, функция.
     theta - вектор углов, которые соответствуют DOA;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -91,6 +92,7 @@ def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: n
 
 def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
+    Нахождение оптимального вектора углов на М-шаге.
     theta - вектор углов, которые соответствуют DOA;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -105,6 +107,7 @@ def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np
 
 def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
+    Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
     X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
@@ -158,6 +161,7 @@ def angle_correcter(theta: np.ndarray):
 
 def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
+    Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
@@ -179,6 +183,7 @@ def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_sta
 
 def dA(theta: float, L: int, M: int, i: int):
     """
+    Вычисление производной для матрицы опорных векторов.
     theta - оценка DoA, по которой составляется производная матрицы управляющих векторов;
     L - число датчиков;
     M - число источников;
@@ -192,6 +197,7 @@ def dA(theta: float, L: int, M: int, i: int):
 
 def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
     """
+    Вычисление производной для ковариации распределения полученных сигналов.
     theta - оценка DoA, по которой составляется матрица управляющих векторов;
     Ga_s - ковариация сигнала;
     L - число датчиков;
@@ -233,6 +239,7 @@ def d_ML1(X: np.ndarray, theta: np.ndarray, L: int, M: int):
 
 def ML1(theta: np.ndarray, L: int, M: int, X: np.ndarray):
     """
+    Вычисление максимального правдоподобия в соответствии со статьей Rao (1994). Предполагается, что ковариационные матрицы сигнала и шума неизвестны.
     theta - начальная оценка DoA;
     L - число датчиков;
     M - число источников;
@@ -312,6 +319,7 @@ def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: 
 
 def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray, X: np.ndarray):
     """
+    Вычисление максимального правдоподобия в соответствии со статьей Rao (1994). Предполагается, что ковариационные матрицы сигнала и шума известны.
     theta - начальная оценка DoA;
     L - число датчиков;
     M - число источников;
@@ -391,6 +399,7 @@ def goal_function_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_p
     for i in range(num_of_points):
         f_B[i] = funct(np.array([[B[i]]]))
     return B, f_B
+
 '''
 Методы, не используемые в текущей версии.
 '''

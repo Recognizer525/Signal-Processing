@@ -8,3 +8,4 @@
 	* **sensors.py** - библиотека, реализующая алгоритм CAPON и ЕМ-алгоритм для определения DOA.
 	* **ULA.ipynb** - Notebook, который реализует алгоритм CAPON.
 	* **EM-algorithm.ipynb** - Notebook, который реализует ЕМ-алгоритм.
+	* **Comparing EM and Rao Approach.ipynb** - Notebook, который реализует сравнение ЕМ-алгоритма и подходов Рао (статья 1994 года).
