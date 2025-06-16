@@ -1,0 +1,151 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathsf{M}}
+\newcommand{\Var}{\mathsf{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\XSig}{\mathbf{x}}
+\newcommand{\Ssig}{\mathbf{s}}
+\newcommand{\Nsig}{\mathbf{n}}
+\newcommand{\Rs}{\mathbf{R}_s}
+\newcommand{\Rn}{\mathbf{R}_n}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм для оценки направления прибытия сигнала}}
+\end{center}
+Введем некоторые условные обозначения:
+\begin{itemize}
+\item
+$\theta$ -- вектор направлений прибытия сигнала (DOA);
+\item
+$\tau$ -- итерация ЕМ-алгоритма, начальная оценка параметров $\theta$;
+\item
+$t$ -- момент времени (а заодно и номер кадра (snapshot));
+\item
+$L$ -- число датчиков;
+\item
+$M$ -- число источников (источники разделяют общую длину центральной волны $\chi$);
+\item
+$G$ -- число независимых кадров/снимков (snapshot), сделанных в разные моменты времени;
+\item
+$S$ -- набор сигналов (случайная величина), испускаемых источниками в моменты времени $t=\overline{1,G}$, $S_t$ соответствует сигналу в момент времени $t$;
+\item
+$s$ -- набор сигналов (реализация), испускаемых источниками в моменты времени $t=\overline{1,G}$, $s_t$ соответствует сигналу в момент времени $t$;
+\item
+$N$ -- набор шумов (случайная величина), связанных с датчиками в моменты времени $t=\overline{1,G}$, $N_t$ соответствует шуму в момент времени $t$;
+\item
+$n$ -- набор шумов (реализация), связанных с датчиками в моменты времени $t=\overline{1,G}$, $n_t$ соответствует шуму в момент времени $t$;
+\item
+$X$ -- набор сигналов (случайная величина), полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$;
+\item
+$x$ -- набор сигналов (реализация), полученных датчиками в моменты времени $t=\overline{1,G}$, $x_t$ соответствует сигналу в момент времени $t$;
+\item
+$X_o$ -- наблюдаемая часть (случайная величина) $X$; 
+\item
+$x_o$ -- наблюдаемая часть (реализация) $X$;
+\item
+$X_m$ -- ненаблюдаемая часть (случайная величина) $X$;
+\item
+$x_m$ -- ненаблюдаемая часть (реализация) $X$;
+\item
+$Z$ -- латентные переменные (случайная величина) ($S, X_m$);
+\item
+$z$ -- латентные переменные (реализация) ($s, x_m$);
+\item
+$\psi$ -- параметры комплексного нормального распределения $X_m$;
+\item
+$\Omega$ -- $(\psi, \theta)$;
+\item
+$O_{D_1 \times D_2}$ -- нулевая матрица размера $D_1 \times D_2$;
+\item
+Итоговый сигнал, получаемый массивом датчиков:
+\begin{equation}
+\begin{gathered}
+X_t=A(\theta)S_t+N_t,
+\end{gathered}
+\end{equation}
+где $S_t \sim CN(0,\Gamma_s),t=\overline{1,G}$, $N_t \sim CN(0,\Gamma_n), t=\overline{1,G}$, $S_t$ имеет размер $M \times 1$,  $N_t$ имеет размер $L \times 1$, $\theta=[\theta_1,...,\theta_M]$ -- вектор направлений прибытия сигнала, $A(\theta)$ (далее - $A$) представляет собой матрицу управляющих векторов размера $L \times M$, $\Gamma_s$ и $\Gamma_n$ предполагаются диагольными.
+\begin{gather}
+A(\theta) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi \frac{d}{\lambda}sin(\theta_M)}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_M)}\\
+\end{bmatrix}.
+\nonumber
+\end{gather}
+\end{itemize}
+Воспользуемся ЕМ-алгоритмом для того, чтобы определить значения параметров $\theta$, значения сигналов $S_t, t=\overline{1,G}$ рассматриваются как латентные переменные. 
+Пусть $X$, $S$ и $N$ набор итоговых сигналов полученных $L$ датчиками за моменты времени $t=\overline{1,G}$ и набор выпущенных $M$ источниками сигналов и набор шумов за моменты времени $t=\overline{1,G}$, соответственно. $X$, $S$ и $N$ представляют из себя матрицы размеров $G \times L$, $G \times M$ и $G \times L$ соответственно.
+\begin{center}
+\fontsize{16}{20}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+Требуется найти апостериорное распределение $P(Z|X=x,\theta)$, воспользуемся формулой Байеса:
+\begin{gather}
+P(Z|X=x,\Omega) = \frac{P(X, S|\Omega)}{P(X_m, S|\Omega)} = \frac{P(X_o, X_m, S|\Omega)}{P(X_m, S|\Omega)} = \frac{P(X_o, X_m, S|\Omega)}{P(X_m|S=s, \Omega)P(S|\Omega)} 
+\end{gather}
+\begin{gather}
+P(S|\Omega) = \prod_{t=1}^G \frac{1}{\pi^M |\Gamma_s|}e^{-S_t^H\Gamma_s^{-1}S_t},
+\end{gather}
+\begin{gather*}
+X_t = AS_t + N_t \\
+X_t \sim CN(0, A\Gamma_s A^H + \Gamma_n)
+\end{gather*}
+\begin{gather}
+P(X|\theta) = \prod_{t=1}^G \frac{1}{\pi^L |A\Gamma_s  A^H + \Gamma_n|}e^{-X_t^H (A\Gamma_s A^H + \Gamma_n)^{-1}X_t},
+\end{gather}
+Теперь следует определиться с тем, каким будет условное распределение $P(X|S=s, \theta)$
+\begin{gather*}
+X_t|S_t=s_t, \theta \, \sim CN(A s_t, \Gamma_n)
+\end{gather*}
+\begin{gather}
+P(X|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^L |\Gamma_n|}e^{-(X_t-A s_t)^H \Gamma_n^{-1}(X_t-A s_t)},
+\end{gather}
+\end{document}

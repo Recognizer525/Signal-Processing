@@ -185,7 +185,7 @@ def dA(theta: float, L: int, M: int, i: int):
     i - компонент theta, по которому происходит дифференцирование матрицы.
     """
     dev_A = np.zeros((L, M), dtype=np.complex128)
-    dev_A[:, i] = -2j * np.pi * dist_ratio * np.cos(theta) * np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta))
+    dev_A[:, i] = -2j * np.pi * dist_ratio * np.cos(theta[i]) * np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i]))
     #print(f'dev_A={dev_A}')
     return dev_A
 
@@ -232,6 +232,12 @@ def d_ML1(X: np.ndarray, theta: np.ndarray, L: int, M: int):
     return dev_ML2
 
 def ML1(theta: np.ndarray, L: int, M: int, X: np.ndarray):
+    """
+    theta - начальная оценка DoA;
+    L - число датчиков;
+    M - число источников;
+    X - коллекция полученных сигналов.
+    """
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
     R = space_covariance_matrix(X)
