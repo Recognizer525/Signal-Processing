@@ -4,22 +4,7 @@ import math
 from functools import partial
 
 dist_ratio = 0.5
-
-def deg_to_rad(X: np.ndarray):
-    """
-    Переводит из градусов в радианы.
-    X - вектор углов, заданных в градусах.
-    """
-    return X * np.pi / 180
-
-
-def rad_to_deg(X: np.ndarray):
-    """
-    Переводит из радианов в градусы.
-    X - вектор углов, заданных в радианах.
-    """
-    return X * 180 / np.pi
-
+   
 
 def CN(size: int, number: int, Gamma: np.ndarray):
     """
@@ -50,21 +35,53 @@ def space_covariance_matrix(X: np.ndarray):
         ans += X[i][:, None] @ X[i][:, None].conj().T
     return ans * (1/N)
 
-def bartlett_func(A: np.ndarray, R: np.ndarray):
+def bartlett_func(a: np.ndarray, R: np.ndarray):
     """
     Выходная мощность для формирователя луча Bartlett.
-    A - матрица управляющих векторов;
+    a - управляющий вектор;
     R - матрица пространственной ковариации.
     """
-    return (A[:,None].conj().T @ R @ A[:, None] / (A[:,None].conj().T @ A[:, None]))[0,0]
+    return (a[:,None].conj().T @ R @ a[:, None] / (a[:,None].conj().T @ a[:, None]))[0,0]
 
-def capon_func(A: np.ndarray, R: np.ndarray):
+def capon_func(a: np.ndarray, R: np.ndarray):
     """
     Выходная мощность для формирователя луча CAPON.
-    A - матрица управляющих векторов;
+    a - управляющий вектор;
     R - матрица пространственной ковариации.
     """
-    return 1/(A[:,None].conj().T @ np.linalg.inv(R) @ A[:,None])[0,0]
+    return 1/(a[:,None].conj().T @ np.linalg.inv(R) @ a[:,None])[0,0]
+
+def MUSIC(a: np.ndarray, R: np.ndarray, M: int):
+    """
+    Выходная мощность для формирователя луча MUSIC.
+    a - управляющий вектор;
+    M - число сигналов;
+    R - матрица пространственной ковариации.
+    """
+    eigvals, eigvecs = np.linalg.eigh(R)
+    idx = eigvals.argsort()[::-1]
+    eigvals = eigvals[idx]
+    eigvecs = eigvecs[:, idx]
+    E_n = eigvecs[:, M:]
+    return 1/(a[:,None].conj().T @ E_n @ E_n.conj().T @ a[:,None])[0,0]
+
+def ESPRIT(M: int, L: int, R: np.ndarray):
+    """
+    Оценки углов для ESPRIT.
+    M - число сигналов;
+    L - число элементов антенной решетки;
+    R - матрица пространственной ковариации.
+    """
+    eigvals, eigvecs = np.linalg.eigh(R)
+    idx = eigvals.argsort()[::-1]
+    eigvecs = eigvecs[:, idx]
+    E = eigvecs[:, :signal_count]
+    E1 = E[:-1, :]
+    E2 = E[1:, :]
+    Psi = np.linalg.pinv(E1) @ E2
+    eigvals_psi, _ = np.linalg.eig(Psi)
+    angles = np.arcsin(np.angle(eigvals_psi) / (2 * dist_ratio * np.pi))
+    return np.sort(angles)
 
 
 def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
