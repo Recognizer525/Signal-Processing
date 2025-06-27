@@ -137,7 +137,7 @@ P(S|X=x,\theta) = \prod_{t=1}^G \frac{1}{\pi^M |\Gamma_n||\Gamma_s||(A\Gamma_s A
 \end{gather}
 Таким образом:
 \begin{gather}
-P(S|X=x,\theta) = \prod_{t=1}^G \frac{1}{\pi^M |K_{S_t|X_t}|}e^{-(S_t-\mu_{S_t|X_t})^H K_{S_t|X_t}^{-1} (S_t-\mu_{S_t|X_t})}
+P(S|X=x,\theta) = \prod_{t=1}^G \frac{1}{\pi^M |\Sigma_{S_t|X_t}|}e^{-(S_t-\mu_{S_t|X_t})^H \Sigma_{S_t|X_t}^{-1} (S_t-\mu_{S_t|X_t})}
 \end{gather}
 Условное распределение также будет комплексным гауссовским, а его параметры будут определяться в соответствии с модифицированной теоремой о нормальной корреляции (см. файл Conditional\_Distribution.pdf).
 Определим кросс-ковариацию между $S$ и $X$.
@@ -163,14 +163,14 @@ A\Gamma_s&A\Gamma_sA^H+\Gamma_n
 В соответствии с выкладками, полученными в файле  Conditional\_Distribution.pdf, параметры апостериорной плотности будут определяться по следующим формулам:
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{S_t|X_t} = \Sigma_{S_t,S_t}-\Sigma_{S_t,X_t}\Sigma_{X_t,X_t}^{-1}\Sigma_{X_t,S_t} \\
-\mu_{S_t|X_t} = \mu_{S_t} + \Sigma_{S_t,X_t}\Sigma_{X_t,X_t}^{-1}(x_t-\mu_{X_t})
+\Sigma_{S_t|X_t} = \Sigma_{S_t}-\Sigma_{S_t,X_t}\Sigma_{X_t}^{-1}\Sigma_{X_t,S_t} \\
+\mu_{S_t|X_t} = \mu_{S_t} + \Sigma_{S_t,X_t}\Sigma_{X_t}^{-1}(x_t-\mu_{X_t})
 \end{gathered} \right.
 \end{equation}
 Подствим в эту формулу полученные нами значения:
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{S_t|X_t} = \Gamma_s-\Gamma_sA^H(A\Gamma_sA^H+\Gamma_n)^{-1}A\Gamma_s \\
+\Sigma_{S_t|X_t} = \Gamma_s-\Gamma_sA^H(A\Gamma_sA^H+\Gamma_n)^{-1}A\Gamma_s \\
 \mu_{S_t|X_t} = \Gamma_sA^H(A\Gamma_sA^H+\Gamma_n)^{-1} x_t
 \end{gathered} \right.
 \end{equation}
@@ -200,8 +200,8 @@ X_t|S_t
 \end{pmatrix}\\,
 \Sigma = 
 \begin{pmatrix}
-\Sigma_{S_t,S_t}&O_{M\times L}\\
-O_{L\times M}&\Sigma_{X_t|S_t,X_t|S_t}
+\Sigma_{S_t}&O_{M\times L}\\
+O_{L\times M}&\Sigma_{X_t|S_t}
 \end{pmatrix}
 \end{equation*}
 Найдем логарифм совместной плотности (т.е. полное правдоподобие) $\log P(X|S, \, S|\theta^{(\tau)})$:
@@ -215,54 +215,54 @@ P(X_t|S_t, \, S_t|\theta^{(\tau)}) = \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_
 \begin{gather*}
 Q_t = E[\log P(X_t|S_t, \, S_t|\theta^{(\tau)})|X_t, \theta^{(\tau)}] \\ = E[-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] = \\
 =-(M+L)\log(\pi)-\log|\Sigma| - E[(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] 
-=-(M+L)\log(\pi)-\log|\Sigma| \\ -   E[(X_t|S_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(X_t|S_t-\mu_{X|S})|X_t=x_t, \theta^{(\tau)}] 
-- E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t, \theta^{(\tau)}] \\
-=-(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X|S})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})\\ - E[(S_t-\mu_{s_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+=-(M+L)\log(\pi)-\log|\Sigma| \\ -   E[(X_t|S_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t}^{-1}(X_t|S_t-\mu_{X|S})|X_t=x_t, \theta^{(\tau)}] 
+- E[(S_t-\mu_{S_t})^H\Sigma_{S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t, \theta^{(\tau)}] \\
+=-(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X|S})^H\Sigma_{X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})\\ - E[(S_t-\mu_{s_t})^H\Sigma_{S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
 \end{gather*}
 \begin{equation}
 \begin{gathered}
-Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ - E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ - E[(S_t-\mu_{S_t})^H\Sigma_{S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
 \end{gathered}
 \end{equation}
 Заметим, что первые два слагаемые, составляющие $Q_t$, не зависят от $\theta$, соответственно требуемый $argmax [\cdot]$ можно найти без их учета.
 \begin{gather*}
-S_t|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}, K_{S_t|X_t}) \Rightarrow S_t-\mu_{S_t}|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}-\mu_{S_t}, K_{S_t|X_t})
+S_t|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}, \Sigma_{S_t|X_t}) \Rightarrow S_t-\mu_{S_t}|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}-\mu_{S_t}, \Sigma_{S_t|X_t})
 \end{gather*}
 \begin{gather*}
-\Rightarrow [\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}( S_t-\mu_{S_t})|(X_t=x_t, \theta^{(\tau)}) \sim CN([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}),[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H)
+\Rightarrow [\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}( S_t-\mu_{S_t})|(X_t=x_t, \theta^{(\tau)}) \sim CN([\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}),[\Sigma_{S_t}^{-1}]^{\frac{1}{2}} \Sigma_{S_t|X_t}([\Sigma_{S_t}^{-1}]^{\frac{1}{2}})^H)
 \end{gather*}
 Учтем, что для комплексных векторов $Y$ выполняется следующее соотношение: 
 \begin{gather}
-E[YY^H]=E[Y]E[Y^H]+K_{YY}.
+E[YY^H]=E[Y]E[Y^H]+\Sigma_{YY}.
 \end{gather}
 \begin{gather*}
- E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}]  =  E[[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] =\\
-= tr(E[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H]|X_t=x_t,\theta^{(\tau)})=\\
-= tr([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H) + 
- tr([[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t})][[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}]^H) = \\
-= tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) + (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})
+ E[(S_t-\mu_{S_t})^H\Sigma_{S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}]  =  E[[[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] =\\
+= tr(E[[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})[[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H]|X_t=x_t,\theta^{(\tau)})=\\
+= tr([\Sigma_{S_t}^{-1}]^{\frac{1}{2}} \Sigma_{S_t|X_t}([\Sigma_{S_t}^{-1}]^{\frac{1}{2}})^H) + 
+ tr([[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t})][[\Sigma_{S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}]^H) = \\
+= tr([\Sigma_{S_t}^{-1}]\Sigma_{S_t|X_t}) + (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})
 \end{gather*}
 \begin{equation}
 \begin{gathered}
-Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t}) 
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ -  tr([\Sigma_{S_t}^{-1}]\Sigma_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t}) 
 \end{gathered}
 \end{equation}
 \begin{equation}
 \begin{gathered}
- E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})  -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right)
+ E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})  -  tr([\Sigma_{S_t}^{-1}]\Sigma_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right)
 \end{gathered}
 \end{equation}
 Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] $ сводится к поиску
 \begin{equation}
 \begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right).
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t}^{-1}]\Sigma_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right).
 \end{gathered}
 \end{equation}
 Учтем, что $\mu_{S_t} = O_{M \times 1}$, $\mu_{X_t|S_t}=As_t$, в рамках задачи $s_t$ -- скрытая переменная, она оценивается так: $\hat{s}_t = \mu_{S_t|X_t}$.
 \begin{equation}
 \begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right) = \\
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-A\mu_{S_t|X_t})^H\Gamma_n^{-1}(x_t-A\mu_{S_t|X_t}) +  tr([\Gamma_s^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-O_{M \times 1})^H\Gamma_s^{-1}(\mu_{S_t|X_t}-O_{M \times 1})\right) = \\
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t}^{-1}]\Sigma_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right) = \\
+\argmin_{\theta}  \sum_{t=1}^G \left((x_t-A\mu_{S_t|X_t})^H\Gamma_n^{-1}(x_t-A\mu_{S_t|X_t}) +  tr([\Gamma_s^{-1}]\Sigma_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-O_{M \times 1})^H\Gamma_s^{-1}(\mu_{S_t|X_t}-O_{M \times 1})\right) = \\
 \argmin_{\theta}  \sum_{t=1}^G \left(x_t^H\Gamma_n^{-1}x_t -(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
 \argmin_{\theta}  \sum_{t=1}^G \left(-(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
 \argmin_{\theta}  \sum_{t=1}^G \left(-\mu_{S_t|X_t}^HA^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right)
@@ -306,43 +306,43 @@ e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_1)}&\dots&e^{-2j\pi (L-1)\frac{d}{\l
 \fontsize{16}{20}\selectfont \color{red}{\textbf{Ранние неверные выкладки}}
 \end{center}
 \begin{gather*}
--(x_t-A S_t)^H \Gamma_n^{-1}(x_t-A S_t)-S_t^H\Gamma_s^{-1}S_t+x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -(S_t-\mu_{S_t|X_t})^H K_{S_t|X_t}^{-1}(S_t-\mu_{S_t|X_t})
+-(x_t-A S_t)^H \Gamma_n^{-1}(x_t-A S_t)-S_t^H\Gamma_s^{-1}S_t+x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -(S_t-\mu_{S_t|X_t})^H \Sigma_{S_t|X_t}^{-1}(S_t-\mu_{S_t|X_t})
 \nonumber
 \end{gather*}
 \begin{gather*}
 -x_t^H\Gamma_n^{-1}x_t + x_t^H\Gamma_n^{-1}A S_t + (A S_t)^H\Gamma_n^{-1}x_t - (A S_t)^H \Gamma_n^{-1} A S_t -S_t^H\Gamma_s^{-1}S_t \\
-+x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t  =-S_t^H K_{S_t|X_t}^{-1}S_t + \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t   + S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} - \mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}
++x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t  =-S_t^H \Sigma_{S_t|X_t}^{-1}S_t + \mu_{S_t|X_t}^H  \Sigma_{S_t|X_t}^{-1}S_t   + S_t^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t} - \mu_{S_t|X_t}^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t}
 \end{gather*}
 \begin{equation*}
 \left\{ \begin{aligned} 
- -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
-x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
-(A S_t)^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
--S_t^H\Gamma_s^{-1}S_t - (A S_t)^H \Gamma_n^{-1} A S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+ -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  \Sigma_{S_t|X_t}^{-1}S_t \\
+(A S_t)^H\Gamma_n^{-1}x_t = S_t^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H\Gamma_s^{-1}S_t - (A S_t)^H \Gamma_n^{-1} A S_t = -S_t^H \Sigma_{S_t|X_t}^{-1}S_t
 \end{aligned} \right.
 \end{equation*}
 \begin{equation*}
 \left\{ \begin{aligned} 
- -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
-x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
-S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
--S_t^H\Gamma_s^{-1}S_t - S_t^H A^H \Gamma_n^{-1} A S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+ -x_t^H\Gamma_n^{-1}x_t + x_t^H (A\Gamma_s  A^H + \Gamma_n)^{-1}x_t = -\mu_{S_t|X_t}^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  \Sigma_{S_t|X_t}^{-1}S_t \\
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H\Gamma_s^{-1}S_t - S_t^H A^H \Gamma_n^{-1} A S_t = -S_t^H \Sigma_{S_t|X_t}^{-1}S_t
 \end{aligned} \right.
 \end{equation*}
 \begin{equation*}
 \left\{ \begin{aligned} 
- -x_t^H(\Gamma_n^{-1}- (A\Gamma_s  A^H+\Gamma_n)^{-1})x_t  = -\mu_{S_t|X_t}^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
-x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  K_{S_t|X_t}^{-1}S_t \\
-S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
--S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H K_{S_t|X_t}^{-1}S_t
+ -x_t^H(\Gamma_n^{-1}- (A\Gamma_s  A^H+\Gamma_n)^{-1})x_t  = -\mu_{S_t|X_t}^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t}\\
+x_t^H\Gamma_n^{-1}A S_t = \mu_{S_t|X_t}^H  \Sigma_{S_t|X_t}^{-1}S_t \\
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t} \\
+-S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H \Sigma_{S_t|X_t}^{-1}S_t
 \end{aligned} \right.
 \end{equation*}
 Предполагая обратимость матрицы $\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A$,
 \begin{equation*}
--S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H K_{S_t|X_t}^{-1}S_t  \Rightarrow \Gamma_s^{-1}+ A^H \Gamma_n^{-1} A= K_{S_t|X_t}^{-1} \Rightarrow K_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1}
+-S_t^H(\Gamma_s^{-1}+A^H \Gamma_n^{-1} A)S_t = -S_t^H \Sigma_{S_t|X_t}^{-1}S_t  \Rightarrow \Gamma_s^{-1}+ A^H \Gamma_n^{-1} A= \Sigma_{S_t|X_t}^{-1} \Rightarrow \Sigma_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1}
 \end{equation*}
 \begin{gather*}
-S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}
+S_t^H A^H\Gamma_n^{-1}x_t = S_t^H \Sigma_{S_t|X_t}^{-1}\mu_{S_t|X_t}
 \end{gather*}
 Равенство выше должно выполняться для любых реализаций $S_t$, множитель $S_t^H$ является первым множителем в обоих произведениях, соответственно, равенство останется верным после удаления этих множителей.
 \begin{gather*}
@@ -350,7 +350,7 @@ S_t^H A^H\Gamma_n^{-1}x_t = S_t^H K_{S_t|X_t}^{-1}\mu_{S_t|X_t}
 \end{gather*}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1} \\
+\Sigma_{S_t|X_t} = (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A)^{-1} \\
 \mu_{S_t|X_t} =- (\Gamma_s^{-1}+ A^H \Gamma_n^{-1} A) A^H\Gamma_n^{-1}x_t
 \end{gathered} \right.
 \end{equation}
