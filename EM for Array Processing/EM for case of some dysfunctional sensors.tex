@@ -95,9 +95,9 @@ $X_m$ -- ненаблюдаемая часть (случайная величи�
 \item
 $x_m$ -- ненаблюдаемая часть (реализация) $X$, $x_{m,t}$ соответствует сигналу в момент времени $t$;
 \item
-$Z$ -- латентные переменные (случайная величина) ($X_m, S$);
+$Y$ -- латентные переменные (случайная величина) ($X_m, S$);
 \item
-$z$ -- латентные переменные (реализация) ($x_m, s$);
+$y$ -- латентные переменные (реализация) ($x_m, s$);
 \item
 $\psi$ -- параметры комплексного нормального распределения $X_m$;
 \item
@@ -127,9 +127,9 @@ e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambd
 \begin{center}
 \fontsize{16}{20}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
-Требуется найти апостериорное распределение $P(Z|X_o=x_o,\theta)$, воспользуемся формулой Байеса:
+Требуется найти апостериорное распределение $P(Y|X_o=x_o,\theta)$, воспользуемся формулой Байеса:
 \begin{gather}
-P(Z|X_o=x_o,\theta) = P(X_m, S|X_o=x_o,\theta) = \frac{P(X, S|\theta)}{P(X_m, S|\theta)} = \frac{P(X_o, X_m, S|\theta)}{P(X_m, S|\theta)} = \frac{P(X_o, X_m, S|\theta)}{P(X_m|S=s, \theta)P(S|\theta)} 
+P(Y|X_o=x_o,\theta) = P(X_m, S|X_o=x_o,\theta) = \frac{P(X, S|\theta)}{P(X_m, S|\theta)} = \frac{P(X_o, X_m, S|\theta)}{P(X_m, S|\theta)} = \frac{P(X_o, X_m, S|\theta)}{P(X_m|S=s, \theta)P(S|\theta)} 
 \end{gather}
 \begin{gather}
 P(S|\theta) = \prod_{t=1}^G \frac{1}{\pi^M |\Gamma_s|}e^{-S_t^H\Gamma_s^{-1}S_t},
@@ -154,15 +154,15 @@ P(X_m|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_m|}e^{-(X_{m,t}-A_m
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Z|X_o} = K_{Z,Z}-K_{Z,X_o}K_{X_o,X_o}^{-1}K_{X_o,Z} \\
-m_{Z|X_o} = m_{Z} + K_{Z,X_o}K_{X_o,X_o}^{-1}\cdot(x_o-m_{X_o}),
+K_{Y|X_o} = K_{Y,Y}-K_{Y,X_o}K_{X_o,X_o}^{-1}K_{X_o,Y} \\
+m_{Y|X_o} = m_{Y} + K_{Y,X_o}K_{X_o,X_o}^{-1}\cdot(x_o-m_{X_o}),
 \end{gathered} \right.
 \end{equation}
 \begin{gather}
 K_{X_o,X_o}=A_o\Gamma_sA_o^H+\Gamma_o
 \end{gather}
 \begin{gather}
-K_{Z,Z} = \begin{pmatrix}
+K_{Y,Y} = \begin{pmatrix}
 K_{X_m, X_m}&K_{X_m, S}\\
 K_{S, X_m}&K_{S, S}
 \end{pmatrix}
@@ -177,13 +177,13 @@ K_{X_m,X_m} = A_m \Gamma_s A_m^H + \Gamma_m
 K_{X_m,S} = A_m \Gamma_s, K_{S, X_m} = \Gamma_s A_m^H 
 \end{gather}
 \begin{gather}
-K_{Z,Z} = \begin{pmatrix}
+K_{Y,Y} = \begin{pmatrix}
 A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
 \Gamma_s A_m^H&\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-K_{X_o,Z}
+K_{X_o,Y}
 = \begin{pmatrix}
 K_{X_o,X_m}\\
 K_{X_o,S}
@@ -194,12 +194,12 @@ A_o\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-K_{Z,X_o}
-= K_{X_o,Z}^H
+K_{Y,X_o}
+= K_{X_o,Y}^H
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Z|X_o} = \begin{pmatrix}
+K_{Y|X_o} = \begin{pmatrix}
 K_{X_m, X_m}&K_{X_m, S}\\
 K_{S, X_m}&K_{S, S}
 \end{pmatrix}-\begin{pmatrix}
@@ -209,7 +209,7 @@ K_{X_o,S}
 K_{X_o,X_m}\\
 K_{X_o,S}
 \end{pmatrix} \\
-m_{Z|X_o} =   \begin{pmatrix}
+m_{Y|X_o} =   \begin{pmatrix}
 K_{X_o,X_m}\\
 K_{X_o,S}
 \end{pmatrix}^H(K_{X_m,X_m})^{-1}\cdot x_o,
@@ -217,7 +217,7 @@ K_{X_o,S}
 \end{equation}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Z|X_o} = \begin{pmatrix}
+K_{Y|X_o} = \begin{pmatrix}
 A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
 \Gamma_s A_m^H&\Gamma_s
 \end{pmatrix}- \begin{pmatrix}
@@ -227,7 +227,7 @@ A_o\Gamma_s
 A_o\Gamma_s A_m^H\\
 A_o\Gamma_s
 \end{pmatrix} \\
-m_{Z|X_o} =   \begin{pmatrix}
+m_{Y|X_o} =   \begin{pmatrix}
 A_o\Gamma_s A_m^H\\
 A_o\Gamma_s
 \end{pmatrix}^H(A_o\Gamma_sA_o^H+\Gamma_o)^{-1}\cdot x_o,
@@ -238,127 +238,84 @@ A_o\Gamma_s
 \end{center}
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{gather}
-\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}]
+\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o, \theta^{(\tau)}]
 \end{gather}
-Обозначим приведенное выше условное математическое ожидание через $Q_t$. 
-Заметим, что \\ $\log P(X, \, S|\theta^{(\tau)}) = \log P(X|S,\theta^{(\tau)})P(S|\theta^{(\tau)}) = \log P(S|X,\theta^{(\tau)})P(X|\theta^{(\tau)})$.\\
-Можно заметить, что $P(X|S, S) = P(X, S)$. Работать с плотостью $P(X|S, S)$ удобнее: кросс-ковариция между $S$ и $X|S$ будет представлять из себя нулевую матрицу.
-Найдем совместную плотность $P(X|S, \, S|\theta^{(\tau)})$:
+Обозначим приведенное выше условное математическое ожидание через $Q$. 
+Заметим, что \\ $\log P(X_m, \, X_o, \, S|\theta^{(\tau)}) = \log P(X_o|X_m, \, S,\theta^{(\tau)})P(X_m, S|\theta^{(\tau)}) = \log P(X_o|Y,\theta^{(\tau)})P(Y|\theta^{(\tau)})$.\\
+Можно заметить, что $P(X_o|Y, Y) = P(X_o, Y)$. Работать с плотостью $P(X_o|Y, Y)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
+Найдем совместную плотность $P(X_o|Y, \, Y|\theta^{(\tau)})$:
 \begin{gather}
-P(X|S, \, S|\theta^{(\tau)}) = \prod_{t=1}^G \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})},
+P(X_o|Y, \, Y|\theta^{(\tau)}) = \prod_{t=1}^G \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})},
 \end{gather}
 где:
 \begin{equation*}
 Z_t = \begin{pmatrix}
-S_t\\
-X_t|S_t
+Y_t\\
+X_{o,t}|Y_t
 \end{pmatrix},
-\mu_{Z_t} = \begin{pmatrix}
-\mu_{S_t}\\
-\mu_{X_t|S_t}
+\mu_{Y_t} = \begin{pmatrix}
+\mu_{Y_t}\\
+\mu_{X_{o,t}|Y_t}
 \end{pmatrix}\\,
 \Sigma = 
 \begin{pmatrix}
-\Sigma_{S_t,S_t}&O_{M\times L}\\
-O_{L\times M}&\Sigma_{X_t|S_t,X_t|S_t}
+\Sigma_{Y_t,Y_t}&O_{(M+L_2)\times (L-L_2)}\\
+O_{(L-L_2)\times (M+L_2)}&\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}
 \end{pmatrix}
 \end{equation*}
-Найдем логарифм совместной плотности (т.е. полное правдоподобие) $\log P(X|S, \, S|\theta^{(\tau)})$:
+Найдем логарифм совместной плотности (т.е. полное правдоподобие) $\log P(X_o|Y, \, Y|\theta^{(\tau)})$:
 \begin{equation*}
-\log P(X|S, \, S|\theta^{(\tau)}) = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})\right)
+\log P(X_o|Y, \, Y|\theta^{(\tau)}) = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})\right)
 \end{equation*}
 Теперь попробуем раскрыть УМО полного правдоподобия для одного наблюдения, с учетом полученных сигналов и текущей оценки DOA:
 \begin{gather}
-P(X_t|S_t, \, S_t|\theta^{(\tau)}) = \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})}
+P(X_{o,t}|Y_t, \, Y_t|\theta^{(\tau)}) = \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})}
 \end{gather}
 \begin{gather*}
-Q_t = E[\log P(X_t|S_t, \, S_t|\theta^{(\tau)})|X_t, \theta^{(\tau)}] \\ = E[-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] = \\
-=-(M+L)\log(\pi)-\log|\Sigma| - E[(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_t=x_t, \theta^{(\tau)}] 
-=-(M+L)\log(\pi)-\log|\Sigma| \\ -   E[(X_t|S_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(X_t|S_t-\mu_{X|S})|X_t=x_t, \theta^{(\tau)}] 
-- E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t, \theta^{(\tau)}] \\
-=-(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X|S})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})\\ - E[(S_t-\mu_{s_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+Q_t = E[\log P(X_{o,t}|Y_t, \, Y_t|\theta^{(\tau)})|X_{o,t}, \theta^{(\tau)}] \\ = E[-(M+L)\log(\pi)-\log|\Sigma|-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_{o,t}=x_{o,t}, \theta^{(\tau)}] = \\
+=-(M+L)\log(\pi)-\log|\Sigma| - E[(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})|X_{o,t}=x_{o,t}, \theta^{(\tau)}] \\
+=-(M+L)\log(\pi)-\log|\Sigma|  -   E[(X_{o,t}|Y_t-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(X_{o,t}|Y_t-\mu_{X_{o,t}|Y_t})|X_{o,t}=x_{o,t}, \theta^{(\tau)}] 
+\\- E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t}, \theta^{(\tau)}] \\
+=-(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_t-\mu_{X_{o,t}|Y_t})\\ - E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}] 
 \end{gather*}
 \begin{equation}
 \begin{gathered}
-Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ - E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] 
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_t-\mu_{X_{o,t}|Y_t}) \\ - E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}] 
 \end{gathered}
 \end{equation}
 Заметим, что первые два слагаемые, составляющие $Q_t$, не зависят от $\theta$, соответственно требуемый $argmax [\cdot]$ можно найти без их учета.
 \begin{gather*}
-S_t|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}, K_{S_t|X_t}) \Rightarrow S_t-\mu_{S_t}|(X_t=x_t, \theta^{(\tau)}) \sim CN(\mu_{S_t|X_t}-\mu_{S_t}, K_{S_t|X_t})
+Y_t|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN(\mu_{Y_t|X_{o,t}}, K_{Y_t|X_{o,t}}) \Rightarrow Y_t-\mu_{Y_t}|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}, K_{Y_t|X_{o,t}})
 \end{gather*}
 \begin{gather*}
-\Rightarrow [\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}( S_t-\mu_{S_t})|(X_t=x_t, \theta^{(\tau)}) \sim CN([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}),[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H)
+\Rightarrow [\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}( Y_t-\mu_{Y_t})|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN([\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}),[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}} K_{Y_t|X_{o,t}}([\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}})^H)
 \end{gather*}
-Учтем, что для комплексных векторов $Y$ выполняется следующее соотношение: 
+Учтем, что для комплексных векторов $V$ выполняется следующее соотношение: 
 \begin{gather}
-E[YY^H]=E[Y]E[Y^H]+K_{YY}.
+E[VV^H]=E[V]E[V^H]+K_{VV}.
 \end{gather}
 \begin{gather*}
- E[(S_t-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}]  =  E[[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})|X_t=x_t,\theta^{(\tau)}] =\\
-= tr(E[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})[[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(S_t-\mu_{S_t})]^H]|X_t=x_t,\theta^{(\tau)})=\\
-= tr([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}} K_{S_t|X_t}([\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}})^H) + 
- tr([[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t})][[\Sigma_{S_t,S_t}^{-1}]^{\frac{1}{2}}(\mu_{S_t|X_t}-\mu_{S_t}]^H) = \\
-= tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) + (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})
+ E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}]  =  E[[[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}] =\\
+= tr(E[[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})[[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H]|X_{o,t}=x_{o,t},\theta^{(\tau)})=\\
+= tr([\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}} K_{Y_t|X_{o,t}}([\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}})^H) + 
+ tr([[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})][[\Sigma_{Y_t,Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}]^H) = \\
+= tr([\Sigma_{Y_t,Y_t}^{-1}]K_{Y_t|X_{o,t}}) + (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})
 \end{gather*}
 \begin{equation}
 \begin{gathered}
-Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) \\ -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t}) 
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) \\ -  tr([\Sigma_{Y_t,Y_t}^{-1}]K_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}) 
 \end{gathered}
 \end{equation}
 \begin{equation}
 \begin{gathered}
- E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t})  -  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) - (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right)
+ E[\log P(X_o, \, Y|\theta^{(\tau)})|X_{o,t}, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t})  -  tr([\Sigma_{Y_t,Y_t}^{-1}]K_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right)
 \end{gathered}
 \end{equation}
-Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X, \, S|\theta^{(\tau)})|X, \theta^{(\tau)}] $ сводится к поиску
+Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] $ сводится к поиску
 \begin{equation}
 \begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right).
+\argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  tr([\Sigma_{Y_t,Y_t}^{-1}]K_{Y_t|X_{o,t}}) \right. \\ \left. +  (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right).
 \end{gathered}
 \end{equation}
-Учтем, что $\mu_{S_t} = O_{M \times 1}$, $\mu_{X_t|S_t}=As_t$, в рамках задачи $s_t$ -- скрытая переменная, она оценивается так: $\hat{s}_t = \mu_{S_t|X_t}$.
-\begin{equation}
-\begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-\mu_{X_t|S_t})^H\Sigma_{X_t|S_t,X_t|S_t}^{-1}(x_t-\mu_{X_t|S_t}) +  tr([\Sigma_{S_t,S_t}^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-\mu_{S_t})^H\Sigma_{S_t,S_t}^{-1}(\mu_{S_t|X_t}-\mu_{S_t})\right) = \\
-\argmin_{\theta}  \sum_{t=1}^G \left((x_t-A\mu_{S_t|X_t})^H\Gamma_n^{-1}(x_t-A\mu_{S_t|X_t}) +  tr([\Gamma_s^{-1}]K_{S_t|X_t}) \right. \\ \left. +  (\mu_{S_t|X_t}-O_{M \times 1})^H\Gamma_s^{-1}(\mu_{S_t|X_t}-O_{M \times 1})\right) = \\
-\argmin_{\theta}  \sum_{t=1}^G \left(x_t^H\Gamma_n^{-1}x_t -(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
-\argmin_{\theta}  \sum_{t=1}^G \left(-(A\mu_{S_t|X_t})^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + (A\mu_{S_t|X_t})^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) =\\
-\argmin_{\theta}  \sum_{t=1}^G \left(-\mu_{S_t|X_t}^HA^H\Gamma_n^{-1}x_t -x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t} + \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right)
-\end{gathered}
-\end{equation}
-Теперь стоит подумать о том, как вычислить минимум для этой функции. Для начала определим первую производную для минимизируемой функции.
-Обозначим выражение, для которого мы ищем argmin, через $\tilde{Q}$. 
-\begin{equation}
-\begin{gathered}
-\frac{\partial \tilde{Q}}{\partial \theta_i} = 
-\sum_{t=1}^G \frac{\partial}{\partial \theta_i} \left(-x_t^H\Gamma_n^{-1}A\mu_{S_t|X_t}-\mu_{S_t|X_t}^HA^H\Gamma_n^{-1}x_t  + \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}A\mu_{S_t|X_t} \right) = \\
-\sum_{t=1}^G \left(-x_t^H\Gamma_n^{-1}\left(\frac{\partial A}{\partial \theta_i}\right)\mu_{S_t|X_t}-\mu_{S_t|X_t}^H\left(\frac{\partial A}{\partial \theta_i}\right)^H\Gamma_n^{-1}x_t  + \mu_{S_t|X_t}^H\left(\frac{\partial A}{\partial \theta_i}\right)^H\Gamma_n^{-1}A\mu_{S_t|X_t}  \right. \\
-+ \left. \mu_{S_t|X_t}^HA^H\Gamma_n^{-1}\left(\frac{\partial A}{\partial \theta_i}\right)\mu_{S_t|X_t} \right) 
-\end{gathered}
-\end{equation}
-\\Теперь о том, что из себя представляет производная для матрицы $A$:
-\begin{gather*}
-A = \begin{bmatrix}
-1&\dots&1&\dots&1\\
-e^{-2j\pi \frac{d}{\lambda}\sin(\theta_1)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_i)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_M)}\\
-\dots&\ddots&\dots&\ddots&\vdots\\
-e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_1)}&\dots&e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_i)}&\dots&e^{-2j\pi (L-1)\frac{d}{\lambda}\sin(\theta_M)}
-\end{bmatrix}
-\end{gather*}
-Пусть $h=-2j\pi\frac{d}{\lambda}$,
-\begin{gather}
-\frac{\partial A(\theta)}{\partial \theta_i} = \begin{bmatrix}
-0&\dots&0&\dots&0\\
-0&\dots&h\cos(\theta_i)e^{h \sin(\theta_i)}&\dots&0\\
-\dots&\ddots&\dots&\ddots&\vdots\\
-0&\dots&h(L-1)\cos(\theta_i)e^{h(L-1)\sin(\theta_i)}&\dots&0
-\end{bmatrix}.
-\end{gather}
-Проблема заключается в том, что оптимизируемая функция $\tilde{Q}(\theta)$ -- вещественнозначная, $\theta \in \mathbf{R}^M$  а ее производная -- комплекснозначная. Будем находить экстремум по следующей схеме:
-\begin{gather}
-\hat{\theta}^{(\tau+1, k)}=\hat{\theta}^{(\tau+1, k-1)} - \eta Re(\grad \tilde{Q}(\theta^{(\tau)})),
-\end{gather}
-где $\hat{\theta}^{(\tau+1, k)}$ -- оценка $\theta^{\tau+1}$ на $k$-м шаге градиентного спуска, $\hat{\theta}^{(\tau+1, 0)} = \theta^{(\tau)}$.
-
+Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, $\mu_{X_{o,t}|Y_t}=Ay_t$, в рамках задачи $y_t$ -- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
 \end{document}
