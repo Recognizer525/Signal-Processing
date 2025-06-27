@@ -252,12 +252,12 @@ A_{o,t}\Gamma_s
 \end{center}
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{gather}
-\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o, \theta^{(\tau)}]
+\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o=x_o, \theta^{(\tau)}] = E\left[\sum_{t=1}^G\log P(X_{o,t}, X_{m,t}, \, S_t|\theta^{(\tau)})|X_{o,t}=x_{o,t}, \theta^{(\tau)}\right]
 \end{gather}
 Обозначим приведенное выше условное математическое ожидание через $Q$. 
-Заметим, что \\ $\log P(X_m, \, X_{o,t}, \, S|\theta^{(\tau)}) = \log P(X_{o,t}|X_{m,t}, \, S,\theta^{(\tau)})P(X_{m,t}, S|\theta^{(\tau)}) = \log P(X_o|Y,\theta^{(\tau)})P(Y|\theta^{(\tau)})$.\\
-Можно заметить, что $P(X_{o,t}|Y, Y) = P(X_o, Y)$. Работать с плотостью $P(X_o|Y, Y)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
-Найдем совместную плотность $P(X_{o,t}|Y, \, Y|\theta^{(\tau)})$:
+Заметим, что \\ $\log P(X_{o,t}, \, X_{m,t}, \, S_t|\theta^{(\tau)}) = \log P(X_{o,t}|X_{m,t}, \, S_t,\theta^{(\tau)})P(X_{m,t}, S_t|\theta^{(\tau)}) = \log P(X_{o,t}|Y_t,\theta^{(\tau)})P(Y_t|\theta^{(\tau)})$.\\
+Можно заметить, что $P(X_{o,t}|Y_t, Y_t) = P(X_{o,t}, Y_t)$. Работать с плотостью $P(X_{o,t}|Y_t, Y_t)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
+Найдем совместную плотность $P(X_o|Y, \, Y|\theta^{(\tau)})$:
 \begin{gather}
 P(X_o|Y, \, Y|\theta^{(\tau)}) = \prod_{t=1}^G \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})},
 \end{gather}
