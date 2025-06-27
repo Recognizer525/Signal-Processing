@@ -148,89 +148,103 @@ X_t|S_t=s_t, \theta \, \sim CN(A s_t, \Gamma_n)
 \begin{gather}
 P(X|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^L |\Gamma_n|}e^{-(X_t-A s_t)^H \Gamma_n^{-1}(X_t-A s_t)},
 \end{gather}
-Теперь следует найти $P(X_m|S=s, \theta)$. Введем новые обозначения: пусть $A_o$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам. $A_m$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют неисправным сенсорам. $\Gamma_m$ -- ковариационная матрица шума на неисправных сенсорах,  $\Gamma_o$ -- ковариационная матрица шума на исправных сенсорах, $L_1$ -- число исправных сенсоров, $L_2$ -- число неисправных сенсоров.
+Теперь следует найти $P(X_m|S=s, \theta)$. Введем новые обозначения: пусть
+\begin{itemize}
+\item 
+$A_{o,t}$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам в момент времени $t$; 
+\item
+$A_{m,t}$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют неисправным сенсорам в момент времени $t$;
+\item
+$\Gamma_{m,t}$ -- ковариационная матрица шума на неисправных сенсорах в момент времени $t$;
+\item 
+ $\Gamma_{o,t}$ -- ковариационная матрица шума на исправных сенсорах в момент времени $t$;
+\item
+$L_{1,t}$ -- число исправных сенсоров в момент времени $t$;
+\item
+ $L_{2,t}$ -- число неисправных сенсоров в момент времени $t$.
+\end{itemize}
 \begin{gather}
-P(X_m|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_m|}e^{-(X_{m,t}-A_m s_t)^H \Gamma_m^{-1}(X_{m,t}-A_m s_t)},
+P(X_{m,t}|S_t=s_t,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_{m,t}|}e^{-(X_{m,t}-A_{m,t} s_t)^H \Gamma_{m,t}^{-1}(X_{m,t}-A_{m,t} s_t)},
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-\Sigma_{Y|X_o} = \Sigma_{Y}-\Sigma_{Y,X_o}\Sigma_{X_o}^{-1}\Sigma_{X_o,Y} \\
-\mu_{Y|X_o} = \mu_{Y} + \Sigma_{Y,X_o}\Sigma_{X_o}^{-1}\cdot(x_o-\mu_{X_o}),
+\Sigma_{Y_t|X_{o,t}} = \Sigma_{Y_t}-\Sigma_{Y_t,X_{o,t}}\Sigma_{X_{o,t}}^{-1}\Sigma_{X_{o,t},Y_t} \\
+\mu_{Y_t|X_{o,t}} = \mu_{Y_t} + \Sigma_{Y_t,X_{o,t}}\Sigma_{X_{o,t}}^{-1}\cdot(x_{o,t}-\mu_{X_{o,t}}),
 \end{gathered} \right.
 \end{equation}
 \begin{gather}
-\Sigma_{X_o}=A_o\Gamma_sA_o^H+\Gamma_o
+\Sigma_{X_{o,t}}=A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t}
 \end{gather}
 \begin{gather}
-\Sigma_{Y} = \begin{pmatrix}
-\Sigma_{X_m}&\Sigma_{X_m, S}\\
-\Sigma_{S, X_m}&\Sigma_{S}
+\Sigma_{Y_t} = \begin{pmatrix}
+\Sigma_{X_{m,t}}&\Sigma_{X_{m,t}, S_t}\\
+\Sigma_{S_t, X_{m,t}}&\Sigma_{S_t}
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-\Sigma_{S} = \Gamma_s
+\Sigma_{S_t} = \Gamma_s
 \end{gather}
 \begin{gather}
-\Sigma_{X_m} = A_m \Gamma_s A_m^H + \Gamma_m
+\Sigma_{X_{m,t}} = A_{m,t} \Gamma_s A_{m,t}^H + \Gamma_{m,t}
 \end{gather}
 \begin{gather}
-\Sigma_{X_m,S} = A_m \Gamma_s, \Sigma_{S, X_m} = \Gamma_s A_m^H 
+\Sigma_{X_{m,t},S_t} = A_{m,t} \Gamma_s, \Sigma_{S_t, X_{m,t}} = \Gamma_s A_{m,t}^H 
 \end{gather}
 \begin{gather}
-\Sigma_{Y} = \begin{pmatrix}
-A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
-\Gamma_s A_m^H&\Gamma_s
+\Sigma_{Y_t} = \begin{pmatrix}
+A_{m,t} \Gamma_s A_{m,t}^H + \Gamma_{m,t}&A_{m,t} \Gamma_s\\
+\Gamma_s A_{m,t}^H&\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-\Sigma_{X_o,Y}
+\Sigma_{X_{o,t},Y_t}
 = \begin{pmatrix}
-\Sigma_{X_o,X_m}\\
-\Sigma_{X_o,S}
+\Sigma_{X_{o,t},X_{m,t}}\\
+\Sigma_{X_{o,t},S_t}
 \end{pmatrix}= 
 \begin{pmatrix}
-A_o\Gamma_s A_m^H\\
-A_o\Gamma_s
+A_{o,t}\Gamma_s A_{m,t}^H\\
+A_{o,t}\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-\Sigma_{Y,X_o}
-= \Sigma_{X_o,Y}^H
+\Sigma_{Y_t,X_{o,t}}
+= \Sigma_{X_{o,t},Y_t}^H
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-\Sigma_{Y|X_o} = \begin{pmatrix}
-\Sigma_{X_m}&\Sigma_{X_m, S}\\
-\Sigma_{S, X_m}&\Sigma_{S}
+\Sigma_{Y_t|X_{o,t}} = \begin{pmatrix}
+\Sigma_{X_{m,t}}&\Sigma_{X_{m,t}, S_t}\\
+\Sigma_{S_t, X_{m,t}}&\Sigma_{S_t}
 \end{pmatrix}-\begin{pmatrix}
-\Sigma_{X_o,X_m}\\
-\Sigma_{X_o,S}
-\end{pmatrix}^H(\Sigma_{X_o})^{-1}\begin{pmatrix}
-\Sigma_{X_o,X_m}\\
-\Sigma_{X_o,S}
+\Sigma_{X_{o,t},X_{m,t}}\\
+\Sigma_{X_{o,t},S_t}
+\end{pmatrix}^H(\Sigma_{X_{o,t}})^{-1}\begin{pmatrix}
+\Sigma_{X_{o,t},X_{m,t}}\\
+\Sigma_{X_{o,t},S_t}
 \end{pmatrix} \\
-\mu_{Y|X_o} =   \begin{pmatrix}
-\Sigma_{X_o,X_m}\\
-\Sigma_{X_o,S}
-\end{pmatrix}^H(\Sigma_{X_m})^{-1}\cdot x_o,
+\mu_{Y_t|X_{o,t}} =   \begin{pmatrix}
+\Sigma_{X_{o,t},X_{m,t}}\\
+\Sigma_{X_{o,t},S}
+\end{pmatrix}^H(\Sigma_{X_{o,t}})^{-1}\cdot x_o,
 \end{gathered} \right.
 \end{equation}
 \begin{equation}
 \left\{ \begin{gathered} 
-\Sigma_{Y|X_o} = \begin{pmatrix}
-A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
-\Gamma_s A_m^H&\Gamma_s
+\Sigma_{Y_t|X_{o,t}} = \begin{pmatrix}
+A_{m,t} \Gamma_s A_{m,t}^H + \Gamma_m&A_{m,t} \Gamma_s\\
+\Gamma_s A_{m,t}^H&\Gamma_s
 \end{pmatrix}- \begin{pmatrix}
-A_o\Gamma_s A_m^H\\
-A_o\Gamma_s
-\end{pmatrix}^H(A_o\Gamma_sA_o^H+\Gamma_o)^{-1} \begin{pmatrix}
-A_o\Gamma_s A_m^H\\
-A_o\Gamma_s
+A_{o,t}\Gamma_s A_{m,t}^H\\
+A_{o,t}\Gamma_s
+\end{pmatrix}^H(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1} \begin{pmatrix}
+A_{o,t}\Gamma_s A_{m,t}^H\\
+A_{o,t}\Gamma_s
 \end{pmatrix} \\
 \mu_{Y|X_o} =   \begin{pmatrix}
-A_o\Gamma_s A_m^H\\
-A_o\Gamma_s
-\end{pmatrix}^H(A_o\Gamma_sA_o^H+\Gamma_o)^{-1}\cdot x_o,
+A_{o,t}\Gamma_s A_{m,t}^H\\
+A_{o,t}\Gamma_s
+\end{pmatrix}^H(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1}\cdot x_{o,t},
 \end{gathered} \right.
 \end{equation}
 \begin{center}
@@ -241,9 +255,9 @@ A_o\Gamma_s
 \theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o, \theta^{(\tau)}]
 \end{gather}
 Обозначим приведенное выше условное математическое ожидание через $Q$. 
-Заметим, что \\ $\log P(X_m, \, X_o, \, S|\theta^{(\tau)}) = \log P(X_o|X_m, \, S,\theta^{(\tau)})P(X_m, S|\theta^{(\tau)}) = \log P(X_o|Y,\theta^{(\tau)})P(Y|\theta^{(\tau)})$.\\
-Можно заметить, что $P(X_o|Y, Y) = P(X_o, Y)$. Работать с плотостью $P(X_o|Y, Y)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
-Найдем совместную плотность $P(X_o|Y, \, Y|\theta^{(\tau)})$:
+Заметим, что \\ $\log P(X_m, \, X_{o,t}, \, S|\theta^{(\tau)}) = \log P(X_{o,t}|X_{m,t}, \, S,\theta^{(\tau)})P(X_{m,t}, S|\theta^{(\tau)}) = \log P(X_o|Y,\theta^{(\tau)})P(Y|\theta^{(\tau)})$.\\
+Можно заметить, что $P(X_{o,t}|Y, Y) = P(X_o, Y)$. Работать с плотостью $P(X_o|Y, Y)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
+Найдем совместную плотность $P(X_{o,t}|Y, \, Y|\theta^{(\tau)})$:
 \begin{gather}
 P(X_o|Y, \, Y|\theta^{(\tau)}) = \prod_{t=1}^G \frac{1}{\pi^{M+L}|\Sigma|}e^{-(Z_t-\mu_{Z_t})^H\Sigma^{-1}(Z_t-\mu_{Z_t})},
 \end{gather}
@@ -308,7 +322,7 @@ Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t
 \end{equation}
 \begin{equation}
 \begin{gathered}
- E[\log P(X_o, \, Y|\theta^{(\tau)})|X_{o,t}, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t})  -  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right)
+ E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t})  -  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right)
 \end{gathered}
 \end{equation}
 Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] $ сводится к поиску
