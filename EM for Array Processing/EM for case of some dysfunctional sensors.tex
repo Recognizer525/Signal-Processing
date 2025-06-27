@@ -154,39 +154,39 @@ P(X_m|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_m|}e^{-(X_{m,t}-A_m
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Y|X_o} = K_{Y,Y}-K_{Y,X_o}K_{X_o,X_o}^{-1}K_{X_o,Y} \\
-m_{Y|X_o} = m_{Y} + K_{Y,X_o}K_{X_o,X_o}^{-1}\cdot(x_o-m_{X_o}),
+\Sigma_{Y|X_o} = \Sigma_{Y,Y}-\Sigma_{Y,X_o}\Sigma_{X_o,X_o}^{-1}\Sigma_{X_o,Y} \\
+\mu_{Y|X_o} = \mu_{Y} + \Sigma_{Y,X_o}\Sigma_{X_o,X_o}^{-1}\cdot(x_o-\mu_{X_o}),
 \end{gathered} \right.
 \end{equation}
 \begin{gather}
-K_{X_o,X_o}=A_o\Gamma_sA_o^H+\Gamma_o
+\Sigma_{X_o,X_o}=A_o\Gamma_sA_o^H+\Gamma_o
 \end{gather}
 \begin{gather}
-K_{Y,Y} = \begin{pmatrix}
-K_{X_m, X_m}&K_{X_m, S}\\
-K_{S, X_m}&K_{S, S}
+\Sigma_{Y,Y} = \begin{pmatrix}
+\Sigma_{X_m, X_m}&\Sigma_{X_m, S}\\
+\Sigma_{S, X_m}&\Sigma_{S, S}
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-K_{S,S} = \Gamma_s
+\Sigma_{S,S} = \Gamma_s
 \end{gather}
 \begin{gather}
-K_{X_m,X_m} = A_m \Gamma_s A_m^H + \Gamma_m
+\Sigma_{X_m,X_m} = A_m \Gamma_s A_m^H + \Gamma_m
 \end{gather}
 \begin{gather}
-K_{X_m,S} = A_m \Gamma_s, K_{S, X_m} = \Gamma_s A_m^H 
+\Sigma_{X_m,S} = A_m \Gamma_s, \Sigma_{S, X_m} = \Gamma_s A_m^H 
 \end{gather}
 \begin{gather}
-K_{Y,Y} = \begin{pmatrix}
+\Sigma_{Y,Y} = \begin{pmatrix}
 A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
 \Gamma_s A_m^H&\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-K_{X_o,Y}
+\Sigma_{X_o,Y}
 = \begin{pmatrix}
-K_{X_o,X_m}\\
-K_{X_o,S}
+\Sigma_{X_o,X_m}\\
+\Sigma_{X_o,S}
 \end{pmatrix}= 
 \begin{pmatrix}
 A_o\Gamma_s A_m^H\\
@@ -194,30 +194,30 @@ A_o\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
-K_{Y,X_o}
-= K_{X_o,Y}^H
+\Sigma_{Y,X_o}
+= \Sigma_{X_o,Y}^H
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Y|X_o} = \begin{pmatrix}
-K_{X_m, X_m}&K_{X_m, S}\\
-K_{S, X_m}&K_{S, S}
+\Sigma_{Y|X_o} = \begin{pmatrix}
+\Sigma_{X_m, X_m}&\Sigma_{X_m, S}\\
+\Sigma_{S, X_m}&\Sigma_{S, S}
 \end{pmatrix}-\begin{pmatrix}
-K_{X_o,X_m}\\
-K_{X_o,S}
-\end{pmatrix}^H(K_{X_m,X_m})^{-1}\begin{pmatrix}
-K_{X_o,X_m}\\
-K_{X_o,S}
+\Sigma_{X_o,X_m}\\
+\Sigma_{X_o,S}
+\end{pmatrix}^H(\Sigma_{X_o,X_o})^{-1}\begin{pmatrix}
+\Sigma_{X_o,X_m}\\
+\Sigma_{X_o,S}
 \end{pmatrix} \\
-m_{Y|X_o} =   \begin{pmatrix}
-K_{X_o,X_m}\\
-K_{X_o,S}
-\end{pmatrix}^H(K_{X_m,X_m})^{-1}\cdot x_o,
+\mu_{Y|X_o} =   \begin{pmatrix}
+\Sigma_{X_o,X_m}\\
+\Sigma_{X_o,S}
+\end{pmatrix}^H(\Sigma_{X_m,X_m})^{-1}\cdot x_o,
 \end{gathered} \right.
 \end{equation}
 \begin{equation}
 \left\{ \begin{gathered} 
-K_{Y|X_o} = \begin{pmatrix}
+\Sigma_{Y|X_o} = \begin{pmatrix}
 A_m \Gamma_s A_m^H + \Gamma_m&A_m \Gamma_s\\
 \Gamma_s A_m^H&\Gamma_s
 \end{pmatrix}- \begin{pmatrix}
@@ -227,7 +227,7 @@ A_o\Gamma_s
 A_o\Gamma_s A_m^H\\
 A_o\Gamma_s
 \end{pmatrix} \\
-m_{Y|X_o} =   \begin{pmatrix}
+\mu_{Y|X_o} =   \begin{pmatrix}
 A_o\Gamma_s A_m^H\\
 A_o\Gamma_s
 \end{pmatrix}^H(A_o\Gamma_sA_o^H+\Gamma_o)^{-1}\cdot x_o,
@@ -317,5 +317,11 @@ Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t
 \argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t,X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  tr([\Sigma_{Y_t,Y_t}^{-1}]K_{Y_t|X_{o,t}}) \right. \\ \left. +  (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t,Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right).
 \end{gathered}
 \end{equation}
-Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, $\mu_{X_{o,t}|Y_t}=Ay_t$, в рамках задачи $y_t$ -- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
+Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, в рамках задачи $y_t$ -- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
+\begin{equation}
+\left\{ \begin{gathered} 
+\Sigma_{X_o|Y} = \Sigma_{X_o,X_o}-\Sigma_{X_o|Y}\Sigma_{Y,Y}^{-1}\Sigma_{Y|X_o} \\
+\mu_{X_o|Y} = \mu_{X_o} + \Sigma_{X_o|Y}\Sigma_{Y,Y}^{-1}\cdot(y_o-\mu_{y}),
+\end{gathered} \right.
+\end{equation}
 \end{document}
