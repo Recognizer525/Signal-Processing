@@ -150,6 +150,10 @@ P(X|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^L |\Gamma_n|}e^{-(X_t-A s_t)^H \Gam
 \end{gather}
 Теперь следует найти $P(X_m|S=s, \theta)$. Введем новые обозначения: пусть
 \begin{itemize}
+\item
+$L_{1,t}$ -- число исправных сенсоров в момент времени $t$;
+\item
+ $L_{2,t}$ -- число неисправных сенсоров в момент времени $t$;
 \item 
 $A_{o,t}$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам в момент времени $t$; 
 \item
@@ -157,11 +161,7 @@ $A_{m,t}$ -- матрица, образованная теми строками 
 \item
 $\Gamma_{m,t}$ -- ковариационная матрица шума на неисправных сенсорах в момент времени $t$;
 \item 
- $\Gamma_{o,t}$ -- ковариационная матрица шума на исправных сенсорах в момент времени $t$;
-\item
-$L_{1,t}$ -- число исправных сенсоров в момент времени $t$;
-\item
- $L_{2,t}$ -- число неисправных сенсоров в момент времени $t$.
+ $\Gamma_{o,t}$ -- ковариационная матрица шума на исправных сенсорах в момент времени $t$.
 \end{itemize}
 \begin{gather}
 P(X_{m,t}|S_t=s_t,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_{m,t}|}e^{-(X_{m,t}-A_{m,t} s_t)^H \Gamma_{m,t}^{-1}(X_{m,t}-A_{m,t} s_t)},
@@ -199,17 +199,18 @@ A_{m,t} \Gamma_s A_{m,t}^H + \Gamma_{m,t}&A_{m,t} \Gamma_s\\
 \begin{gather}
 \Sigma_{X_{o,t},Y_t}
 = \begin{pmatrix}
-\Sigma_{X_{o,t},X_{m,t}}\\
-\Sigma_{X_{o,t},S_t}
+\Sigma_{X_{o,t},X_{m,t}}&\Sigma_{X_{o,t},S_t}
 \end{pmatrix}= 
 \begin{pmatrix}
-A_{o,t}\Gamma_s A_{m,t}^H\\
-A_{o,t}\Gamma_s
+A_{o,t}\Gamma_s A_{m,t}^H&A_{o,t}\Gamma_s
 \end{pmatrix}
 \end{gather}
 \begin{gather}
 \Sigma_{Y_t,X_{o,t}}
-= \Sigma_{X_{o,t},Y_t}^H
+= \Sigma_{X_{o,t},Y_t}^H =  \begin{pmatrix}
+A_{m,t}\Gamma_s A_{o,t}^H\\
+\Gamma_s A_{o,t}^H
+\end{pmatrix}
 \end{gather}
 \begin{equation}
 \left\{ \begin{gathered} 
@@ -217,11 +218,9 @@ A_{o,t}\Gamma_s
 \Sigma_{X_{m,t}}&\Sigma_{X_{m,t}, S_t}\\
 \Sigma_{S_t, X_{m,t}}&\Sigma_{S_t}
 \end{pmatrix}-\begin{pmatrix}
-\Sigma_{X_{o,t},X_{m,t}}\\
-\Sigma_{X_{o,t},S_t}
+\Sigma_{X_{o,t},X_{m,t}}&\Sigma_{X_{o,t},S_t}
 \end{pmatrix}^H(\Sigma_{X_{o,t}})^{-1}\begin{pmatrix}
-\Sigma_{X_{o,t},X_{m,t}}\\
-\Sigma_{X_{o,t},S_t}
+\Sigma_{X_{o,t},X_{m,t}}&\Sigma_{X_{o,t},S_t}
 \end{pmatrix} \\
 \mu_{Y_t|X_{o,t}} =   \begin{pmatrix}
 \Sigma_{X_{o,t},X_{m,t}}\\
@@ -235,16 +234,15 @@ A_{o,t}\Gamma_s
 A_{m,t} \Gamma_s A_{m,t}^H + \Gamma_m&A_{m,t} \Gamma_s\\
 \Gamma_s A_{m,t}^H&\Gamma_s
 \end{pmatrix}- \begin{pmatrix}
-A_{o,t}\Gamma_s A_{m,t}^H\\
-A_{o,t}\Gamma_s
-\end{pmatrix}^H(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1} \begin{pmatrix}
-A_{o,t}\Gamma_s A_{m,t}^H\\
-A_{o,t}\Gamma_s
+A_{m,t}\Gamma_s A_{o,t}^H\\
+\Gamma_s A_{o,t}^H
+\end{pmatrix}(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1} \begin{pmatrix}
+A_{o,t}\Gamma_s A_{m,t}^H&A_{o,t}\Gamma_s
 \end{pmatrix} \\
 \mu_{Y|X_o} =   \begin{pmatrix}
-A_{o,t}\Gamma_s A_{m,t}^H\\
-A_{o,t}\Gamma_s
-\end{pmatrix}^H(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1}\cdot x_{o,t},
+A_{m,t}\Gamma_s A_{o,t}^H\\
+\Gamma_s A_{o,t}^H
+\end{pmatrix}(A_{o,t}\Gamma_sA_{o,t}^H+\Gamma_{o,t})^{-1}\cdot x_{o,t},
 \end{gathered} \right.
 \end{equation}
 \begin{center}
@@ -328,14 +326,14 @@ Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t
 Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] $ сводится к поиску
 \begin{equation}
 \begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) \right. \\ \left. +  (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right).
+\argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) \right. \\ \left. +  \mu_{Y_t|X_{o,t}}^H\Sigma_{Y_t}^{-1}\mu_{Y_t|X_{o,t}}\right).
 \end{gathered}
 \end{equation}
 Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, в рамках задачи $y_t$ -- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
 \begin{equation}
 \left\{ \begin{gathered} 
 \Sigma_{X_{o,t}|Y_t} = \Sigma_{X_{o,t}}-\Sigma_{X_{o,t}|Y_t}\Sigma_{Y_t}^{-1}\Sigma_{Y_t|X_{o,t}} \\
-\mu_{X_{o,t}|Y_t} = \mu_{X_{o,t}} + \Sigma_{X_{o,t}|Y_t}\Sigma_{Y_t}^{-1}\cdot(y_o-\mu_{Y_t}),
+\mu_{X_{o,t}|Y_t} = \Sigma_{X_{o,t}|Y_t}\Sigma_{Y_t}^{-1}\cdot y_o,
 \end{gathered} \right.
 \end{equation}
 \end{document}
