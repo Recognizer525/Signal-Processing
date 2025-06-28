@@ -52,19 +52,51 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     return X1
 
 
-def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, Dict_of_Snapshots: dict):
+def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, DoS: dict):
     """
     Минимизируемая, на М-шаге, функция.
     theta - вектор углов, которые соответствуют DOA;
     Ga_s - ковариация сигнала;
     Ga_n - ковариация шума;
     X - коллекция полученных сигналов;
-    Dict_of_Snapshots - словарь вычислений статистик по каждому снимку.
+    DoS - словарь вычислений статистик по каждому снимку.
     """
+    ans = 0
+    
+    Indicator = np.isnan(X)
+    col_numbers = np.arange(1, X.shape[1] + 1)
+    Mv, Ov = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    
     M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-    for i in range(X.shape[0]):
-        pass
+    for i in range(G):
+        if set(Ov[i, ]) != set(col_numbers - 1):
+            M_i, O_i = Mv[i, ][Mv[i, ] > -1], Ov[i, ][Ov[i, ] > -1]
+            # Определяем матрицы управляющих векторов отдельно для исправных и отдельно для неисправных датчиков.
+            A_o, A_m = A[O_i], A[M_i]
+            # Аналогично определяем ковариационные матрицы шума для двух групп датчиков.
+            Ga_o, Ga_m = Ga_n[np._ix(O_i, O_i)], Ga_n[np._ix(M_i, M_i)]
+            # Определяем длину вектора латентных переменных
+            L2 = L + len(M_i)
+            
+            K_Xo = A_o @ Ga_s @ A_o.conj().T + Ga_o
+                
+            K_Y = np.zeros((L2,L2), dtype=np.complex128)
+            K_Y[M:,M:] = Ga_s
+            K_Y[:M,:M] = A_m @ Ga_s @ A_m.conj().T + Ga_m
+            K_Y[M:,:M] = Ga_s @ A_m.conj().T
+            K_Y[:M,M:] = K_Y[M:,:M].conj().T
+
+            K_Xo_Y = np.zeros((L-L2,M+L2), dtype=np.complex128)
+            K_Xo_Y[:,:L-L2] = A_o @ Ga_s @ A_m.conj().T
+            K_Xo_Y[:,L-L2:] = A_o @ Ga_s
+            K_Y_Xo = K_Xo_Y.conj().T
+
+            K_Xo_cond_Y = K_Xo - K_Xo_Y @ np.linalg.inv(K_Y) @ K_Y_Xo
+            Mu_Xo_cond_Y = K_Xo_Y @ np.linalg.inv(K_Y) @ DoS['Cond_mean']
+            
+            ans += (X[i,O_i] - Mu_Xo_cond_Y).conj().T @ np.linalg.inv(K_Xo_cond_Y) @ (X[i,O_i] - Mu_Xo_cond_Y) + \
+            np.trace(np.linalg.inv(K_Y) @ DoS['Cond_cov']) + DoS['Cond_mean'].conj().T @  np.linalg.inv(K_Y) @ DoS['Cond_mean']
 
     return ans.real
 
@@ -78,7 +110,7 @@ def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np
     X - коллекция полученных сигналов;
     Dict_of_Snapshots - словарь вычислений статистик по каждому снимку.
     """
-    simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, Dict_of_Snapshots=Dict_of_Snapshots)
+    simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, DoS=Dict_of_Snapshots)
     ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
     return ans, simplified_f(ans)
 
@@ -104,14 +136,14 @@ def angle_correcter(theta: np.ndarray):
             theta[i] = - np.pi - theta[i]
     return theta
 
-def EM_new(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int = 20, eps: float = 1e-8) -> np.ndarray:
+def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int = 20, eps: float = 1e-8) -> np.ndarray:
     '''
     Функция применяет алгоритм максимального правдоподобия к полученным данным для восстановления пропущенных значений.
     '''
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     no_conv = True
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    Mv, Ov = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     L, M = Ga_n.shape[0], Ga_n.shape[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))  
     X_modified = X.copy()
@@ -124,8 +156,8 @@ def EM_new(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray,
         # Е-шаг
         for i in range(X.shape[0]):
             # Если в какой-то момент времени имеются пропуски на некоторых датчиках:
-            if set(O[i, ]) != set(col_numbers - 1):
-                M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+            if set(Ov[i, ]) != set(col_numbers - 1):
+                M_i, O_i = Mv[i, ][Mv[i, ] > -1], Ov[i, ][Ov[i, ] > -1]
                 # Определяем матрицы управляющих векторов отдельно для исправных и отдельно для неисправных датчиков.
                 A_o, A_m = A[O_i], A[M_i]
                 # Аналогично определяем ковариационные матрицы шума для двух групп датчиков.
@@ -133,26 +165,23 @@ def EM_new(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray,
                 # Определяем длину вектора латентных переменных
                 L2 = L + len(M_i)
 
-                K_X_o = A_o @ Ga_s A_o.conj().T + Ga_o
+                K_X_o = A_o @ Ga_s @ A_o.conj().T + Ga_o
                 
                 K_Y = np.zeros((L2,L2), dtype=np.complex128)
                 K_Y[M:,M:] = Ga_s
-                K_Y[:M,:M] = A_m @ Ga_s A_m.conj().T + Ga_m
+                K_Y[:M,:M] = A_m @ Ga_s @ A_m.conj().T + Ga_m
                 K_Y[M:,:M] = Ga_s @ A_m.conj().T
                 K_Y[:M,M:] = K_Y[M:,:M].conj().T
 
-                K_X_o_Y = np.zeros((L-L2,M+L2), dtype=np.complex128)
-                K_X_o_Y[:,:L-L2] = A_o @ Ga_s @ A_m.conj().T
-                K_X_o_Y[:,L-L2:] = A_o @ Ga_s
-                K_Y_X_o = K_X_o_Y.conj().T
+                K_Xo_Y = np.zeros((L-L2,M+L2), dtype=np.complex128)
+                K_Xo_Y[:,:L-L2] = A_o @ Ga_s @ A_m.conj().T
+                K_Xo_Y[:,L-L2:] = A_o @ Ga_s
+                K_Y_Xo = K_Xo_Y.conj().T
 
-                K_Y_cond_X_o = K_Y - K_Y_X_o @ np.linalg.inv(K_X_o) @ K_X_o_Y
-                Mu_Y_cond_X_o = K_Y_X_o @ np.linalg.inv(K_X_o) @ X_modified[i, O_i]
-                snapshot_dict = {'K_X_o': K_X_o,
-                                 'K_Y': K_Y,
-                                 'K_Y_X_o': K_Y_X_o,
-                                 'Cond_mean': Mu_Y_cond_X_o,
-                                 'Cond_cov': K_Y_cond_X_o          
+                K_Y_cond_Xo = K_Y - K_Y_Xo @ np.linalg.inv(K_Xo) @ K_Xo_Y
+                Mu_Y_cond_Xo = K_Y_Xo @ np.linalg.inv(K_Xo) @ X_modified[i, O_i]
+                snapshot_dict = {'Cond_mean': Mu_Y_cond_Xo,
+                                 'Cond_cov': K_Y_cond_Xo          
                                 }
                 Dict_of_Snapshots[i] = snapshot_dict
 
@@ -163,7 +192,7 @@ def EM_new(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray,
             print(f"norm={np.linalg.norm(theta - theta_new)}")
         theta = theta_new
         EM_Iteration += 1
-    return theta_new
+    return theta_new, neg_likelihood
 
 
 def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
@@ -181,9 +210,9 @@ def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_sta
         print(f'{i}-th start')
         M = Ga_s.shape[0]
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        est_theta, neg_lhd, K, mu = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
+        est_theta, neg_lhd = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)
-    return best_theta, best_neg_lhd, K, mu
+    return best_theta, best_neg_lhd
 
