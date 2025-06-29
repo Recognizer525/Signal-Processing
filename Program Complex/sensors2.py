@@ -116,9 +116,8 @@ def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np
     X - коллекция полученных сигналов;
     Dict_of_Snapshots - словарь вычислений статистик по каждому снимку.
     """
-    print('Ga_s', Ga_s.shape[0])
     simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, DoS=Dict_of_Snapshots)
-    ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
+    ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead', options={ 'xatol': 1e-8, 'fatol': 1e-8, 'maxiter': 1000}).x
     return ans, simplified_f(ans)
 
 
@@ -181,7 +180,6 @@ def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max
                 K_Y[:L2,L2:] = A_m @ Ga_s
 
                 K_Xo_Y = np.zeros((L-L2,L2+M), dtype=np.complex128)
-                #print('XXX',K_Xo_Y.shape)
                 K_Xo_Y[:,:L2] = A_o @ Ga_s @ A_m.conj().T
                 K_Xo_Y[:,L2:] = A_o @ Ga_s
                 K_Y_Xo = K_Xo_Y.conj().T
