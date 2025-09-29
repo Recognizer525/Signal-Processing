@@ -46,8 +46,8 @@
 \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
   #1\;\delimsize\|\;#2%
 }
-\DeclareMathOperator*{\argmax}{arg\,max}
-\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
 \newcommand{\infdiv}{D_{KL}\infdivx}
 \newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
 \newcommand\Fontvia{\fontsize{9}{8}\selectfont}
@@ -63,47 +63,47 @@
 Введем некоторые условные обозначения:
 \begin{itemize}
 \item
-$\theta$ -- вектор направлений прибытия сигнала (DOA);
+$\theta$ --- вектор направлений прибытия сигнала (DOA);
 \item
-$\tau$ -- итерация ЕМ-алгоритма, начальная оценка параметров $\theta$;
+$\tau$ --- итерация ЕМ-алгоритма, начальная оценка параметров $\theta$;
 \item
-$t$ -- момент времени (а заодно и номер кадра (snapshot));
+$t$ --- момент времени (а заодно и номер кадра (snapshot));
 \item
-$L$ -- число датчиков;
+$L$ --- число датчиков;
 \item
-$M$ -- число источников (источники разделяют общую длину центральной волны $\chi$);
+$M$ --- число источников (источники разделяют общую длину центральной волны $\chi$);
 \item
-$G$ -- число независимых кадров/снимков (snapshot), сделанных в разные моменты времени;
+$G$ --- число независимых кадров/снимков (snapshot), сделанных в разные моменты времени;
 \item
-$S$ -- набор сигналов (случайная величина), испускаемых источниками в моменты времени $t=\overline{1,G}$, $S_t$ соответствует сигналу в момент времени $t$;
+$S$ --- набор сигналов (случайная величина), испускаемых источниками в моменты времени $t=\overline{1,G}$, $S_t$ соответствует сигналу в момент времени $t$;
 \item
-$s$ -- набор сигналов (реализация), испускаемых источниками в моменты времени $t=\overline{1,G}$, $s_t$ соответствует сигналу в момент времени $t$;
+$s$ --- набор сигналов (реализация), испускаемых источниками в моменты времени $t=\overline{1,G}$, $s_t$ соответствует сигналу в момент времени $t$;
 \item
-$N$ -- набор шумов (случайная величина), связанных с датчиками в моменты времени $t=\overline{1,G}$, $N_t$ соответствует шуму в момент времени $t$;
+$N$ --- набор шумов (случайная величина), связанных с датчиками в моменты времени $t=\overline{1,G}$, $N_t$ соответствует шуму в момент времени $t$;
 \item
-$n$ -- набор шумов (реализация), связанных с датчиками в моменты времени $t=\overline{1,G}$, $n_t$ соответствует шуму в момент времени $t$;
+$n$ --- набор шумов (реализация), связанных с датчиками в моменты времени $t=\overline{1,G}$, $n_t$ соответствует шуму в момент времени $t$;
 \item
-$X$ -- набор сигналов (случайная величина), полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$;
+$X$ --- набор сигналов (случайная величина), полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$;
 \item
-$x$ -- набор сигналов (реализация), полученных датчиками в моменты времени $t=\overline{1,G}$, $x_t$ соответствует сигналу в момент времени $t$;
+$x$ --- набор сигналов (реализация), полученных датчиками в моменты времени $t=\overline{1,G}$, $x_t$ соответствует сигналу в момент времени $t$;
 \item
-$X_o$ -- наблюдаемая часть (случайная величина) $X$, $X_{o,t}$ соответствует сигналу в момент времени $t$; 
+$X_o$ --- наблюдаемая часть (случайная величина) $X$, $X_{o,t}$ соответствует сигналу в момент времени $t$; 
 \item
-$x_o$ -- наблюдаемая часть (реализация) $X$, $x_{o,t}$ соответствует сигналу в момент времени $t$;
+$x_o$ --- наблюдаемая часть (реализация) $X$, $x_{o,t}$ соответствует сигналу в момент времени $t$;
 \item
-$X_m$ -- ненаблюдаемая часть (случайная величина) $X$, $X_{m,t}$ соответствует сигналу в момент времени $t$;
+$X_m$ --- ненаблюдаемая часть (случайная величина) $X$, $X_{m,t}$ соответствует сигналу в момент времени $t$;
 \item
-$x_m$ -- ненаблюдаемая часть (реализация) $X$, $x_{m,t}$ соответствует сигналу в момент времени $t$;
+$x_m$ --- ненаблюдаемая часть (реализация) $X$, $x_{m,t}$ соответствует сигналу в момент времени $t$;
 \item
-$Y$ -- латентные переменные (случайная величина) ($X_m, S$);
+$Y$ --- латентные переменные (случайная величина) ($X_m, S$);
 \item
-$y$ -- латентные переменные (реализация) ($x_m, s$);
+$y$ --- латентные переменные (реализация) ($x_m, s$);
 \item
-$\psi$ -- параметры комплексного нормального распределения $X_m$;
+$\psi$ --- параметры комплексного нормального распределения $X_m$;
 \item
-$\Omega$ -- $(\psi, \theta)$;
+$\Omega$ --- $(\psi, \theta)$;
 \item
-$O_{D_1 \times D_2}$ -- нулевая матрица размера $D_1 \times D_2$;
+$O_{D_1 \times D_2}$ --- нулевая матрица размера $D_1 \times D_2$;
 \item
 Полученный сигнал (итоговый сигнал, получаемый массивом датчиков):
 \begin{equation}
@@ -111,13 +111,13 @@ $O_{D_1 \times D_2}$ -- нулевая матрица размера $D_1 \times
 X_t=A(\theta)S_t+N_t,
 \end{gathered}
 \end{equation}
-где $S_t \sim CN(0,\Gamma_s),t=\overline{1,G}$, $N_t \sim CN(0,\Gamma_n), t=\overline{1,G}$, $S_t$ имеет размер $M \times 1$,  $N_t$ имеет размер $L \times 1$, $\theta=[\theta_1,...,\theta_M]$ -- вектор направлений прибытия сигнала, $A(\theta)$ (далее - $A$) представляет собой матрицу управляющих векторов размера $L \times M$, $\Gamma_s$ и $\Gamma_n$ предполагаются диагольными.
+где $S_t \sim CN(0,\Gamma_s),t=\overline{1,G}$, $N_t \sim CN(0,\Gamma_n), t=\overline{1,G}$, $S_t$ имеет размер $M \times 1$,  $N_t$ имеет размер $L \times 1$, $\theta=[\theta_1,...,\theta_M]^T$ --- вектор направлений прибытия сигнала, $A(\theta)$ (далее - $A$) представляет собой матрицу управляющих векторов размера $L \times M$, $\Gamma_s$ и $\Gamma_n$ предполагаются диагольными.
 \begin{gather}
 A(\theta) = \begin{bmatrix}
 1&1&\dots&1\\
-e^{-2j\pi \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi \frac{d}{\lambda}sin(\theta_M)}\\
+e^{-2j\pi \frac{d}{\lambda}\sin(\theta_1)}& e^{-2j\pi \frac{d}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_M)}\\
 \dots&\dots&\ddots&\vdots\\
-e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_2)}&\dots&e^{-2j\pi (L-1) \frac{d}{\lambda}sin(\theta_M)}\\
+e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_M)}\\
 \end{bmatrix}.
 \nonumber
 \end{gather}
@@ -151,17 +151,17 @@ P(X|S=s,\theta) = \prod_{t=1}^G \frac{1}{\pi^L |\Gamma_n|}e^{-(X_t-A s_t)^H \Gam
 Теперь следует найти $P(X_m|S=s, \theta)$. Введем новые обозначения: пусть
 \begin{itemize}
 \item
-$L_{1,t}$ -- число исправных сенсоров в момент времени $t$;
+$L_{1,t}$ --- число исправных сенсоров в момент времени $t$;
 \item
- $L_{2,t}$ -- число неисправных сенсоров в момент времени $t$;
+ $L_{2,t}$ --- число неисправных сенсоров в момент времени $t$;
 \item 
-$A_{o,t}$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам в момент времени $t$; 
+$A_{o,t}$ --- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам в момент времени $t$; 
 \item
-$A_{m,t}$ -- матрица, образованная теми строками матрицы $A$, которые соответствуют неисправным сенсорам в момент времени $t$;
+$A_{m,t}$ --- матрица, образованная теми строками матрицы $A$, которые соответствуют неисправным сенсорам в момент времени $t$;
 \item
-$\Gamma_{m,t}$ -- ковариационная матрица шума на неисправных сенсорах в момент времени $t$;
+$\Gamma_{m,t}$ --- ковариационная матрица шума на неисправных сенсорах в момент времени $t$;
 \item 
- $\Gamma_{o,t}$ -- ковариационная матрица шума на исправных сенсорах в момент времени $t$.
+ $\Gamma_{o,t}$ --- ковариационная матрица шума на исправных сенсорах в момент времени $t$.
 \end{itemize}
 \begin{gather}
 P(X_{m,t}|S_t=s_t,\theta) = \prod_{t=1}^G \frac{1}{\pi^{L_2} |\Gamma_{m,t}|}e^{-(X_{m,t}-A_{m,t} s_t)^H \Gamma_{m,t}^{-1}(X_{m,t}-A_{m,t} s_t)},
@@ -248,9 +248,12 @@ A_{m,t}\Gamma_s A_{o,t}^H\\
 \fontsize{16}{20}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
-\begin{gather}
-\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o=x_o, \theta^{(\tau)}] = E\left[\sum_{t=1}^G\log P(X_{o,t}, X_{m,t}, \, S_t|\theta^{(\tau)})|X_{o,t}=x_{o,t}, \theta^{(\tau)}\right]
-\end{gather}
+\begin{equation}
+\begin{gathered}
+\theta^{(\tau+1)}=\argmax_{\theta} E[\log P(X_o, X_m, \, S|\theta^{(\tau)})|X_o=x_o, \theta^{(\tau)}] =\\
+\argmax_{\theta} E\left[\sum_{t=1}^G\log P(X_{o,t}, X_{m,t}, \, S_t|\theta^{(\tau)})|X_{o,t}=x_{o,t}, \theta^{(\tau)}\right]
+\end{gathered}
+\end{equation}
 Обозначим приведенное выше условное математическое ожидание через $Q$. 
 Заметим, что \\ $\log P(X_{o,t}, \, X_{m,t}, \, S_t|\theta^{(\tau)}) = \log P(X_{o,t}|X_{m,t}, \, S_t,\theta^{(\tau)})P(X_{m,t}, S_t|\theta^{(\tau)}) = \log P(X_{o,t}|Y_t,\theta^{(\tau)})P(Y_t|\theta^{(\tau)})$.\\
 Можно заметить, что $P(X_{o,t}|Y_t, Y_t) = P(X_{o,t}, Y_t)$. Работать с плотостью $P(X_{o,t}|Y_t, Y_t)$ удобнее: кросс-ковариция между $Y$ и $X_o|Y$ будет представлять из себя нулевую матрицу.
@@ -294,7 +297,7 @@ Q_t = E[\log P(X_{o,t}|Y_t, \, Y_t|\theta^{(\tau)})|X_{o,t}, \theta^{(\tau)}] \\
 Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_t-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_t-\mu_{X_{o,t}|Y_t}) \\ - E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}] 
 \end{gathered}
 \end{equation}
-Заметим, что первые два слагаемые, составляющие $Q_t$, не зависят от $\theta$, соответственно требуемый $argmax [\cdot]$ можно найти без их учета.
+Заметим, что первые два слагаемые, составляющие $Q_t$, не зависят от $\theta$, соответственно требуемый $\argmax [\cdot]$ можно найти без их учета.
 \begin{gather*}
 Y_t|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN(\mu_{Y_t|X_{o,t}}, \Sigma_{Y_t|X_{o,t}}) \Rightarrow Y_t-\mu_{Y_t}|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}, \Sigma_{Y_t|X_{o,t}})
 \end{gather*}
@@ -306,29 +309,29 @@ Y_t|(X_{o,t}=x_{o,t}, \theta^{(\tau)}) \sim CN(\mu_{Y_t|X_{o,t}}, \Sigma_{Y_t|X_
 E[VV^H]=E[V]E[V^H]+\Sigma_{VV}.
 \end{gather}
 \begin{gather*}
- E[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}]  =  E[[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}] =\\
-= tr(E[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H]|X_{o,t}=x_{o,t},\theta^{(\tau)})=\\
-= tr([\Sigma_{Y_t}^{-1}]^{\frac{1}{2}} \Sigma_{Y_t|X_{o,t}}([\Sigma_{Y_t}^{-1}]^{\frac{1}{2}})^H) + 
- tr([[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})][[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}]^H) = \\
-= tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) + (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})
+ E\left[(Y_t-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}\right]  =  E\left[[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})|X_{o,t}=x_{o,t},\theta^{(\tau)}\right] =\\
+= \Tr(E\left[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})[[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(Y_t-\mu_{Y_t})]^H|X_{o,t}=x_{o,t},\theta^{(\tau)}\right])=\\
+= \Tr([\Sigma_{Y_t}^{-1}]^{\frac{1}{2}} \Sigma_{Y_t|X_{o,t}}([\Sigma_{Y_t}^{-1}]^{\frac{1}{2}})^H) + 
+   \Tr ([[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})] [[\Sigma_{Y_t}^{-1}]^{\frac{1}{2}}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}^H)])= \\
+= \Tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) + (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})
 \end{gather*}
 \begin{equation}
 \begin{gathered}
-Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) \\ -  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}) 
+Q_t = -(M+L)\log(\pi)-\log|\Sigma| - (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) \\ -  \Tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t}) 
 \end{gathered}
 \end{equation}
 \begin{equation}
 \begin{gathered}
- E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t})  -  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right)
+ E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] = \sum_{t=1}^G Q_t = \sum_{t=1}^G \left(-(M+L)\log(\pi)-\log|\Sigma| - \right. \\ \left. (x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t})  -  \Tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) - (\mu_{Y_t|X_{o,t}}-\mu_{Y_t})^H\Sigma_{Y_t}^{-1}(\mu_{Y_t|X_{o,t}}-\mu_{Y_t})\right)
 \end{gathered}
 \end{equation}
 Как было сказано ранее, первые два слагаемые, составляющие $Q_t$ не зависят от $\theta$, а значит задача о поиске $\argmax_{\theta} E[\log P(X_o, \, Y|\theta^{(\tau)})|X_o, \theta^{(\tau)}] $ сводится к поиску
 \begin{equation}
 \begin{gathered}
-\argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) \right. \\ \left. +  \mu_{Y_t|X_{o,t}}^H\Sigma_{Y_t}^{-1}\mu_{Y_t|X_{o,t}}\right).
+\argmin_{\theta}  \sum_{t=1}^G \left((x_{o,t}-\mu_{X_{o,t}|Y_t})^H\Sigma_{X_{o,t}|Y_t}^{-1}(x_{o,t}-\mu_{X_{o,t}|Y_t}) +  \Tr([\Sigma_{Y_t}^{-1}]\Sigma_{Y_t|X_{o,t}}) \right. \\ \left. +  \mu_{Y_t|X_{o,t}}^H\Sigma_{Y_t}^{-1}\mu_{Y_t|X_{o,t}}\right).
 \end{gathered}
 \end{equation}
-Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, в рамках задачи $y_t$ -- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
+Учтем, что $\mu_{Y_t} = O_{(M+L_2) \times 1}$, в рамках задачи $y_t$ --- скрытая переменная, она оценивается так: $\hat{y}_t = \mu_{Y_t|X_{o,t}}$.
 \begin{equation}
 \left\{ \begin{gathered} 
 \Sigma_{X_{o,t}|Y_t} = \Sigma_{X_{o,t}}-\Sigma_{X_{o,t}|Y_t}\Sigma_{Y_t}^{-1}\Sigma_{Y_t|X_{o,t}} \\
