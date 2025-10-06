@@ -181,8 +181,8 @@ m_{x_{m,t}}=A_{m,t}S_t
 где $\hat{K}_{x_{o,t},x_{m,t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o,t}$
 \begin{equation}
 \left\{ \begin{gathered} 
-m_{x_{m,t}|x_{o,t}} = A_{m,t}S_t + A_{m,t}\mathbf{P} A_{o,t}^H(\mathbf{\Lambda}_{o,t})^{-1}\cdot(x_o-A_{o,t}S_t) \\
-K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-A_{m,t}\mathbf{P} A_{o,t}^H(\mathbf{\Lambda}_{o,t})^{-1}A_{o,t}\mathbf{P} A_{m,t}^H,
+m_{x_{m,t}|x_{o,t}} = A_{m,t}S_t + \hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\cdot(x_o-A_{o,t}S_t) \\
+K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-\hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\hat{K}_{x_{o,t},x_{m,t}},
 \end{gathered} \right.
 \end{equation}
 Вернемся к ранее рассмотренному условному математическому ожиданию:
@@ -191,23 +191,28 @@ K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-A_{m,t}\mathbf{P} A_{o,t}^H(\mathbf
 \end{equation*}
 Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
 \begin{equation*}
- \Expect_{X_{m,t}|X_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})] = \\
-\end{equation*}
-\begin{equation}
 \begin{gathered}
- \log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu_{X_t})^H\Sigma^{-1}(X_t-\mu_{X_t})}\right) = \\
--L\log(\pi) - \log(\Det(\Sigma)) -(X_t-\mu_{X_t})^H\Sigma^{-1}(X_t-\mu_{X_t})= \\
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})]
 \end{gathered}
-\end{equation}
-\begin{align*}
-& \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[ \begin{bmatrix} X_{m, t} \\  X_{o, t} \end{bmatrix}^H \begin{bmatrix} (\Sigma^{-1})_{x_m, x_m} & (\Sigma^{-1})_{x_m, x_o} \\ (\Sigma^{-1})_{x_o, x_m} & (\Sigma^{-1})_{x_o, x_o} \end{bmatrix} \begin{bmatrix} X_{m, t} \\  X_{o, t} \end{bmatrix} \Big] \\
-=&\hspace{16pt} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[ ( X_{m,t})^H (\Sigma^{-1})_{x_m, x_m} ( X_{m, t}) \Big] \\ 
-&+ 2 \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[ ( X_{o, t})^H (\Sigma^{-1})_{x_o, x_m} ( X_{m, t}) \Big] \\ 
-&+ \hspace{5pt} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[ ( X_{o, t})^H (\Sigma^{-1})_{x_o, x_o} (  X_{o, t}) \Big] \\
-=&\hspace{16pt} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[ ( X_{m, t})^H (\Sigma^{-1})_{x_m, x_m} ( X_{o, t}) \Big] \\ 
-&+ 2 ( x_{o, t})^H (\Sigma^{-1})_{x_o, x_m} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}} \Big[  X_{m, t} \Big] \\ 
-&+ \hspace{5pt} x_{o, t}^H (\Sigma^{-1})_{x_o, x_o} x_{o, t}
-\end{align*}
+\end{equation*}
+\\
+\\
+\begin{equation*}
+\begin{gathered}
+\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})]=\\
+\Expect_{\Psi^{(\tau)}}\Big[\log P(X_{o,t}, X_{m,t}\Big|X_{m,t}|X_{o,t}=x_{o,t})\Big]=\\
+\Expect_{\Psi^{(\tau)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+\Expect_{\Psi^{(\tau)}}\bigg[-L \log(\pi) - \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}\bigg] = \\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} - A_{m,t}S_t \\  x_{o,t} - A_{o,t}S_t  \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} - A_{m,t}S_t  \\  x_{o,t} - A_{o,t}S_t  \end{bmatrix}\bigg]\\
+\end{gathered}
+\end{equation*}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
