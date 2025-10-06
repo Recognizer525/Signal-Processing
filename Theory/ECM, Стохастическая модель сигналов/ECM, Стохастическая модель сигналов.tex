@@ -1,0 +1,256 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\XSig}{\mathbf{x}}
+\newcommand{\Ssig}{\mathbf{s}}
+\newcommand{\Nsig}{\mathbf{n}}
+\newcommand{\Rs}{\mathbf{R}_s}
+\newcommand{\Rn}{\mathbf{R}_n}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕCМ-алгоритм, стохастическая модель сигнала}}
+\end{center}
+Введем некоторые условные обозначения:
+\begin{itemize}
+\item
+$\theta$ --- вектор направлений прибытия сигнала (DoA);
+\item
+$\tau$ --- итерация ЕCМ-алгоритма, начальная оценка параметров $\theta$;
+\item
+$t$ --- момент времени (а заодно и номер кадра (snapshot));
+\item
+$L$ --- число датчиков;
+\item
+$M$ --- число источников (источники разделяют общую длину центральной волны $\chi$);
+\item
+$G$ --- число независимых кадров/снимков (snapshot), сделанных в разные моменты времени;
+\item
+$S$ --- набор сигналов (случайная величина), испускаемых источниками в моменты времени $t=\overline{1,G}$, $S_t$ соответствует сигналу в момент времени $t$, представляет собой матрицу размера $G \times M$;
+\item
+$s$ --- набор сигналов (реализация), испускаемых источниками в моменты времени $t=\overline{1,G}$, $s_t$ соответствует сигналу в момент времени $t$;
+\item
+$N$ --- набор шумов (случайная величина), связанных с датчиками в моменты времени $t=\overline{1,G}$, $N_t$ соответствует шуму в момент времени $t$, представляет собой матрицу размера $G \times L$;
+\item
+$n$ --- набор шумов (реализация), связанных с датчиками в моменты времени $t=\overline{1,G}$, $n_t$ соответствует шуму в момент времени $t$;
+\item
+$X$ --- набор сигналов (случайная величина), полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$, представляет собой матрицу размера $G \times L$;
+\item
+$x$ --- набор сигналов (реализация), полученных датчиками в моменты времени $t=\overline{1,G}$, $x_t$ соответствует сигналу в момент времени $t$;
+\item
+$X_o$ --- наблюдаемая часть (случайная величина) $X$, $X_{o,t}$ соответствует сигналу в момент времени $t$; 
+\item
+$x_o$ --- наблюдаемая часть (реализация) $X$, $x_{o,t}$ соответствует сигналу в момент времени $t$;
+\item
+$X_m$ --- ненаблюдаемая часть (случайная величина) $X$, $X_{m,t}$ соответствует сигналу в момент времени $t$;
+\item
+$x_m$ --- ненаблюдаемая часть (реализация) $X$, $x_{m,t}$ соответствует сигналу в момент времени $t$;
+\item
+$\mathbf{O}_{D_1 \times D_2}$ --- нулевая матрица размера $D_1 \times D_2$;
+\item
+Полученный сигнал (итоговый сигнал, получаемый массивом датчиков):
+\begin{equation}
+\begin{gathered}
+X_t=A(\theta)S_t+N_t,
+\end{gathered}
+\end{equation}
+где $S_t \sim CN(\mathbf{O}_{M \times 1},\mathbf{P}),t=\overline{1,G}$, $N_t \sim CN(\mathbf{O}_{L \times 1}, \mathbf{\Lambda})$,  $\theta=[\theta_1,...,\theta_M]^T$ --- вектор направлений прибытия сигнала, $A(\theta)$ (далее -- $A$) представляет собой матрицу управляющих векторов размера $L \times M$, $\mathbf{P}$ и $\mathbf{\Lambda}$ предполагаются диагональными. Рассматривается случай, когда массив антенн является линейным и равномерным.
+\begin{gather}
+A(\theta) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{d}{\lambda}\sin(\theta_1)}& e^{-2j\pi \frac{d}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi \frac{d}{\lambda}\sin(\theta_M)}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_1)}& e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi (L-1) \frac{d}{\lambda}\sin(\theta_M)}\\
+\end{bmatrix}.
+\nonumber
+\end{gather}
+\end{itemize}
+\begin{itemize}
+\item
+$L_{o,t}$ --- число исправных сенсоров в момент времени $t$;
+\item
+ $L_{m,t}$ --- число неисправных сенсоров в момент времени $t$;
+\item 
+$A_{o,t}$ --- матрица, образованная теми строками матрицы $A$, которые соответствуют работающим сенсорам в момент времени $t$; 
+\item
+$A_{m,t}$ --- матрица, образованная теми строками матрицы $A$, которые соответствуют неисправным сенсорам в момент времени $t$;
+\item
+$\mathbf{\Lambda}_{m,t}$ --- ковариационная матрица шума на неисправных сенсорах в момент времени $t$;
+\item 
+ $\mathbf{\Lambda}_{o,t}$ --- ковариационная матрица шума на исправных сенсорах в момент времени $t$.
+\end{itemize}
+Рассмотрим 2 случая:
+\begin{itemize}
+\item
+Известный шум
+\item
+Неизвестный шум
+\end{itemize}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Известный шум}}
+\end{center}
+Воспользуемся ECM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{P})$, пропущенные значения $X_m=\{X_{m,t}\}_{t=1}^G$ рассматриваются как латентные переменные.
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и текущей оценки параметров
+\begin{equation}
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)]
+\end{equation}
+Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой Байеса:
+\begin{gather}
+P(X_m|X_o=x_o,\Psi) = \frac{P(X_o, X_m|\Psi)}{P(X_o|\Psi)} = \frac{P(X|\Psi)}{P(X_o|\Psi)}
+\end{gather}
+\begin{gather*}
+X_t = AS_t + N_t \\
+X_t \sim CN(\mathbf{O}_{L \times 1}, A\mathbf{P}A^H + \mathbf{\Lambda})\\
+X_t | \Psi \sim CN(A\mathbf{P}, \mathbf{\Lambda})\\
+X_{o,t} \sim CN(\mathbf{O}_{L \times 1}, A_{o,t}\mathbf{P}A_{o,t}^H + \mathbf{\Lambda_{o,t}})\\
+X_{o,t} | \Psi \sim CN(A_{o,t}\mathbf{P}, \mathbf{\Lambda_{o,t}})\\
+\end{gather*}
+\begin{gather}
+P(X|\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda})}e^{-(X_t-A\mathbf{P})^H (\mathbf{\Lambda})^{-1}(X_t-A\mathbf{P})},
+\end{gather}
+\begin{gather}
+P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o,t}} \Det(\mathbf{\Lambda}_{o,t})}e^{-(X_{o,t}-A_{o,t}\mathbf{P})^H (\mathbf{\Lambda}_{o,t})^{-1}(X_{o,t}-A_{o,t}\mathbf{P})},
+\end{gather}
+Параметры апостериорного распределения $P(X_{m,t}|X_{o,t}=x_{o,t},\Psi)$ можно найти исходя из следующих формул:
+\begin{equation}
+\left\{ \begin{gathered} 
+m_{x_{m,t}|x_{o,t}} = m_{x_{m,t}} + K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}\cdot(x_{o,t}-m_{x_{o,t}}) \\
+K_{x_{m,t}|x_{o,t}} = K_{x_{m,t},x_{m,t}}-K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}K_{x_{o,t},x_{m,t}}.
+\end{gathered} \right.
+\end{equation}
+В рамках данной задачи:
+\begin{equation}
+\left\{ \begin{gathered} 
+K_{x_{o,t},x_{o,t}} = A_{o,t}\mathbf{P} A_{o,t}^H +\mathbf{\Lambda}_{o,t} \\
+K_{x_{o,t},x_{m,t}} = A_{o,t}\mathbf{P} A_{m,t}^H \\
+K_{x_{m,t},x_{o,t}} = A_{m,t}\mathbf{P} A_{o,t}^H \\
+K_{x_{m,t},x_{m,t}} = A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t} \\
+m_{x_{o,t}}=A_{o,t}P \\
+m_{x_{m,t}}=A_{m,t}P
+\end{gathered} \right.
+\end{equation}
+\begin{equation}
+\left\{ \begin{gathered} 
+m_{x_{m,t}|x_{o,t}} = A_{m,t}\mathbf{P} + A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}\cdot(x_{o,t}-A_{o,t}\mathbf{P}) \\
+K_{x_{m,t}|x_{o,t}} = A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t}-A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}A_{o,t}\mathbf{P} A_{m,t}^H,
+\end{gathered} \right.
+\end{equation}
+Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
+$\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
+Вернемся к ранее рассмотренному условному математическому ожиданию:
+\begin{equation*}
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].
+\end{equation*}
+Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
+\begin{equation*}
+\begin{gathered}
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})]
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
+\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})]=\\
+\Expect_{\Psi^{(\tau)}}\Big[\log P(X_{o,t}, X_{m,t}\Big|X_{m,t}|X_{o,t}=x_{o,t})\Big]=\\
+\Expect_{\Psi^{(\tau)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+\Expect_{\Psi^{(\tau)}}\bigg[-L \log(\pi) - \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}\bigg] = \\
+-L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}\bigg]\\
+\end{gathered}
+\end{equation*}
+\\
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
+\end{center}
+Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
+\begin{equation*}
+\begin{gathered}
+\Psi^{(\tau+1)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] =\\
+\argmax_{\Psi} \sum_{t=1}^G \bigg \{   \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}\bigg] \bigg\}
+\end{gathered}
+\end{equation*}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
+\end{center}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Неизвестный шум}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
+\end{center}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
+\end{center}
+\end{document}
