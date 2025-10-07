@@ -225,7 +225,26 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 -L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
 - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t} + 2 X_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}X_{m,t}  + X_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}X_{o,t}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
 -L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
-- x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+- x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] \\
+\end{gathered}
+\end{equation*}
+Заметим, что: 
+\begin{equation*}
+[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}X_{m,t} \sim N\Big([\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)},[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Big)
+\end{equation*}
+Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
+\begin{equation*}
+\begin{gathered}
+\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+\Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}\bigg[[[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}]^H[[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}]\bigg] = \\
+\Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}[W_t^HW_t] = \\
+\Tr \Big( \Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}[W_tW_t^H] \Big) = \\
+\Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}} \Big) + \\ \Tr \Big( [[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}][[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}]^H \Big)= \\
+\Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) + \\ \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \\
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
 \end{gathered}
 \end{equation*}
 \begin{center}
