@@ -154,39 +154,39 @@ P(X_m|X_o=x_o,\Psi) = \frac{P(X_o, X_m|\Psi)}{P(X_o|\Psi)} = \frac{P(X|\Psi)}{P(
 \begin{gather*}
 X_t = AS_t + N_t \\
 X_t \sim CN(\mathbf{O}_{L \times 1}, A\mathbf{P}A^H + \mathbf{\Lambda})\\
-X_t | \Psi \sim CN(A\mathbf{P}, \mathbf{\Lambda})\\
 X_{o,t} \sim CN(\mathbf{O}_{L \times 1}, A_{o,t}\mathbf{P}A_{o,t}^H + \mathbf{\Lambda_{o,t}})\\
-X_{o,t} | \Psi \sim CN(A_{o,t}\mathbf{P}, \mathbf{\Lambda_{o,t}})\\
 \end{gather*}
 \begin{gather}
-P(X|\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda})}e^{-(X_t-A\mathbf{P})^H (\mathbf{\Lambda})^{-1}(X_t-A\mathbf{P})},
+P(X|\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda})}e^{-X_t^H (\mathbf{\Lambda})^{-1}X_t},
 \end{gather}
 \begin{gather}
-P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o,t}} \Det(\mathbf{\Lambda}_{o,t})}e^{-(X_{o,t}-A_{o,t}\mathbf{P})^H (\mathbf{\Lambda}_{o,t})^{-1}(X_{o,t}-A_{o,t}\mathbf{P})},
+P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o,t}} \Det(\mathbf{\Lambda}_{o,t})}e^{-(X_{o,t})^H (\mathbf{\Lambda}_{o,t})^{-1}(X_{o,t})},
 \end{gather}
 Параметры апостериорного распределения $P(X_{m,t}|X_{o,t}=x_{o,t},\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
-\left\{ \begin{gathered} 
-m_{x_{m,t}|x_{o,t}} = m_{x_{m,t}} + K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}\cdot(x_{o,t}-m_{x_{o,t}}) \\
-K_{x_{m,t}|x_{o,t}} = K_{x_{m,t},x_{m,t}}-K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}K_{x_{o,t},x_{m,t}}.
-\end{gathered} \right.
+\left\{ \begin{aligned} 
+m_{x_{m,t}|x_{o,t}} &= m_{x_{m,t}} + K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}\cdot(x_{o,t}-m_{x_{o,t}}) \\
+K_{x_{m,t}|x_{o,t}} &= K_{x_{m,t},x_{m,t}}-K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}K_{x_{o,t},x_{m,t}}.
+\end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
-\left\{ \begin{gathered} 
-K_{x_{o,t},x_{o,t}} = A_{o,t}\mathbf{P} A_{o,t}^H +\mathbf{\Lambda}_{o,t} \\
-K_{x_{o,t},x_{m,t}} = A_{o,t}\mathbf{P} A_{m,t}^H \\
-K_{x_{m,t},x_{o,t}} = A_{m,t}\mathbf{P} A_{o,t}^H \\
-K_{x_{m,t},x_{m,t}} = A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t} \\
-m_{x_{o,t}}=A_{o,t}P \\
-m_{x_{m,t}}=A_{m,t}P
-\end{gathered} \right.
+\left\{ \begin{aligned} 
+K_{x_{o,t},x_{o,t}} &= A_{o,t}\mathbf{P} A_{o,t}^H +\mathbf{\Lambda}_{o,t} \\
+K_{x_{o,t},x_{m,t}} &= A_{o,t}\mathbf{P} A_{m,t}^H \\
+K_{x_{m,t},x_{o,t}} &= A_{m,t}\mathbf{P} A_{o,t}^H \\
+K_{x_{m,t},x_{m,t}} &= A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t} \\
+m_{x_{o,t}}&=\mathbf{O}_{L_{o,t} \times 1} \\
+m_{x_{m,t}}&=\mathbf{O}_{L_{m,t} \times 1}
+\end{aligned} \right.
 \end{equation}
 \begin{equation}
-\left\{ \begin{gathered} 
-m_{x_{m,t}|x_{o,t}} = A_{m,t}\mathbf{P} + A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}\cdot(x_{o,t}-A_{o,t}\mathbf{P}) \\
-K_{x_{m,t}|x_{o,t}} = A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t}-A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}A_{o,t}\mathbf{P} A_{m,t}^H,
-\end{gathered} \right.
+\left\{ 
+\begin{aligned}
+ m_{x_{m,t}|x_{o,t}} &= A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}\cdot x_{o,t} \\
+K_{x_{m,t}|x_{o,t}} &= A_{m,t}\mathbf{P} A_{m,t}^H + \mathbf{\Lambda}_{m,t}-A_{m,t}\mathbf{P} A_{o,t}^H(A_{o,t}\mathbf{P} A_{o,t}^H + \mathbf{\Lambda}_{o,t})^{-1}A_{o,t}\mathbf{P} A_{m,t}^H,
+\end{aligned}
+\right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
 $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
@@ -205,17 +205,27 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \\
 \begin{equation*}
 \begin{gathered}
-\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})]=\\
-\Expect_{\Psi^{(\tau)}}\Big[\log P(X_{o,t}, X_{m,t}\Big|X_{m,t}|X_{o,t}=x_{o,t})\Big]=\\
-\Expect_{\Psi^{(\tau)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
-\Expect_{\Psi^{(\tau)}}\bigg[-L \log(\pi) - \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
--L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
--L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
-\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
-\begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}\bigg] = \\
--L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
-\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
-\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}\bigg]\\
+\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau-1)}}[\log P(X_{o,t}, X_{m,t})]=\\
+\Expect_{\Psi^{(\tau-1)}}\Big[\log P(X_{o,t}, X_{m,t}\Big|X_{m,t}|X_{o,t}=x_{o,t})\Big]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
+\begin{bmatrix} X_{m,t} - \mu_{X_{m,t}} \\  X_{o,t} - \mu_{X_{o,t}} \end{bmatrix}^H \Sigma^{-1}
+\begin{bmatrix} X_{m,t} - \mu_{X_{m,t}} \\  X_{o,t} - \mu_{X_{o,t}} \end{bmatrix}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
+\begin{bmatrix} X_{m,t} \\  X_{o,t} \end{bmatrix}^H
+\begin{bmatrix} \Sigma_{(m,t)(m,t)} & \Sigma_{(m,t)(o,t)} \\  \Sigma_{(o,t)(m,t)} & \Sigma_{(o,t)(o,t)} \end{bmatrix}^{-1}
+\begin{bmatrix} X_{m,t} \\  X_{o,t} \end{bmatrix}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+\end{gathered}
+\end{equation*}
+
+\begin{equation*}
+\begin{gathered}
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
+- \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t} + 2 X_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}X_{m,t}  + X_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}X_{o,t}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
+- x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -224,8 +234,8 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
 \begin{gathered}
-\Psi^{(\tau+1)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] =\\
-\argmax_{\Psi} \sum_{t=1}^G \bigg \{   \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
+\argmax_{\Psi} \sum_{t=1}^G \bigg \{   \Expect_{\Psi^{(\tau-1)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
 \begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
 \begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}\bigg] \bigg\}
 \end{gathered}
@@ -233,9 +243,18 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
 \end{center}
+Оценим углы прибытия сигналов $\theta$, но оставляем оценку ковариации сигналов $\mathbf{P}$ фиксированной: $\mathbf{P} = \mathbf{P}^{(\tau-1)}$.
+\begin{equation*}
+\begin{gathered}
+\theta^{(\tau)}=\argmax_{\theta} \sum_{t=1}^G \bigg \{   \Expect_{\Psi^{(\tau-1)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
+\begin{bmatrix} \hat{x}_{m,t} \\  x_{o,t} \end{bmatrix}\bigg] \bigg\}
+\end{gathered}
+\end{equation*}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
+Оценим ковариацию сигналов $\mathbf{P}$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$.
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Неизвестный шум}}
 \end{center}

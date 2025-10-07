@@ -162,28 +162,28 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o,t}} \Det(\mathbf{\Lambda}_{o,t})}
 \end{gather}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
-\left\{ \begin{gathered} 
-m_{x_{m,t}|x_{o,t}} = m_{x_{m,t}} + K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}\cdot(x_{o,t}-m_{x_{o,t}}) \\
-K_{x_{m,t}|x_{o,t}} = K_{x_{m,t},x_{m,t}}-K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}K_{x_{o,t},x_{m,t}},
-\end{gathered} \right.
+\left\{ \begin{aligned}
+m_{x_{m,t}|x_{o,t}} &= m_{x_{m,t}} + K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}\cdot(x_{o,t}-m_{x_{o,t}}) \\
+K_{x_{m,t}|x_{o,t}} &= K_{x_{m,t},x_{m,t}}-K_{x_{m,t},x_{o,t}}K_{x_{o,t},x_{o,t}}^{-1}K_{x_{o,t},x_{m,t}},
+\end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
-\left\{ \begin{gathered} 
-K_{x_{o,t},x_{o,t}} = \mathbf{\Lambda}_{o,t} \\
-K_{x_{o,t},x_{m,t}} = \hat{K}_{x_{o,t},x_{m,t}} \\
-K_{x_{m,t},x_{o,t}} = \hat{K}^H_{x_{o,t},x_{m,t}} \\
-K_{x_{m,t},x_{m,t}} = \mathbf{\Lambda}_{m,t} \\
-m_{x_{o,t}}=A_{o,t}S_t \\
-m_{x_{m,t}}=A_{m,t}S_t
-\end{gathered} \right.
+\left\{ \begin{aligned} 
+K_{x_{o,t},x_{o,t}} &= \mathbf{\Lambda}_{o,t} \\
+K_{x_{o,t},x_{m,t}} &= \hat{K}_{x_{o,t},x_{m,t}} \\
+K_{x_{m,t},x_{o,t}} &= \hat{K}^H_{x_{o,t},x_{m,t}} \\
+K_{x_{m,t},x_{m,t}} &= \mathbf{\Lambda}_{m,t} \\
+m_{x_{o,t}} &= A_{o,t}S_t \\
+m_{x_{m,t}} &= A_{m,t}S_t
+\end{aligned} \right.
 \end{equation}
 где $\hat{K}_{x_{o,t},x_{m,t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o,t}$
 \begin{equation}
-\left\{ \begin{gathered} 
-m_{x_{m,t}|x_{o,t}} = A_{m,t}S_t + \hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\cdot(x_o-A_{o,t}S_t) \\
-K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-\hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\hat{K}_{x_{o,t},x_{m,t}},
-\end{gathered} \right.
+\left\{ \begin{aligned} 
+m_{x_{m,t}|x_{o,t}} &= A_{m,t}S_t + \hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\cdot(x_o-A_{o,t}S_t) \\
+K_{x_{m,t}|x_{o,t}} &= \mathbf{\Lambda}_{m,t}-\hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf{\Lambda}_{o,t})^{-1}\hat{K}_{x_{o,t},x_{m,t}},
+\end{aligned} \right.
 \end{equation}
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
@@ -208,7 +208,7 @@ K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-\hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf
 -L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
 \begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
 \begin{bmatrix} \hat{x}_{m,t} - \mu_{X_{m,t}} \\  x_{o,t} - \mu_{X_{o,t}} \end{bmatrix}\bigg] = \\
--L \log(\pi) + \Expect_{\Psi^{(\tau)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
+-L \log(\pi) + \Expect_{\Psi^{(\tau-1)}}\bigg[- \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - 
 \begin{bmatrix} \hat{x}_{m,t} - A_{m,t}S_t \\  x_{o,t} - A_{o,t}S_t  \end{bmatrix}^H \Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}^{-1}
 \begin{bmatrix} \hat{x}_{m,t} - A_{m,t}S_t  \\  x_{o,t} - A_{o,t}S_t  \end{bmatrix}\bigg]\\
 \end{gathered}
@@ -219,9 +219,9 @@ K_{x_{m,t}|x_{o,t}} = \mathbf{\Lambda}_{m,t}-\hat{K}^H_{x_{o,t},x_{m,t}}(\mathbf
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
 \begin{gathered}
-\Psi^{(\tau+1)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] =\\
-\argmax_{\Psi}  \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}\left[\sum_{t=1}^G\log P(X_{o,t}, X_{m,t})\right] = \\
-\argmax_{\Psi}  \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}\left[\sum_{t=1}^G \log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu_{X_t})^H\Sigma^{-1}(X_t-\mu_{X_t})}\right)\right]
+\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
+\argmax_{\Psi}  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}\left[\sum_{t=1}^G\log P(X_{o,t}, X_{m,t})\right] = \\
+\argmax_{\Psi}  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}\left[\sum_{t=1}^G \log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu_{X_t})^H\Sigma^{-1}(X_t-\mu_{X_t})}\right)\right]
 \end{gathered}
 \end{equation*}
 \begin{center}
