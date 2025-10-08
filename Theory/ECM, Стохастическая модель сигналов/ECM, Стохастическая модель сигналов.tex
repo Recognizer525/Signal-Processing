@@ -273,9 +273,32 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 Оценим углы прибытия сигналов $\theta$, но оставляем оценку ковариации сигналов $\mathbf{P}$ фиксированной: $\mathbf{P} = \mathbf{P}^{(\tau-1)}$.
 \begin{equation*}
 \begin{gathered}
-\theta^{(\tau)}=\argmax_{\theta} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
+\theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
+\argmax_{\theta} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
 \end{gathered}
 \end{equation*}
+Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\Sigma$. Если будет найдено оптимальное значение$\hat{\Sigma}$ матрицы $\Sigma$, можно будет найти $\theta$, 
+численно решив $A(\theta) \mathbf{P}A(\theta)^H + \mathbf{\Lambda} = \hat{\Sigma}$ относительно $\theta$. \\
+Пусть $\widetilde{x}_t^{(\tau)}$ -- вектор $x_t$, в котором пропущенные значения $x_{m,t}$ оценены с помощью $\hat{x}_{m,t}^{(\tau)}$.
+\begin{align*}
+\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
+&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( \Sigma_{(m,t)(m,t)}^{-1} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
+&\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} (\widetilde{x}_t^{(\tau)})^H \Sigma^{-1} \widetilde{x}_t^{(t)} \\
+&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( \Sigma_{(m,t)(m,t)}^{-1} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
+&\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big( (\widetilde{x}_t^{(\tau)})^H \Sigma^{-1} \widetilde{x}_t^{(\tau)} \big)
+\end{align*}
+\begin{align*}
+\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Sigma -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+&= \frac{1}{2} \big[ G \Sigma - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H
+\end{align*}
+где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $(m,t)$ и столбцов с номерами $(m,t)$: они заменены величиной $\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}$.
+Приравняем производную к нулю, чтобы получить значение $\Sigma$, соответствующее максимуму.
+\begin{align*}
+O &= \frac{1}{2} \big[ G \Sigma^{(\tau + 1)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+&= \big[ G \Sigma^{(\tau + 1)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_i^{(\tau)})^H \\
+\iff G \Sigma^{(\tau + 1)} &= \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} + \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+\iff \Sigma^{(\tau + 1)} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
+\end{align*}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
