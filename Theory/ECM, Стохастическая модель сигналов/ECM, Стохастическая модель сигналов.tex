@@ -223,30 +223,30 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \begin{equation*}
 \begin{gathered}
 -L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
-- \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t} + 2 X_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}X_{m,t}  + X_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}X_{o,t}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+- \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H (\Sigma^{-1})_{(m,t)(m,t)}X_{m,t} + 2 X_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}X_{m,t}  + X_{o,t}^H (\Sigma^{-1})_{(m,t)(m,t)}X_{o,t}\Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
 -L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})}))  - \\ 
-- x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] \\
+- x_{o,t}^H (\Sigma^{-1})_{(o,t)(o,t)}x_{o,t} - 2 x_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}\hat{x}_{m,t}^{(\tau)} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H (\Sigma^{-1})_{(m,t)(m,t)}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] \\
 \end{gathered}
 \end{equation*}
 Заметим, что: 
 \begin{equation*}
-[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}X_{m,t} \sim N\Big([\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)},[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Big)
+[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}X_{m,t} \sim N\Big([(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)},[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\Big)
 \end{equation*}
 Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
 \begin{equation*}
 \begin{gathered}
-\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H \Sigma_{(m,t)(m,t)}^{-1}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
-\Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}\bigg[[[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}]^H[[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}]\bigg] = \\
+\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m,t}^H (\Sigma^{-1})_{(m,t)(m,t)}X_{m,t}   \Big|X_{m,t}|X_{o,t}=x_{o,t}\bigg] = \\
+\Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}\bigg[\Big[[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}\Big]^H\Big[[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}\Big]\bigg] = \\
 \Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}[W_t^HW_t] = \\
 \Tr \Big( \Expect_{\Psi^{(\tau-1)},X_{m,t}|X_{o,t}=x_{o,t}}[W_tW_t^H] \Big) = \\
-\Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}} \Big) +  \Tr \Big( [[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}][[\Sigma_{(m,t)(m,t)}^{-1}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}]^H \Big)= \\
-\Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) + \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \\
+\Tr \Big( \big[(\Sigma^{-1})_{(m,t)(m,t)}\big]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}\big[(\Sigma^{-1})_{(m,t)(m,t)}\big]^{\frac{1}{2}} \Big) +  \Tr \Big( \big[[(\Sigma^{-1})_{(m,t)(m,t)}]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}\big]\big[[(\Sigma^{-1})_{(m,t)(m,t)}\big]^{\frac{1}{2}}\hat{x}_{m,t}^{(\tau)}]^H \Big)= \\
+\Tr \Big( \big[(\Sigma^{-1})_{(m,t)(m,t)}\big]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) + \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H\big[(\Sigma^{-1})_{(m,t)(m,t)}\big]\hat{x}_{m,t}^{(\tau)} \Big) \\
 \end{gathered}
 \end{equation*}
 \begin{equation*}
 \begin{gathered}
 \Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau-1)}}[\log P(X_{o,t}, X_{m,t})]=\\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) 
+-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H (\Sigma^{-1})_{(m,t)(m,t)}x_{o,t} - 2 x_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m,t)(m,t)}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[(\Sigma^{-1})_{(m,t)(m,t)}]\hat{x}_{m,t}^{(\tau)} \Big) 
 \end{gathered}
 \end{equation*}
 Таким образом, оптимизируемая функция примет следующий вид:
@@ -254,7 +254,7 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
  \sum_{t=1}^G\Expect_{X_{m,t}|X_{o,t}=x_{o,t}, \Psi^{(\tau)}}[\log P(X_{o,t}, X_{m,t})] = \\
-\sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
+\sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H (\Sigma^{-1})_{(m,t)(m,t)}x_{o,t} - 2 x_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m,t)(m,t)}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[(\Sigma^{-1})_{(m,t)(m,t)}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -264,7 +264,7 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \begin{equation*}
 \begin{gathered}
 \Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
-\argmax_{\Psi} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
+\argmax_{\Psi} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H (\Sigma^{-1})_{(m,t)(m,t)}x_{o,t} - 2 x_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m,t)(m,t)}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[(\Sigma^{-1})_{(m,t)(m,t)}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -274,7 +274,7 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 \begin{equation*}
 \begin{gathered}
 \theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
-\argmax_{\theta} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H \Sigma_{(o,t)(o,t)}^{-1}x_{o,t} - 2 x_{o,t}^H \Sigma_{(m,t)(o,t)}^{-1}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [\Sigma_{(m,t)(m,t)}^{-1}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[\Sigma_{(m,t)(m,t)}^{-1}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
+\argmax_{\theta} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m,t}|X_{o,t}=x_{o,t})})) - x_{o,t}^H (\Sigma^{-1})_{(m,t)(m,t)}x_{o,t} - 2 x_{o,t}^H (\Sigma^{-1})_{(m,t)(o,t)}\hat{x}_{m,t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m,t)(m,t)}]\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \Big) - \Tr \Big((\hat{x}_{m,t}^{(\tau)})^H[(\Sigma^{-1})_{(m,t)(m,t)}]\hat{x}_{m,t}^{(\tau)} \Big) \bigg]
 \end{gathered}
 \end{equation*}
 Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\Sigma$. Если будет найдено оптимальное значение$\hat{\Sigma}$ матрицы $\Sigma$, можно будет найти $\theta$, 
@@ -282,9 +282,9 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 Пусть $\widetilde{x}_t^{(\tau)}$ -- вектор $x_t$, в котором пропущенные значения $x_{m,t}$ оценены с помощью $\hat{x}_{m,t}^{(\tau)}$.
 \begin{align*}
 \nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
-&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( \Sigma_{(m,t)(m,t)}^{-1} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
+&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m,t)(m,t)} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
 &\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} (\widetilde{x}_t^{(\tau)})^H \Sigma^{-1} \widetilde{x}_t^{(t)} \\
-&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( \Sigma_{(m,t)(m,t)}^{-1} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
+&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m,t)(m,t)} \Sigma^{(\tau)}_{x_{m,t}|x_{o,t}} \big) \\
 &\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big( (\widetilde{x}_t^{(\tau)})^H \Sigma^{-1} \widetilde{x}_t^{(\tau)} \big)
 \end{align*}
 \begin{align*}
