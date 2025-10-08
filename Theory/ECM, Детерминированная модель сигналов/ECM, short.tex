@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{G}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\XSig}{\mathbf{x}}
+\newcommand{\Ssig}{\mathbf{s}}
+\newcommand{\Nsig}{\mathbf{G}}
+\newcommand{\Rs}{\mathbf{R}_s}
+\newcommand{\Rn}{\mathbf{R}_n}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{align*}
+\nabla_{\mu} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\mu} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
+&= \sum_{t = 1}^{G} \nabla_{\mu} \Big( -\frac{1}{2} (\widetilde{x}_t^{(\tau)} - \mu)^H \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \Big) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} \nabla_{\mu} (\widetilde{x}_t^{(\tau)} - \mu)^H \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} 2 \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \nabla_{\mu} (\widetilde{x}_t^{(\tau)} - \mu) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} 2 \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) (O - I_p) \\
+&= \mathbf{\Lambda}^{-1} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)} - \mu)
+\end{align*}
+\end{document}

@@ -277,9 +277,9 @@ $\hat{x}_{m_t} = m_{x_{m_t}|x_{o_t}}$.
 \argmax_{\theta} \sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(m_t, m_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t)(o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) \bigg]
 \end{gathered}
 \end{equation*}
-Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\Sigma$. Если будет найдено оптимальное значение$\hat{\Sigma}$ матрицы $\Sigma$, можно будет найти $\theta$, 
-численно решив $A(\theta) \mathbf{P}A(\theta)^H + \mathbf{\Lambda} = \hat{\Sigma}$ относительно $\theta$. \\
-Пусть $\widetilde{x}_t^{(\tau)}$ -- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
+Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\Sigma$. Если будет найдено оптимальное значение $\Sigma^{(\tau)}$ матрицы $\Sigma$, можно будет найти $\theta$, 
+численно решив $A(\theta^{(\tau)}) \mathbf{P}A(\theta^{(\tau)})^H + \mathbf{\Lambda} = \Sigma^{(\tau)}$ относительно $\theta$. \\
+Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
 \begin{align*}
 \nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
 &= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
@@ -288,7 +288,7 @@ $\hat{x}_{m_t} = m_{x_{m_t}|x_{o_t}}$.
 &\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big( (\widetilde{x}_t^{(\tau)})^H \Sigma^{-1} \widetilde{x}_t^{(\tau)} \big)
 \end{align*}
 \begin{align*}
-\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Sigma -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Sigma -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
 &= \frac{1}{2} \big[ G \Sigma - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H
 \end{align*}
 где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $(m_t)$ и столбцов с номерами $(m_t)$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
