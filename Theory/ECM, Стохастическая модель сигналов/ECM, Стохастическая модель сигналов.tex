@@ -294,15 +294,23 @@ $\hat{x}_{m,t} = m_{x_{m,t}|x_{o,t}}$.
 где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $(m,t)$ и столбцов с номерами $(m,t)$: они заменены величиной $\Sigma^{(\tau)}_{x_{m,t}|x_{o,t}}$.
 Приравняем производную к нулю, чтобы получить значение $\Sigma$, соответствующее максимуму.
 \begin{align*}
-O &= \frac{1}{2} \big[ G \Sigma^{(\tau + 1)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
-&= \big[ G \Sigma^{(\tau + 1)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_i^{(\tau)})^H \\
-\iff G \Sigma^{(\tau + 1)} &= \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} + \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
-\iff \Sigma^{(\tau + 1)} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
+O &= \frac{1}{2} \big[ G \Sigma^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+&= \big[ G \Sigma^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_i^{(\tau)})^H \\
+\iff G \Sigma^{(\tau)} &= \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} + \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+\iff \Sigma^{(\tau)} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
 \end{align*}
+Можем теперь численно решить следующее уравнение относительно $\theta^{(\tau)}$:
+\begin{equation}
+A(\theta^{(\tau)})\mathbf{P}^{(\tau-1)}A(\theta^{(\tau)})^H + \mathbf{\Lambda} = \Sigma^{(\tau)}.
+\end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
-Оценим ковариацию сигналов $\mathbf{P}$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$.
+Оценим ковариацию сигналов $\mathbf{P}$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$
+Можем теперь численно решить следующее уравнение относительно $\mathbf{P}^{(\tau)}$:
+\begin{equation}
+A(\theta^{(\tau)})\mathbf{P}^{(\tau)}A(\theta^{(\tau)})^H + \mathbf{\Lambda} = \Sigma^{(\tau)}.
+\end{equation}
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Неизвестный шум}}
 \end{center}
