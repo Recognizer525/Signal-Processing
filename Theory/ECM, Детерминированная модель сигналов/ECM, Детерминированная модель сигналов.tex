@@ -274,7 +274,7 @@ K_{x_{m_t}|x_{o_t}} &= \mathbf{\Lambda}_{m_t}-\hat{K}^H_{x_{o_t},x_{m_t}}(\mathb
 \end{gathered}
 \end{equation*}
 Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\mu$. Если будет найдено оптимальное значение $\mu^{(\tau)}$ вектора $\mu$, можно будет найти $\theta$, 
-численно решив $A(\theta^{(\tau)})S_t = \mu^{(\tau)}$ относительно $\theta$. \\
+численно решив $\sum_{t=1}^G A(\theta^{(\tau)})S_t = G \cdot \mu^{(\tau)}$ относительно $\theta$. \\
 Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
 \begin{align*}
 \nabla_{\mu} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\mu} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
@@ -293,11 +293,28 @@ K_{x_{m_t}|x_{o_t}} &= \mathbf{\Lambda}_{m_t}-\hat{K}^H_{x_{o_t},x_{m_t}}(\mathb
 \end{align*}
 Можем теперь численно решить следующее уравнение относительно $\theta^{(\tau)}$:
 \begin{equation}
-A(\theta^{(\tau)})S_t = \mu^{(\tau)}.
+\sum_{t=1}^G A(\theta^{(\tau)})S_t = G \cdot \mu^{(\tau)}.
 \end{equation}
+Для упрощений вычислений, преобразуем равенство:
+\begin{equation}
+A(\theta^{(\tau)}) \sum_{t=1}^G S_t = G \cdot \mu^{(\tau)}.
+\end{equation}
+\\
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
+Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$
+Можем теперь численно решить следующую систему уравнений относительно $\mathbf{S}^{(\tau)}=\{S_t^{(\tau)}\}_{t=1}^G$:
+\begin{equation}
+\left\{
+\begin{aligned}
+A(\theta^{(\tau)}) S_1^{(\tau)} &= \widetilde{x}_1^{(\tau)} \\
+A(\theta^{(\tau)}) S_2^{(\tau)} &= \widetilde{x}_2^{(\tau)} \\
+&\vdots \\
+A(\theta^{(\tau)}) S_G^{(\tau)} &= \widetilde{x}_G^{(\tau)}
+\end{aligned}
+\right.
+\end{equation}
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Неизвестный шум}}
 \end{center}
