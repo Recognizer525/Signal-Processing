@@ -469,10 +469,5 @@ def gradient_descent(theta: np.ndarray, deriv_func, lr: float = 0.1, iters: int 
     return ans
 
 
-# Functions for case, when X has unobsevred part
-def EM2():
-    pass
 
-def multistart2():
-    pass
 
