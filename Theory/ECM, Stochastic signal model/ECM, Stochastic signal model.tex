@@ -165,31 +165,31 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_{m_t}|X_{o_t}=x_{o_t},\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned} 
-m_{x_{m_t}|x_{o_t}} &= m_{x_{m_t}} + K_{x_{m_t},x_{o_t}}K_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-m_{x_{o_t}}) \\
-K_{x_{m_t}|x_{o_t}} &= K_{x_{m_t},x_{m_t}}-K_{x_{m_t},x_{o_t}}K_{x_{o_t},x_{o_t}}^{-1}K_{x_{o_t},x_{m_t}}.
+\mu_{x_{m_t}|x_{o_t}} &= \mu_{x_{m_t}} + \Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}) \\
+\Sigma_{x_{m_t}|x_{o_t}} &= \Sigma_{x_{m_t},x_{m_t}}-\Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\Sigma_{x_{o_t},x_{m_t}}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
 \left\{ \begin{aligned} 
-K_{x_{o_t},x_{o_t}} &= A_{o_t}\mathbf{P} A_{o_t}^H +\mathbf{\Lambda}_{o_t} \\
-K_{x_{o_t},x_{m_t}} &= A_{o_t}\mathbf{P} A_{m_t}^H \\
-K_{x_{m_t},x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H \\
-K_{x_{m_t},x_{m_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t} \\
-m_{x_{o_t}}&=\mathbf{O}_{L_{o_t} \times 1} \\
-m_{x_{m_t}}&=\mathbf{O}_{L_{m_t} \times 1}
+\Sigma_{x_{o_t},x_{o_t}} &= A_{o_t}\mathbf{P} A_{o_t}^H +\mathbf{\Lambda}_{o_t} \\
+\Sigma_{x_{o_t},x_{m_t}} &= A_{o_t}\mathbf{P} A_{m_t}^H \\
+\Sigma_{x_{m_t},x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H \\
+\Sigma_{x_{m_t},x_{m_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t} \\
+\mu_{x_{o_t}}&=\mathbf{O}_{L_{o_t} \times 1} \\
+\mu_{x_{m_t}}&=\mathbf{O}_{L_{m_t} \times 1}
 \end{aligned} \right.
 \end{equation}
 \begin{equation}
 \left\{ 
 \begin{aligned}
- m_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}\cdot x_{o_t} \\
-K_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t}-A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}A_{o_t}\mathbf{P} A_{m_t}^H,
+ \mu_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}\cdot x_{o_t} \\
+\Sigma_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t}-A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}A_{o_t}\mathbf{P} A_{m_t}^H
 \end{aligned}
 \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
-$\hat{x}_{m_t} = m_{x_{m_t}|x_{o_t}}$.
+$\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].

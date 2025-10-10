@@ -55,17 +55,6 @@ def generate_stochastic_signals(size: int, number: int, Gamma: np.ndarray):
     D = B[:,:size] + 1j * B[:, size:]
     return D
 
-def generate_initial_signals(G, K):
-    # G - размер выборки, M - число источников
-    A = np.random.uniform(0.5, 1.5, M)         # амплитуды
-    f = np.random.uniform(0.01, 0.1, M)        # нормированные частоты
-    phi = np.random.uniform(0, 2*np.pi, M)     # фазы
-    
-    g = np.arange(G)
-    signals = np.zeros((M, G), dtype=complex)
-    for m in range(M):
-        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    return signals.T
 
 def space_covariance_matrix(X: np.ndarray):
     """
@@ -123,29 +112,17 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Ga_n: np.n
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    no_conv = True
-    iteration = 0
-    M = Ga_n.shape[0]
-    #print(f"Initial theta = {theta}")
-    inv_Ga_n = np.linalg.inv(Ga_n)
-    while no_conv and iteration < max_iter:
-        #E-step
-        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-        A_H = A.conj().T
-        K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
-        mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
-        #print(f"K={K}")
-        #print(f"mu={mu}")
-        #M-step
-        theta_new, neg_likelihood = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
-        no_conv = np.linalg.norm(theta - theta_new) >= eps
-        if not no_conv:
-            print(f"norm={np.linalg.norm(theta - theta_new)}")
-        iteration += 1
-        print(f"Iteration={iteration}, theta_new={theta_new}, -likelihood = {neg_likelihood:.5f}")
-        theta = theta_new
     return theta, neg_likelihood
 
+
+def initializer(X: np.ndarray, M: int):
+    theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
+    L = len(X[0])
+    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    X_clean = X[~np.isnan(X).any(axis=1)].T
+    return theta, (np.linalg.pinv(A) @ X_clean).T
+    
+    
 
 def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
@@ -160,10 +137,23 @@ def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int =
     best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        signals = generate_initial_signals(len(X), M)
+        theta, signals = initializer(X, M)
         est_theta, neg_lhd = EM(theta, signals, X, M, Ga_n, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_neg_lhd
+
+
+##########################################################################################################
+def generate_initial_signals(G, K):
+    # G - размер выборки, M - число источников
+    A = np.random.uniform(0.5, 1.5, M)         # амплитуды
+    f = np.random.uniform(0.01, 0.1, M)        # нормированные частоты
+    phi = np.random.uniform(0, 2*np.pi, M)     # фазы
+    
+    g = np.arange(G)
+    signals = np.zeros((M, G), dtype=complex)
+    for m in range(M):
+        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
+    return signals.T
