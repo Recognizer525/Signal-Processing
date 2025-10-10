@@ -247,22 +247,12 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big) 
 \end{gathered}
 \end{equation*}
-Таким образом, оптимизируемая функция (с учетом исключения слагаемых, независящих от параметров) примет следующий вид:
+Таким образом, оптимизируемая функция примет следующий вид:
 \begin{equation*}
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
  \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})] = \\
-\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
-\end{gathered}
-\end{equation*}
-Рассмотрим второе слагаемое: внутри следа находится скаляр, соответственно, преобразуем выражение:
-\begin{equation*}
-\begin{gathered}
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - (\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})  \bigg] = \\
-= \sum_{t=1}^G \Big( - (X_t-AS_t)^H \mathbf{\Lambda}^{-1}(X_t-AS_t) \Big) = \\
-- ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -272,8 +262,7 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
-\argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
-- ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -283,9 +272,35 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
-\argmax_{\Psi}  - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
+Внутри данной функции, вектор $\theta$ возникает только как переменная, влияющая на $\mu$. Если будет найдено оптимальное значение $\mu^{(\tau)}$ вектора $\mu$, можно будет найти $\theta$, 
+численно решив $\sum_{t=1}^G A(\theta^{(\tau)})S_t = G \cdot \mu^{(\tau)}$ относительно $\theta$. \\
+Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
+\begin{align*}
+\nabla_{\mu} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\mu} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
+&= \sum_{t = 1}^{G} \nabla_{\mu} \Big( -\frac{1}{2} (\widetilde{x}_t^{(\tau)} - \mu)^H \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \Big) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} \nabla_{\mu} (\widetilde{x}_t^{(\tau)} - \mu)^H \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} 2 \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) \nabla_{\mu} (\widetilde{x}_t^{(\tau)} - \mu) \\
+&= -\frac{1}{2} \sum_{t = 1}^{G} 2 \mathbf{\Lambda}^{-1} (\widetilde{x}_t^{(\tau)} - \mu) (O - I_p) \\
+&= \mathbf{\Lambda}^{-1} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)} - \mu)
+\end{align*}
+Приравняем производную к нулю, чтобы получить значение $\mu$, соответствующее максимуму.
+\begin{align*}
+&\mathbf{\Lambda}^{-1} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)} - \mu^{(\tau)}) = \mathbf{O} \\
+\iff& \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)} - \mu^{(\tau)}) = \mathbf{O} \\
+\iff& \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)} = G \mu^{(\tau)} \\
+\iff& \mu^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}
+\end{align*}
+Можем теперь численно решить следующее уравнение относительно $\theta^{(\tau)}$:
+\begin{equation}
+\sum_{t=1}^G A(\theta^{(\tau)})S_t = G \cdot \mu^{(\tau)}.
+\end{equation}
+Для упрощений вычислений, преобразуем равенство:
+\begin{equation}
+A(\theta^{(\tau)}) \sum_{t=1}^G S_t = G \cdot \mu^{(\tau)}.
+\end{equation}
 \\
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}

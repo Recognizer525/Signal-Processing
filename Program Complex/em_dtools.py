@@ -101,17 +101,49 @@ def angle_correcter(theta: np.ndarray):
     return theta
 
 
-def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Ga_n: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
     signals - вектор исходных сигналов;
     X - коллекция полученных сигналов;
     M - число источников;
-    Ga_n - ковариация шума;
+    Q - ковариация шума;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
+    Indicator = np.isnan(X)
+    col_numbers = np.arange(1, X.shape[1] + 1)
+    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    mu = np.nanmean(X, axis = 0)
+    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
+    K = np.cov(X[observed_rows, ].T)
+    if np.isnan(K).any():
+        K = np.diag(np.nanvar(X, axis = 0))
+        print('Special estimate of K')
+    Mu_cond = {}
+    X_modified = X.copy()
+    EM_Iteration = 0
+    while EM_Iteration < max_iter:
+        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+        for i in range(X.shape[0]):
+            if set(O[i, ]) != set(col_numbers - 1):
+                M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+                A_o, A_m, Q_o, Q_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)], Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                K_MO = K[np.ix_(M_i, O_i)]
+                K_OM = K_MO.T
+                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
+                X_modified[i, M_i] = Mu_cond[i]
+        mu_new = np.mean(X_modified, axis = 0)
+        #if np.linalg.norm(mu - mu_new) < rtol:
+            #break
+        theta_new = equation_solver1(X_modified, signals, len(Q))
+        signals_new = equation_solver2(X_modified, len(Q), theta_new)
+        
+        theta = theta_new
+        signals = signals_new
+
+        EM_Iteration += 1
     return theta, neg_likelihood
 
 
@@ -157,3 +189,42 @@ def generate_initial_signals(G, K):
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
     return signals.T
+
+
+def EM(X: np.ndarray, max_iter: int = 20, rtol: float = 1e-8) -> np.ndarray:
+    '''
+    Функция применяет алгоритм максимального правдоподобия к полученным данным для восстановления пропущенных значений.
+    '''
+    Indicator = np.isnan(X)
+    col_numbers = np.arange(1, X.shape[1] + 1)
+    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    Mu = np.nanmean(X, axis = 0)
+    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
+    K = np.cov(X[observed_rows, ].T)
+    if np.isnan(K).any():
+        K = np.diag(np.nanvar(X, axis = 0))
+    Mu_cond, K_cond_accum = {}, np.zeros((X.shape[1], X.shape[1]))
+    X_modified = X.copy()
+    EM_Iteration = 0
+    while EM_Iteration < max_iter:
+        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+        for i in range(X.shape[0]):
+            if set(O[i, ]) != set(col_numbers - 1):
+                M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+                A_m, A_o = A[np.ix_(M_i, M_i)], A[np.ix_(O_i, O_i)]
+                
+                K_MM, K_MO, K_OO = K[np.ix_(M_i, M_i)], K[np.ix_(M_i, O_i)], K[np.ix_(O_i, O_i)]
+                K_OM = K_MO.T
+                Mu_cond[i] = Mu[np.ix_(M_i)] + K_MO @ np.linalg.inv(K_OO) @ (X_modified[i, O_i] - Mu[np.ix_(O_i)])
+                X_modified[i, M_i] = Mu_cond[i]
+                K_cond = K_MM - K_MO @ np.linalg.inv(K_OO) @ K_OM
+                K_cond_accum[np.ix_(M_i, M_i)] += K_cond
+        Mu_new, K_new = np.mean(X_modified, axis = 0), np.cov(X_modified.T, bias = 1) + K_cond_accum / X.shape[0]
+        if np.linalg.norm(Mu - Mu_new) < rtol and np.linalg.norm(K - K_new, ord = 2) < rtol:
+            break
+        Mu, K = Mu_new, K_new
+        for i in range(K.shape[0]):
+            assert K[i,i]>=0, f'Variance of {i} feature on iteration {EM_Iteration} is negative'
+            assert np.linalg.det(K)>=0, f'Determinant of Covariance matrix on iteration {EM_Iteration} is negative'
+        EM_Iteration += 1
+    return X_modified
