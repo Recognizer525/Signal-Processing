@@ -273,7 +273,7 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{gathered}
 \Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
 \argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
-- ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\argmin_{\Psi} ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -283,7 +283,7 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
-\argmax_{\Psi}  - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
 \end{equation*}
 \\
@@ -299,6 +299,16 @@ A(\theta^{(\tau)}) S_1^{(\tau)} &= \widetilde{x}_1^{(\tau)} \\
 A(\theta^{(\tau)}) S_2^{(\tau)} &= \widetilde{x}_2^{(\tau)} \\
 &\vdots \\
 A(\theta^{(\tau)}) S_G^{(\tau)} &= \widetilde{x}_G^{(\tau)}
+\end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+\begin{aligned}
+S_1^{(\tau)} &= A(\theta^{(\tau)})^{+} \widetilde{x}_1^{(\tau)} \\
+S_2^{(\tau)} &= A(\theta^{(\tau)})^{+}\widetilde{x}_2^{(\tau)} \\
+&\vdots \\
+S_G^{(\tau)} &= A(\theta^{(\tau)})^{+} \widetilde{x}_G^{(\tau)}
 \end{aligned}
 \right.
 \end{equation}
