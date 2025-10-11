@@ -46,8 +46,8 @@
 \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
   #1\;\delimsize\|\;#2%
 }
-\DeclareMathOperator*{\argmax}{argmax}
-\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{arg \, max}
+\DeclareMathOperator*{\argmin}{arg \, min}
 \DeclareMathOperator{\Det}{Det}
 \newcommand{\infdiv}{D_{KL}\infdivx}
 \newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
@@ -104,14 +104,17 @@ $\mathbf{\Lambda}_{m_t}$ --- ковариационная матрица шум�
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2  Известный шум}}
 \end{center}
-Воспользуемся ЕCМ-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, S)$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные.
+Воспользуемся ЕCМ-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, S)$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=\overline{1,L}$ предполагаются независимыми и одинаково распределенными.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
 \end{center}
-Вектор направлений прибытия сигналов $\theta$ инициализируем реализацией случайной величины из многомерного равномерного распределения. Каждая компонента $\theta_m$ вектора $\theta, m = \overline{1,M}$ принимает значения на отрезке $[-\pi; \pi]$. Начальные оценки сигнала получаем следующим образом: найдем подмножество снимков $ X_{full}$ полученного сигнала, состоящих только из наблюдаемых данных, а также оценим матрицу $A$ на основании инициализованного вектора $\theta$, а затем найдем псевдообратную $A^+ $ к этой матрице, после чего находим наилучшие оценки в смысле МНК:
 \begin{equation}
-\hat{S} = A^+ X_{full}.
+\theta^{(0)} \sim \mathcal{U}([-\pi, \pi]^M)
 \end{equation}
+\begin{equation}
+\hat{S}^{(0)} = A^+ X_{full},
+\end{equation}
+где $X_{full} = \{x_i: x_i = x_{o_i}, \forall i \in \{1,...,G\}\}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
@@ -268,41 +271,215 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$
 Можем теперь численно решить следующую систему уравнений относительно $\mathbf{S}^{(\tau)}=\{S_t^{(\tau)}\}_{t=1}^G$:
 \begin{equation}
-\left\{
-\begin{aligned}
-A(\theta^{(\tau)}) S_1^{(\tau)} &= \widetilde{x}_1^{(\tau)} \\
-A(\theta^{(\tau)}) S_2^{(\tau)} &= \widetilde{x}_2^{(\tau)} \\
-&\vdots \\
-A(\theta^{(\tau)}) S_G^{(\tau)} &= \widetilde{x}_G^{(\tau)}
-\end{aligned}
-\right.
+S^{\tau} = \argmin_S(X-AS)^HQ^{-1}(X-AS)
 \end{equation}
 \begin{equation}
 \left\{
 \begin{aligned}
-S_1^{(\tau)} &= A(\theta^{(\tau)})^{+} \widetilde{x}_1^{(\tau)} \\
-S_2^{(\tau)} &= A(\theta^{(\tau)})^{+}\widetilde{x}_2^{(\tau)} \\
+S_1^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_1^{(\tau)} \\
+S_2^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_2^{(\tau)} \\
 &\vdots \\
-S_G^{(\tau)} &= A(\theta^{(\tau)})^{+} \widetilde{x}_G^{(\tau)}
+S_G^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_G^{(\tau)}
 \end{aligned}
 \right.
 \end{equation}
+Шаги повторяются либо до достижения максимального числа итераций либо до сходимости оценок параметров, полученных на соседних двух итерациях.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S3 Неизвестный шум}}
 \end{center}
+Воспользуемся ЕCМ-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, S, \mathbf{\Lambda})$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=\overline{1,L}$ предполагаются независимыми и одинаково распределенными.
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
+\end{center}
+\begin{equation}
+\theta^{(0)} \sim \mathcal{U}([-\pi, \pi]^M)
+\end{equation}
+\begin{equation}
+\hat{S}^{(0)} = A^+ X_{full},
+\end{equation}
+где $X_{full} = \{x_i: x_i = x_{o_i}, \forall i \in \{1,...,G\}\}$.
+Шумы на сенсорах задаются  с учетом дисперсии остатков
+\begin{equation}
+\hat{q}^{(0)}_{jj} = \frac{1}{G} \sum_{t=1}^G |X_{j,t} - (AS)_{j,t}|^2
+\end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
+Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и текущей оценки параметров
+\begin{equation}
+ \Expect_{X_m|X_o, \Psi^{(\tau)}}[\log P(X_o, X_m)]
+\end{equation}
+Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой Байеса:
+\begin{gather}
+P(X_m|X_o=x_o,\Psi) = \frac{P(X_o, X_m|\Psi)}{P(X_o|\Psi)} = \frac{P(X|\Psi)}{P(X_o|\Psi)}
+\end{gather}
+\begin{gather*}
+X_t = AS_t + N_t \\
+X_t \sim CN(A S_t,\mathbf{\Lambda})\\
+X_{o_t} \sim CN( A_{o_t}S_t, \mathbf{\Lambda_{o_t}})\\
+\end{gather*}
+\begin{gather}
+P(X|\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda})}e^{-(X_t-AS_t)^H (\mathbf{\Lambda})^{-1}(X_t-AS_t)},
+\end{gather}
+\begin{gather}
+P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}e^{-(X_{o_t}-A_{o_t}S_t)^H (\mathbf{\Lambda}_{o_t})^{-1}(X_{o_t}-A_{o_t}S_t)},
+\end{gather}
+Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
+\begin{equation}
+\left\{ \begin{aligned}
+\mu_{x_{m_t}|x_{o_t}} &= \mu_{x_{m_t}} + \Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}) \\
+\Sigma_{x_{m_t}|x_{o_t}} &= \Sigma_{x_{m_t},x_{m_t}}-\Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\Sigma_{x_{o_t},x_{m_t}}
+\end{aligned} \right.
+\end{equation}
+В рамках данной задачи:
+\begin{equation}
+\left\{ \begin{aligned} 
+\Sigma_{x_{o_t},x_{o_t}} &= \mathbf{\Lambda}_{o_t} \\
+\Sigma_{x_{o_t},x_{m_t}} &= \hat{\Sigma}_{x_{o_t},x_{m_t}} \\
+\Sigma_{x_{m_t},x_{o_t}} &= \hat{\Sigma}^H_{x_{o_t},x_{m_t}} \\
+\Sigma_{x_{m_t},x_{m_t}} &= \mathbf{\Lambda}_{m_t} \\
+\mu_{x_{o_t}} &= A_{o_t}S_t \\
+\mu_{x_{m_t}} &= A_{m_t}S_t
+\end{aligned} \right.
+\end{equation}
+где $\hat{\Sigma}_{x_{o_t},x_{m_t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{x_{m_t}|x_{o_t}} &= A_{m_t}S_t + \hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}S_t) \\
+\Sigma_{x_{m_t}|x_{o_t}} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}
+\end{aligned} \right.
+\end{equation}
+Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
+$\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
+Вернемся к ранее рассмотренному условному математическому ожиданию:
+\begin{equation*}
+ \Expect_{X_m|X_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].
+\end{equation*}
+Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
+\begin{equation*}
+\begin{gathered}
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})]
+\end{gathered}
+\end{equation*}
+\\
+\\
+\begin{equation*}
+\begin{gathered}
+\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
+\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{m_t}|X_{o_t}=x_{o_t}\Big)\Big]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
+\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \mathbf{\Lambda}^{-1}
+\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
+\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}^H
+\begin{bmatrix} \mathbf{\Lambda}_{(m_t, m_t)} & \mathbf{O} \\  \mathbf{O} & \mathbf{\Lambda}_{(o_t, o_t)} \end{bmatrix}^{-1}
+\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - \\ \Expect_{\Psi^{(\tau-1)}}
+\bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) + \\
+(X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t)
+\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - (X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t) - \\ \Expect_{\Psi^{(\tau-1)}} \bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) 
+\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\end{gathered}
+\end{equation*}
+Заметим, что: 
+\begin{equation*}
+[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t} \sim N\Big([(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}(\hat{x}_{m_t}^{(\tau)} - \mu_{x_{m,t}}),[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\mathbf{\Lambda}_{m_t}[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\Big)
+\end{equation*}
+Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
+\begin{equation*}
+\begin{gathered}
+\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}\bigg[\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\mathbf{\Lambda}_{m_t}\Big]^H\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\mathbf{\Lambda}_{m_t}\Big]\bigg] = \\
+\Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}[W_t^HW_t] = \\
+\Tr \Big( \Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}[W_tW_t^H] \Big) = \\
+\Tr \Big( \big[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}}\mathbf{\Lambda}_{m_t}\big[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}} \Big) + \\ \Tr \Big( \big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}(\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})\big]\big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}}(\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})]^H \Big)= \\
+\Tr \Big( \big[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}\big]\mathbf{\Lambda}_{m_t} \Big) + \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H\big[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}\big](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big) \\
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
+\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big) 
+\end{gathered}
+\end{equation*}
+Таким образом, оптимизируемая функция (с учетом исключения слагаемых, независящих от параметров) примет следующий вид:
+\begin{equation*}
+\begin{gathered}
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})] = \\
+\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
+\end{gathered}
+\end{equation*}
+Рассмотрим второе слагаемое: внутри следа находится скаляр, соответственно, преобразуем выражение:
+\begin{equation*}
+\begin{gathered}
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - (\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})  \bigg] = \\
+= \sum_{t=1}^G \Big( - (X_t-AS_t)^H \mathbf{\Lambda}^{-1}(X_t-AS_t) \Big) = \\
+- ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\end{gathered}
+\end{equation*}
+\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
+Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
+\begin{equation*}
+\begin{gathered}
+\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
+\argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\hat{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
+\argmin_{\Psi} ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\end{gathered}
+\end{equation*}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
 \end{center}
+Оценим углы прибытия сигналов $\theta$, но оставляем оценку сигналов $S$ и оценку ковариации шума $\mathbf{\Lambda}$ фиксироваными: $S = S^{(\tau-1)}, \mathbf{\Lambda}=\mathbf{\Lambda}^{(\tau-1)}$.
+\begin{equation*}
+\begin{gathered}
+\theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
+\argmin_{\theta} ||[\mathbf{\Lambda}^{(\tau-1)}]^{-1/2}(X^{(\tau)}-A^{(\tau-1)}S^{(\tau-1)})||_F^2
+\end{gathered}
+\end{equation*}
+\\
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
+Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ и оценку ковариации шума $\mathbf{\Lambda}$ фиксироваными: $\theta = \theta^{(\tau)}, \mathbf{\Lambda}=\mathbf{\Lambda}^{(\tau-1)}$.
+Можем теперь численно решить следующую систему уравнений относительно $\mathbf{S}^{(\tau)}=\{S_t^{(\tau)}\}_{t=1}^G$:
+\begin{equation}
+S^{\tau} = \argmin_S(X^{(\tau)}-A{(\tau)}S^{(\tau-1)})^H[\mathbf{\Lambda}^{(\tau-1)}]^{-1}(X^{(\tau)}-A{(\tau)}S^{(\tau-1)})
+\end{equation}
+\begin{equation}
+\left\{
+\begin{aligned}
+S_1^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_1^{(\tau)} \\
+S_2^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_2^{(\tau)} \\
+&\vdots \\
+S_G^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_G^{(\tau)}
+\end{aligned}
+\right.
+\end{equation}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Третий СM-шаг}}
+\end{center}
+Оценим  ковариацию шума $\mathbf{\Lambda}$, но оставляем оценку углов прибытия сигналов $\theta$ и оценку сигналов фиксироваными: $\theta = \theta^{(\tau)}, S = S^{(\tau)}$.
+Один из вариантов оценить диагональные элементы ковариационной матрицы шума:
+\begin{equation}
+\hat{q}^{(\tau)}_{jj} = \frac{1}{G} \sum_{t=1}^G |X^{(\tau)}_{j,t} - (A^{(\tau)}S^{(\tau)})_{j,t}|^2
+\end{equation}
+Шаги повторяются либо до достижения максимального числа итераций либо до сходимости оценок параметров, полученных на соседних двух итерациях.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
