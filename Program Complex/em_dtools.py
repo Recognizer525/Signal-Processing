@@ -100,6 +100,26 @@ def angle_correcter(theta: np.ndarray):
             theta[i] = - np.pi - theta[i]
     return theta
 
+def weighted_norm(X, Q_inv_sqrt):
+    """
+    Compute weighted Frobenius norm: || Q^{-1/2} X ||_F
+    Q_inv_sqrt is vector of 1/std deviation for each sensor (row)
+    """
+    return np.linalg.norm(Q_inv_sqrt[:, None] * X, 'fro')
+    
+def m_step_S(X, A, Q_inv_sqrt):
+    """
+    Solve weighted least squares: minimize || Q^{-1/2} (X - A S) ||_F^2
+    """
+    # Weight X and A rows by Q_inv_sqrt
+    X_w = Q_inv_sqrt[:, None] * X
+    A_w = Q_inv_sqrt[:, None] * A
+    # Solve least squares for each snapshot (column)
+    # S = (A_w^\dagger) X_w
+    return np.linalg.pinv(A_w) @ X_w
+
+def A_theta(L, theta):
+    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
 
 def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
@@ -112,6 +132,7 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
+    Q_inv_sqrt = 1.0 / Q
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
@@ -125,7 +146,7 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     X_modified = X.copy()
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+        A = A_theta(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -134,11 +155,15 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
                 K_OM = K_MO.T
                 Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
-        mu_new = np.mean(X_modified, axis = 0)
+        new_theta = m_step_theta(X.T, signals, theta, L, Q_inv_sqrt)
+        A = A_theta(L, theta)
+        new_signals = m_step_S(X.T, A.T, Q_inv_sqrt)
+
+
+        
         #if np.linalg.norm(mu - mu_new) < rtol:
             #break
-        theta_new = equation_solver1(X_modified, signals, len(Q))
-        signals_new = equation_solver2(X_modified, len(Q), theta_new)
+
         
         theta = theta_new
         signals = signals_new
