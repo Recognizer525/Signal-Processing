@@ -64,7 +64,7 @@
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{ \S1 Постановка проблемы}}
 \end{center}
-Предположим, у нас имеется линейная антенная решетка, состоящая из L сенсоров. Решетка принимает волны, направленные из M различных источников. Этим источникам соответствует вектор углов прибытия (DoA) $\theta$, изменяющийся во времени. По итогам измерений, было получено G снимков полученного сигнала, причем ввиду технических неполадок, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- полный набор сигналов, полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора сигналов и сигнала в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{o_t}\}_{t=1}^G$ и ненаблюдаемой: $X_m = \{X_{m_t}\}_{t=1}^G$. Полученный сигнал является результатом следующей модели:
+Предположим, у нас имеется линейная антенная решетка, состоящая из L сенсоров. Решетка принимает волны, направленные из M различных источников. Этим источникам соответствует вектор углов прибытия (DoA) $\theta$, изменяющийся во времени. По итогам измерений, было получено G снимков полученного сигнала, причем ввиду технических неполадок, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- полный набор сигналов, полученных датчиками в моменты времени $t=\overline{1,G}$, $X_t$ соответствует сигналу в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора сигналов и сигнала в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{o_t}\}_{t=1}^G$ и ненаблюдаемой: $X_m = \{X_{m_t}\}_{t=1}^G$. Полученный сигнал является результатом следующей модели наблюдений:
 \begin{equation}
 X = A S + N,
 \end{equation}
@@ -104,25 +104,33 @@ $\mathbf{\Lambda}_{m_t}$ --- ковариационная матрица шум�
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2 Известный шум}}
 \end{center}
-Воспользуемся ECM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{P})$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные.
+Воспользуемся ECM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{P})$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=\overline{1,L}$ предполагаются независимыми и одинаково распределенными.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
-Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и текущей оценки параметров
+Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и апостериорного распределения сигналов $S$ и текущей оценки параметров
 \begin{equation}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)]
+ \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
 \end{equation}
-Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой Байеса:
+Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой произведения плотностей:
 \begin{gather}
-P(X_m|X_o=x_o,\Psi) = \frac{P(X_o, X_m|\Psi)}{P(X_o|\Psi)} = \frac{P(X|\Psi)}{P(X_o|\Psi)}
+P((X_m,S)|X_o=x_o,\Psi) = P(X_m|X_o = x_o, \Psi) \cdot P(S|X_o = x_o, X_m=\hat{x}_m, \Psi)
 \end{gather}
 \begin{gather*}
 X_t = AS_t + N_t \\
+S_t \sim CN(\mathbf{O}_{M \times 1}, \mathbf{P}) \\
 X_t \sim CN(\mathbf{O}_{L \times 1}, A\mathbf{P}A^H + \mathbf{\Lambda})\\
+X_t|S_t \sim CN(AS_t,  \mathbf{\Lambda})\\
 X_{o_t} \sim CN(\mathbf{O}_{L \times 1}, A_{o_t}\mathbf{P}A_{o_t}^H + \mathbf{\Lambda_{o_t}})\\
 \end{gather*}
 \begin{gather}
-P(X|\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda})}e^{-X_t^H (\mathbf{\Lambda})^{-1}X_t},
+P(S|\Psi) = \prod_{t=1}^G \frac{1}{\pi^M \Det(\mathbf{\Lambda})}e^{-S_t^H (\mathbf{P})^{-1}S_t},
+\end{gather}
+\begin{gather}
+P(X|\Psi) = \prod_{t=1}^G \frac{1}{ \pi^L \Det(A\mathbf{P}A^H + \mathbf{\Lambda}) } e^{-X_t^H (A\mathbf{P}A^H + \mathbf{\Lambda})^{-1}X_t},
+\end{gather}
+\begin{gather}
+P(X|S,\Psi) = \prod_{t=1}^G \frac{1}{\pi^L \Det(\mathbf{\Lambda}) }e^{-(X_t-AS_t)^H (\mathbf{\Lambda})^{-1}(X_t-AS_t)},
 \end{gather}
 \begin{gather}
 P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}e^{-(X_{o_t})^H (\mathbf{\Lambda}_{o_t})^{-1}(X_{o_t})},
@@ -130,96 +138,35 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_{m_t}|X_{o_t}=x_{o_t},\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{x_{m_t}|x_{o_t}} &= \mu_{x_{m_t}} + \Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}) \\
-\Sigma_{x_{m_t}|x_{o_t}} &= \Sigma_{x_{m_t},x_{m_t}}-\Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\Sigma_{x_{o_t},x_{m_t}}
+\mu_{X_{m_t}|x_{o_t}} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}\hat{\Sigma}_{x_{o_t},x_{o_t}}^{-1}\cdot x_{o_t} \\
+\Sigma_{x_{m_t}|x_{o_t}} &= \hat{\Sigma}_{x_{m_t},x_{m_t}}-\hat{\Sigma}_{x_{m_t},x_{o_t}}\hat{\Sigma}_{x_{o_t},x_{o_t}}^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}
 \end{aligned} \right.
-\end{equation}
-В рамках данной задачи:
-\begin{equation}
-\left\{ \begin{aligned} 
-\Sigma_{x_{o_t},x_{o_t}} &= A_{o_t}\mathbf{P} A_{o_t}^H +\mathbf{\Lambda}_{o_t} \\
-\Sigma_{x_{o_t},x_{m_t}} &= A_{o_t}\mathbf{P} A_{m_t}^H \\
-\Sigma_{x_{m_t},x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H \\
-\Sigma_{x_{m_t},x_{m_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t} \\
-\mu_{x_{o_t}}&=\mathbf{O}_{L_{o_t} \times 1} \\
-\mu_{x_{m_t}}&=\mathbf{O}_{L_{m_t} \times 1}
-\end{aligned} \right.
-\end{equation}
-\begin{equation}
-\left\{ 
-\begin{aligned}
- \mu_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}\cdot x_{o_t} \\
-\Sigma_{x_{m_t}|x_{o_t}} &= A_{m_t}\mathbf{P} A_{m_t}^H + \mathbf{\Lambda}_{m_t}-A_{m_t}\mathbf{P} A_{o_t}^H(A_{o_t}\mathbf{P} A_{o_t}^H + \mathbf{\Lambda}_{o_t})^{-1}A_{o_t}\mathbf{P} A_{m_t}^H
-\end{aligned}
-\right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
-$\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
+$\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- оценка $x_t$ с учетом оценки пропусков.
+Параметры апостериорного распределения $P(S_t|X_{o_t} = x_{o_t}, X_{m_t} = \hat{x}_{m_t}, \Psi)$ можно найти исходя из следующих формул
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \hat{x}_{m_t}, \Psi} &= \mathbf{P}A^H(A\mathbf{P}A^H+Q)^{-1}\widetilde{x}_t^{(\tau)} \\
+\Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \hat{x}_{m_t}, \Psi} &= \mathbf{P} - \mathbf{P}A^H(A\mathbf{P}A^H+Q)^{-1}A\mathbf{P}
+\end{aligned} \right.
+\end{equation}
+Рассчитаем оценку пространственной ковариационной матрицы (пользуемся результатами выкладок по детерминированной модели):
+\begin{equation}
+\hat{R}^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
+\end{equation}
+где $\widetilde{\Sigma_{t}}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $(m_t)$ и столбцов с номерами $(m_t)$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].
+ \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
 \end{equation*}
-Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
-\begin{equation*}
-\begin{gathered}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})]
-\end{gathered}
-\end{equation*}
+Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. 
 \\
 \\
 \begin{equation*}
 \begin{gathered}
-\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
-\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{m_t}|X_{o_t}=x_{o_t}\Big)\Big]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\Sigma)) - (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\Sigma^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
-\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \Sigma^{-1}
-\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
-\begin{bmatrix} X_{m_t} \\  X_{o_t} \end{bmatrix}^H
-\begin{bmatrix} \Sigma_{(m_t, m_t)} & \Sigma_{(m_t, o_t)} \\  \Sigma_{(o_t, m_t)} & \Sigma_{(o_t, o_t)} \end{bmatrix}^{-1}
-\begin{bmatrix} X_{m_t} \\  X_{o_t} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
-\end{gathered}
-\end{equation*}
-
-\begin{equation*}
-\begin{gathered}
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})}))  - \\ 
-- \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\Sigma^{-1})_{(m_t, m_t)}X_{m_t} + 2 X_{o_t}^H (\Sigma^{-1})_{(m_t, o_t)}X_{m_t}  + X_{o_t}^H (\Sigma^{-1})_{(m_t, m_t)}X_{o_t}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})}))  - \\ 
-- x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t, o_t)}\hat{x}_{m_t}^{(\tau)} - \Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\Sigma^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] \\
-\end{gathered}
-\end{equation*}
-Заметим, что: 
-\begin{equation*}
-[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t} \sim N\Big([(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\hat{x}_{m_t}^{(\tau)},[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\Big)
-\end{equation*}
-Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
-\begin{equation*}
-\begin{gathered}
-\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\Sigma^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
-\Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}\bigg[\Big[[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}\Big]^H\Big[[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}\Big]\bigg] = \\
-\Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}[W_t^HW_t] = \\
-\Tr \Big( \Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}[W_tW_t^H] \Big) = \\
-\Tr \Big( \big[(\Sigma^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}}\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}\big[(\Sigma^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}} \Big) +  \Tr \Big( \big[[(\Sigma^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}\hat{x}_{m_t}^{(\tau)}\big]\big[[(\Sigma^{-1})_{(m_t, m_t)}\big]^{\frac{1}{2}}\hat{x}_{m_t}^{(\tau)}]^H \Big)= \\
-\Tr \Big( \big[(\Sigma^{-1})_{(m_t, m_t)}\big]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) + \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H\big[(\Sigma^{-1})_{(m_t, m_t)}\big]\hat{x}_{m_t}^{(\tau)} \Big) \\
-\end{gathered}
-\end{equation*}
-\begin{equation*}
-\begin{gathered}
-\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
--L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t, o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) 
-\end{gathered}
-\end{equation*}
-Таким образом, оптимизируемая функция примет следующий вид:
-\begin{equation*}
-\begin{gathered}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})] = \\
-\sum_{t=1}^G \bigg[-L \log(\pi) - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t, o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) \bigg]
+\log P(X,S|\theta, \mathbf{P}) = -G \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^G (X_t-A(\theta)S_t)^H \mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) 
+\\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -228,8 +175,9 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
 \begin{gathered}
-\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
-\argmax_{\Psi} \sum_{t=1}^G \bigg[ - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t, o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) \bigg]
+\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau)}}[\log P(X, S)] = \\
+\argmax_{\Psi} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\bigg[-G \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^G (X_t-A(\theta)S_t)^H \mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) 
+\\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg]
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -239,19 +187,65 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
-\argmax_{\theta} \sum_{t=1}^G \bigg[ - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t)(o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) \bigg]
+\argmax_{\theta} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\bigg[-G \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^G (X_t-A(\theta)S_t)^H \mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) 
+\\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg]
 \end{gathered}
 \end{equation*}
+Тогда минимизируемая функция примет следующий вид:
+\begin{equation*}
+\begin{gathered}
+\mathcal{J}(\theta) = \sum_{t=1}^G \Expect \Big[ (X_t-A(\theta)S_t)^H\mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) \text{|}X_o\Big] = \\
+\sum_{t=1}^G \Tr \Big( \mathbf{\Lambda}^{-1} \Expect \Big[ (X_t-A(\theta)S_t)(X_t-A(\theta)S_t)^H \Big{|}X_o\Big] \Big) = \\
+\Tr \Big( \mathbf{\Lambda}^{-1} (\hat{R} - A\mathbf{P}^{\tau-1}A^H) \Big)
+\end{gathered}
+\end{equation*}
+\begin{equation}
+\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} (\hat{R} - A\mathbf{P}^{\tau-1}A^H) \Big)
+\end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
 Оценим ковариацию сигналов $\mathbf{P}$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$
 \begin{equation*}
 \begin{gathered}
-\mathbf{P}^{(\tau)}= \argmax_{\mathbf{P}} Q(\mathbf{P} | \mathbf{P}^{(\tau-1)}) = \\
-\argmax_{\mathbf{P}} \sum_{t=1}^G \bigg[ - \log (\Det(\Sigma_{X_t|(X_{m_t}|X_{o_t}=x_{o_t})})) - x_{o_t}^H (\Sigma^{-1})_{(o_t, o_t)}x_{o_t} - 2 x_{o_t}^H (\Sigma^{-1})_{(m_t)(o_t)}\hat{x}_{m_t}^{(\tau)} - \\ \Tr \Big( [(\Sigma^{-1})_{(m_t, m_t)}]\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \Big) - \Tr \Big((\hat{x}_{m_t}^{(\tau)})^H[(\Sigma^{-1})_{(m_t, m_t)}]\hat{x}_{m_t}^{(\tau)} \Big) \bigg]
+\mathbf{P}^{(\tau)}= \argmax_{\mathbf{P}} Q(\mathbf{P} | \mathbf{P}^{(\tau-1)}) 
 \end{gathered}
 \end{equation*}
+Пользуемся тем фактом, что полное правдоподобие раскладывается на сумму $\log P(X|S, \Psi) + \log(S| \Psi)$. Первый логарифм не зависит от $\mathbf{P}$. Поэтому раскрываем мат.ожидание исключительно второго логарифма .
+\begin{equation*}
+\begin{gathered}
+\mathcal{K}(\mathbf{P}) = \Expect_{S|X_=\hat{x}, \Psi^{(\tau-1)}}\bigg[- G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg] = \\
+- G \log(\Det(\pi \mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \hat{x}^{(\tau)} \bigg ] = \\
+- G \log(\Det(\pi)) - G \log(\Det(\mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \hat{x}^{(\tau)} \bigg ] = \\
+ - G \log(\Det(\mathbf{P})) - \sum_{t=1}^G \Tr\Big(\mathbf{P}^{-1} \Expect[S_t S_t^H\Big| X = \hat{x}^{(\tau)}]\Big)
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
+\frac{d}{d\mathbf{P}}\log (\Det (\mathbf{P})) = P^{-1}
+\end{gathered}
+\end{equation*}
+$X = \hat{x}^{(\tau)}$ -- оценка наблюдений, полученная с учетом Е-шага текущей итерации.
+Обозначим через $M$ величину $\Expect[S_t S_t^H\Big| X = \hat{x}^{(\tau)}]$.
+\begin{equation*}
+\begin{gathered}
+\frac{d}{d\mathbf{P}}\Tr(P^{-1}M)= -P^{-1}MP^{-1}
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
+\frac{d\mathcal{K}(\mathbf{P})}{d\mathbf{P}} = -GP^{-1}+P^{-1}MP^{-1}
+\end{gathered}
+\end{equation*}
+Приравняем производную к нулю (функция по $\mathbf{P}$ выпукла).
+\begin{equation*}
+\begin{gathered}
+O = -GP^{-1}+P^{-1}MP^{-1} \Rightarrow M =GP \Rightarrow \mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S|X}  (\mu_{S_t|X_t})^H \Big)
+\end{gathered}
+\end{equation*}
+\begin{equation}
+\mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)
+\end{equation}
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S3 Неизвестный шум}}
