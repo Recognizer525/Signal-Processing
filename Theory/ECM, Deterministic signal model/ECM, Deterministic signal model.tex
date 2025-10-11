@@ -456,21 +456,22 @@ $\hat{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
 \end{center}
-Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ и оценку ковариации шума $\mathbf{\Lambda}$ фиксироваными: $\theta = \theta^{(\tau)}, \mathbf{\Lambda}=\mathbf{\Lambda}^{(\tau-1)}$.
+Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ и оценку ковариации шума $\mathbf{\Lambda}$ фиксироваными: $\theta = \theta^{(\tau)}, \mathbf{\Lambda}=\mathbf{\Lambda}^{(\tau-1)}$. Обозначим через $A^{(\tau)}$ оценку матрицы управляющих векторов $A(\theta^{(\tau)})$ после получения $\theta^{(\tau)}$
 Можем теперь численно решить следующую систему уравнений относительно $\mathbf{S}^{(\tau)}=\{S_t^{(\tau)}\}_{t=1}^G$:
 \begin{equation}
-S^{\tau} = \argmin_S(X^{(\tau)}-A{(\tau)}S^{(\tau-1)})^H[\mathbf{\Lambda}^{(\tau-1)}]^{-1}(X^{(\tau)}-A{(\tau)}S^{(\tau-1)})
+S^{\tau} = \argmin_S(X^{(\tau)}-A^{(\tau)}S^{(\tau-1)})^H[\mathbf{\Lambda}^{(\tau-1)}]^{-1}(X^{(\tau)}-A^{(\tau)}S^{(\tau-1)})
 \end{equation}
 \begin{equation}
 \left\{
 \begin{aligned}
-S_1^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_1^{(\tau)} \\
-S_2^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_2^{(\tau)} \\
+S_1^{(\tau)} &= (A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A^{(\tau)})^{-1}(A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_1^{(\tau)} \\
+S_2^{(\tau)} &= (A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A^{(\tau)})^{-1}(A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_2^{(\tau)} \\
 &\vdots \\
-S_G^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_G^{(\tau)}
+S_G^{(\tau)} &= (A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A^{(\tau)})^{-1}(A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1}  \widetilde{x}_G^{(\tau)}
 \end{aligned}
 \right.
 \end{equation}
+где $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Третий СM-шаг}}
 \end{center}
@@ -479,6 +480,31 @@ S_G^{(\tau)} &= (A(\theta^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A(\thet
 \begin{equation}
 \hat{q}^{(\tau)}_{jj} = \frac{1}{G} \sum_{t=1}^G |X^{(\tau)}_{j,t} - (A^{(\tau)}S^{(\tau)})_{j,t}|^2
 \end{equation}
+Если же напрямую оптимизировать целевую функцию $Q(\theta | \theta^{(\tau-1)})$, можем получить иную аналитическую оценку ковариационной матрицы шума:
+Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$.
+\begin{align*}
+\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
+&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
+&\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \\
+&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
+&\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big(  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \big)
+\end{align*}
+\begin{align*}
+\nabla_{\Sigma^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Sigma -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+&= \frac{1}{2} \big[ G \Sigma - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A{(\tau)}S^{(\tau)})^H
+\end{align*}
+где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $(m_t)$ и столбцов с номерами $(m_t)$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
+Приравняем производную к нулю, чтобы получить значение $\Sigma$, соответствующее максимуму.
+\begin{align*}
+O &= \frac{1}{2} \big[ G \Sigma^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})(\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+&= \big[ G \Sigma^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \\
+\iff G \Sigma^{(\tau)} &= \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} + \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+\iff \Sigma^{(\tau)} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]
+\end{align*}
+Учтем тот факт, что матрица шума оценивается как диагональная:
+\begin{align*}
+\iff \mathbf{\Lambda}^{(\tau)} =  \Sigma^{(\tau)} &= \text{diag}\bigg(\frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]\bigg)
+\end{align*}
 Шаги повторяются либо до достижения максимального числа итераций либо до сходимости оценок параметров, полученных на соседних двух итерациях.
 \clearpage
 \begin{center}
