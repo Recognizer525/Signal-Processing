@@ -108,6 +108,20 @@ $\mathbf{\Lambda}_{m_t}$ --- ковариационная матрица шум�
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
 \end{center}
+Оценим вектор углов $\theta^{(0)}$ следующим образом:
+\begin{enumerate}
+\item
+Выберем число $\nu$, которое будет соответствовать первому компоненту вектора $\theta^{(0)}$:
+\begin{equation}
+\nu \sim \mathcal{U}([-\pi;\pi]);
+\end{equation}
+\item
+Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = \nu + (i-1)\cdot \frac{2\pi}{M}, i = \overline{1,M}$.
+\end{enumerate}
+Диагональные элементы матрицы $\mathbf{P}$ задаем с помощью равномерного распределения:
+\begin{equation}
+p_{jj} \sim \mathcal{U}([0.2; 5])
+\end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
@@ -183,6 +197,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 \\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg]
 \end{gathered}
 \end{equation*}
+\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
 \end{center}
