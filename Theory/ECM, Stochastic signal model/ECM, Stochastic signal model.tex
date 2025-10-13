@@ -46,8 +46,8 @@
 \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
   #1\;\delimsize\|\;#2%
 }
-\DeclareMathOperator*{\argmax}{argmax}
-\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{arg \, \max}
+\DeclareMathOperator*{\argmin}{arg \, \min}
 \DeclareMathOperator{\Det}{Det}
 \newcommand{\infdiv}{D_{KL}\infdivx}
 \newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
@@ -106,15 +106,18 @@ $\mathbf{\Lambda}_{m_t}$ --- ковариационная матрица шум�
 \end{center}
 Воспользуемся ECM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{P})$, пропущенные значения $X_m=\{X_{m_t}\}_{t=1}^G$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=\overline{1,L}$ предполагаются независимыми и одинаково распределенными.
 \begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
+\end{center}
+\begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
-Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и апостериорного распределения сигналов $S$ и текущей оценки параметров
+Требуется найти условное математическое ожидание с учетом  текущей оценки параметров и апостериорного совместного распределения ненаблюдаемых/пропущенных принятых сигналов $X_m$ и исходных сигналов $S$ 
 \begin{equation}
  \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
 \end{equation}
 Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой произведения плотностей:
 \begin{gather}
-P((X_m,S)|X_o=x_o,\Psi) = P(X_m|X_o = x_o, \Psi) \cdot P(S|X_o = x_o, X_m=\hat{x}_m, \Psi)
+P((X_m,S)|X_o=x_o,\Psi) = P(X_m|X_o = x_o, \Psi) \cdot P(S|X_o = x_o, X_m=\widetilde{x}_m, \Psi)
 \end{gather}
 \begin{gather*}
 X_t = AS_t + N_t \\
@@ -153,7 +156,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 \end{equation}
 Рассчитаем оценку пространственной ковариационной матрицы (пользуемся результатами выкладок по детерминированной модели):
 \begin{equation}
-\hat{R}^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
+{R}^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
 \end{equation}
 где $\widetilde{\Sigma_{t}}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $j_1 \in m_t$ и столбцов с номерами $j_2 \in m_t$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
@@ -196,11 +199,11 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 \begin{gathered}
 \mathcal{J}(\theta) = \sum_{t=1}^G \Expect \Big[ (X_t-A(\theta)S_t)^H\mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) \text{|}X_o = x_o\Big] = \\
 \sum_{t=1}^G \Tr \Big( \mathbf{\Lambda}^{-1} \Expect \Big[ (X_t-A(\theta)S_t)(X_t-A(\theta)S_t)^H \Big{|}X_o = x_o \Big] \Big) = \\
-\Tr \Big( \mathbf{\Lambda}^{-1} (\hat{R} - A\mathbf{P}^{\tau-1}A^H) \Big)
+\Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{\tau-1}A^H) \Big)
 \end{gathered}
 \end{equation*}
 \begin{equation}
-\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} (\hat{R} - A\mathbf{P}^{\tau-1}A^H) \Big)
+\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{\tau-1}A^H) \Big)
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
@@ -214,7 +217,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 Пользуемся тем фактом, что полное правдоподобие раскладывается на сумму $\log P(X|S=s) + \log(S)$. Первый логарифм не зависит от $\mathbf{P}$. Поэтому максимизируем условное математическое ожидание  для $\log(S| \Psi)$.
 \begin{equation*}
 \begin{gathered}
-\mathcal{K}(\mathbf{P}) = \Expect_{S|X_=\hat{x}, \Psi^{(\tau-1)}}\bigg[- G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg] = \\
+\mathcal{K}(\mathbf{P}) = \Expect_{S|X_=\widetilde{x}, \Psi^{(\tau-1)}}\bigg[- G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg] = \\
 - G \log(\Det(\pi \mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \widetilde{x}^{(\tau)} \bigg ] = \\
 - G \log(\Det(\pi)) - G \log(\Det(\mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \widetilde{x}^{(\tau)} \bigg ] = \\
  - G \log(\Det(\mathbf{P})) - \sum_{t=1}^G \Tr\Big(\mathbf{P}^{-1} \Expect[S_t S_t^H\Big| X = \widetilde{x}^{(\tau)}]\Big)

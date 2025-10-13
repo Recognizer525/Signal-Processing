@@ -21,9 +21,9 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
     
-def gss(size: int, number: int, Gamma: np.ndarray):
+def generate_stochastic_signals(size: int, number: int, Gamma: np.ndarray):
     """
-    Генерирует стохастические сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
+    Генерирует комплексные нормальные вектора (circularly-symmetric case).
     size - размер вектора;
     number - количество векторов;
     Gamma - ковариационная матрица.
@@ -38,13 +38,17 @@ def gss(size: int, number: int, Gamma: np.ndarray):
     B = np.random.RandomState(70).multivariate_normal(mu, 0.5*C, number)
     D = B[:,:size] + 1j * B[:, size:]
     return D
-
+    
 def space_covariance_matrix(X: np.ndarray):
     """
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
     X - коллекция полученных сигналов.
     """
-    return (np.einsum('ni,nj->ij', X, X.conj()) / X.shape[0])
+    N = len(X)
+    ans = np.zeros((len(X[0]), len(X[0])), dtype = np.complex128)
+    for i in range(len(X)):
+        ans += X[i][:, None] @ X[i][:, None].conj().T
+    return ans * (1/N)
 
 def MUSIC(a: np.ndarray, R: np.ndarray, M: int):
     """
