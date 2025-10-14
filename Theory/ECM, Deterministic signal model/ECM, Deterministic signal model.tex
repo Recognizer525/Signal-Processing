@@ -175,13 +175,13 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
- \Expect_{X_m|X_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].
+ \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)].
 \end{equation*}
 Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
 \begin{equation*}
 \begin{gathered}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})]
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]
 \end{gathered}
 \end{equation*}
 \\
@@ -237,12 +237,13 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})] = \\
 \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
 \sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
 Рассмотрим второе слагаемое: внутри следа находится скаляр, соответственно, преобразуем выражение:
+\clearpage
 \begin{equation*}
 \begin{gathered}
 \sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
@@ -251,7 +252,6 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
 \end{equation*}
-\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
@@ -280,15 +280,15 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Оценим сигналы $S$, но оставляем оценку углов прибытия сигналов $\theta$ фиксированной: $\theta = \theta^{(\tau)}$
 Можем теперь численно решить следующую систему уравнений относительно $\mathbf{S}^{(\tau)}=\{S_t^{(\tau)}\}_{t=1}^G$:
 \begin{equation}
-S^{\tau} = \argmin_S(X-AS)^HQ^{-1}(X-AS)
+S^{\tau} = \argmin_S(X-AS)^H\mathbf{\Lambda}^{-1}(X-AS)
 \end{equation}
 \begin{equation}
 \left\{
 \begin{aligned}
-S_1^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_1^{(\tau)} \\
-S_2^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_2^{(\tau)} \\
+S_1^{(\tau)} &= (A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1}  \widetilde{x}_1^{(\tau)} \\
+S_2^{(\tau)} &= (A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1}  \widetilde{x}_2^{(\tau)} \\
 &\vdots \\
-S_G^{(\tau)} &= (A(\theta^{(\tau)})^H Q^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H Q^{-1}  \widetilde{x}_G^{(\tau)}
+S_G^{(\tau)} &= (A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1} A(\theta^{(\tau)}))^{-1}A(\theta^{(\tau)})^H \mathbf{\Lambda}^{-1}  \widetilde{x}_G^{(\tau)}
 \end{aligned}
 \right.
 \end{equation}
@@ -372,13 +372,13 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
- \Expect_{X_m|X_o, \Psi^{(\tau)}}[\log P(X_o, X_m)].
+ \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)].
 \end{equation*}
 Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов. Определим, как будет выглядеть это УМО для произвольно выбранного элемента выборки $X_t$:
 \begin{equation*}
 \begin{gathered}
- \Expect_{X_m|X_o=x_o, \Psi^{(\tau)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})]
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]
 \end{gathered}
 \end{equation*}
 \\
@@ -393,6 +393,10 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \mathbf{\Lambda}^{-1}
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}^H
 \begin{bmatrix} \mathbf{\Lambda}_{(m_t, m_t)} & \mathbf{O} \\  \mathbf{O} & \mathbf{\Lambda}_{(o_t, o_t)} \end{bmatrix}^{-1}
@@ -434,7 +438,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
- \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau)}}[\log P(X_{o_t}, X_{m_t})] = \\
+ \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})] = \\
 \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
 \sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
@@ -448,7 +452,6 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
 \end{equation*}
-\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}

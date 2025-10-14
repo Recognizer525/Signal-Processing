@@ -21,27 +21,40 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
-def gds(M, N, A=2, fs=1000):
+def gds(G, M, A = None, f = None, phi = None, seed: int = None):
     """
-    Генерация детерминированных сигналов
-    A - амплитуда
-    M - число источников
-    N - размер выборки
-    """
-    t = np.arange(N) / fs
-    signals = np.zeros((M, N), dtype=complex)
+    Генерирует детерминированные сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
+    M - размер вектора сигнала;
+    G - количество векторов;
+    A - вектор амплитуд;
+    f - вектор частот;
+    phi - вектор фаз;
+    """ 
+    if seed is None:
+        seed = 10
+    # G - размер выборки, M - число источников
+    if A is None:
+        A = np.random.RandomState(seed + 40).uniform(0.5, 1.5, M)         
+    if f is None:
+        f = np.random.RandomState(seed + 10).uniform(0.01, 0.1, M)        
+    if phi is None:
+        phi = np.random.RandomState(seed + 1).uniform(0, 2*np.pi, M)
+    
+    g = np.arange(G)
+    signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
-        freq, phase = 50 + 10 * m, np.pi / 4 * m
-        signals[m, :] = A * np.exp(1j * (2 * np.pi * freq * t + phase))
+        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
     return signals.T
 
-def gss(size: int, number: int, Gamma: np.ndarray):
+def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     """
     Генерирует стохастические сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
     size - размер вектора;
     number - количество векторов;
     Gamma - ковариационная матрица.
     """ 
+    if seed is None:
+        seed = 70
     n = 2 * size # Размер ковариационной матрицы совместного распределения
     C = np.zeros((n,n), dtype=np.float64)
     C[:size,:size] = Gamma.real
@@ -49,9 +62,9 @@ def gss(size: int, number: int, Gamma: np.ndarray):
     C[:size,size:] = -Gamma.imag
     C[size:,:size] = Gamma.imag
     mu = np.zeros(n)
-    B = np.random.RandomState(70).multivariate_normal(mu, 0.5*C, number)
-    D = B[:,:size] + 1j * B[:, size:]
-    return D
+    B = np.random.RandomState(seed).multivariate_normal(mu, 0.5*C, number)
+    signals = B[:,:size] + 1j * B[:, size:]
+    return signals
 
 def space_covariance_matrix(X: np.ndarray):
     """
@@ -61,23 +74,17 @@ def space_covariance_matrix(X: np.ndarray):
     return (np.einsum('ni,nj->ij', X, X.conj()) / X.shape[0])
 
 
-def angle_correcter(theta: np.ndarray):
+def angle_correcter(theta: np.ndarray) -> np.ndarray:
     """
-    Набор углов преобразуется таким образом, чтобы все углы были в области [-pi/2; pi/2], для этого по мере необходимости добавляется/вычитается 2*pi 
-    требуемое число раз, кроме того, учитывается тот факт, что синус симметричен относительно pi/2 и -pi/2.
-    theta - вектор углов, которые соответствуют DOA.
+    Приводит углы к диапазону [-pi/2, pi/2], сохраняя то же значение синуса.
     """
-    for i in range(len(theta)):
-        while theta[i] > np.pi:
-            theta[i] -= 2*np.pi
-        while theta[i] < -np.pi:
-            theta[i] += 2*np.pi
-
-    for i in range(len(theta)):
-        if theta[i] > np.pi/2:
-            theta[i] = np.pi - theta[i]
-        elif theta[i] < -np.pi/2:
-            theta[i] = - np.pi - theta[i]
+    # Приведение к диапазону [-pi, pi]
+    theta = (theta + np.pi) % (2 * np.pi) - np.pi
+    # Отражение значений, выходящих за пределы [-pi/2, pi/2]
+    mask = theta > np.pi/2
+    theta[mask] = np.pi - theta[mask]
+    mask = theta < -np.pi/2
+    theta[mask] = -np.pi - theta[mask]
     return theta
 
 def A_ULA(L, theta):
@@ -85,6 +92,14 @@ def A_ULA(L, theta):
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
     return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+
+def initializer(X: np.ndarray, M: int, seed: int = None):
+    if seed is None:
+        seed = 100
+    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M).reshape(M,1)
+    signals = gds(len(X), M, seed=seed+20)
+    return theta, signals
+
 
 def weighted_norm(X, Q_inv_sqrt):
     """
@@ -105,6 +120,15 @@ def m_step_S(X, A, Q_inv_sqrt):
     return np.linalg.pinv(A_w) @ X_w
 
 
+def CM_step_theta():
+    pass
+
+def CM_step_S(X, A, Q):
+    Q = np.diag(Q)
+    inv_Q = np.linalg.inv(Q)
+    A_H = A.conj().T
+    return np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X
+
 
 def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
@@ -117,11 +141,11 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    Q_inv_sqrt = 1.0 / Q
+    Q = np.diagonal(Q)
+    Q_inv_sqrt = np.sqrt(1/Q)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    mu = np.nanmean(X, axis = 0)
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
     K = np.cov(X[observed_rows, ].T)
     if np.isnan(K).any():
@@ -129,20 +153,21 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
         print('Special estimate of K')
     Mu_cond = {}
     X_modified = X.copy()
+    Q_o, Q_m = Q[np.ix_(O_i)], Q[np.ix_(M_i)]
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = A_theta(L, theta)
+        A = A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m, Q_o, Q_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)], Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)] 
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
-                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
+                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(np.diag(Q_o)) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
-        new_theta = m_step_theta(X.T, signals, theta, L, Q_inv_sqrt)
-        A = A_theta(L, theta)
-        new_signals = m_step_S(X.T, A.T, Q_inv_sqrt)
+        new_theta = CM_step_theta(X.T, signals, theta, L, Q_inv_sqrt)
+        A = A_ULA(L, theta)
+        new_signals = CM_step_S(X.T, A.T, Q_inv_sqrt)
 
 
         
@@ -156,13 +181,6 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
         EM_Iteration += 1
     return theta, neg_likelihood
 
-
-def initializer(X: np.ndarray, M: int):
-    theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-    L = len(X[0])
-    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-    X_clean = X[~np.isnan(X).any(axis=1)].T
-    return theta, (np.linalg.pinv(A) @ X_clean).T
     
     
 
@@ -188,66 +206,5 @@ def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int =
 
 
 ##########################################################################################################
-def generate_initial_signals(G, K):
-    # G - размер выборки, M - число источников
-    A = np.random.uniform(0.5, 1.5, M)         # амплитуды
-    f = np.random.uniform(0.01, 0.1, M)        # нормированные частоты
-    phi = np.random.uniform(0, 2*np.pi, M)     # фазы
-    
-    g = np.arange(G)
-    signals = np.zeros((M, G), dtype=complex)
-    for m in range(M):
-        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    return signals.T
 
-def MUSIC(a: np.ndarray, R: np.ndarray, M: int):
-    """
-    Выходная мощность для формирователя луча MUSIC.
-    a - управляющий вектор;
-    M - число сигналов;
-    R - матрица пространственной ковариации.
-    """
-    eigvals, eigvecs = np.linalg.eigh(R)
-    idx = eigvals.argsort()[::-1]
-    eigvals = eigvals[idx]
-    eigvecs = eigvecs[:, idx]
-    E_n = eigvecs[:, M:]
-    return 1/(a[:,None].conj().T @ E_n @ E_n.conj().T @ a[:,None])[0,0]
 
-def Old_EM(X: np.ndarray, max_iter: int = 20, rtol: float = 1e-8) -> np.ndarray:
-    '''
-    Функция применяет алгоритм максимального правдоподобия к полученным данным для восстановления пропущенных значений.
-    '''
-    Indicator = np.isnan(X)
-    col_numbers = np.arange(1, X.shape[1] + 1)
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    Mu = np.nanmean(X, axis = 0)
-    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = np.cov(X[observed_rows, ].T)
-    if np.isnan(K).any():
-        K = np.diag(np.nanvar(X, axis = 0))
-    Mu_cond, K_cond_accum = {}, np.zeros((X.shape[1], X.shape[1]))
-    X_modified = X.copy()
-    EM_Iteration = 0
-    while EM_Iteration < max_iter:
-        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-        for i in range(X.shape[0]):
-            if set(O[i, ]) != set(col_numbers - 1):
-                M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_m, A_o = A[np.ix_(M_i, M_i)], A[np.ix_(O_i, O_i)]
-                
-                K_MM, K_MO, K_OO = K[np.ix_(M_i, M_i)], K[np.ix_(M_i, O_i)], K[np.ix_(O_i, O_i)]
-                K_OM = K_MO.T
-                Mu_cond[i] = Mu[np.ix_(M_i)] + K_MO @ np.linalg.inv(K_OO) @ (X_modified[i, O_i] - Mu[np.ix_(O_i)])
-                X_modified[i, M_i] = Mu_cond[i]
-                K_cond = K_MM - K_MO @ np.linalg.inv(K_OO) @ K_OM
-                K_cond_accum[np.ix_(M_i, M_i)] += K_cond
-        Mu_new, K_new = np.mean(X_modified, axis = 0), np.cov(X_modified.T, bias = 1) + K_cond_accum / X.shape[0]
-        if np.linalg.norm(Mu - Mu_new) < rtol and np.linalg.norm(K - K_new, ord = 2) < rtol:
-            break
-        Mu, K = Mu_new, K_new
-        for i in range(K.shape[0]):
-            assert K[i,i]>=0, f'Variance of {i} feature on iteration {EM_Iteration} is negative'
-            assert np.linalg.det(K)>=0, f'Determinant of Covariance matrix on iteration {EM_Iteration} is negative'
-        EM_Iteration += 1
-    return X_modified
