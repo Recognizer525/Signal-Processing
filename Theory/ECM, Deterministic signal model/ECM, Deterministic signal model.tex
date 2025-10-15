@@ -501,17 +501,17 @@ S_G^{(\tau)} &= (A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A^{(\tau)})^{-
 \begin{equation}
 \lambda^{(\tau)}_{jj} = \frac{1}{G} \sum_{t=1}^G |X^{(\tau)}_{j,t} - (A^{(\tau)}S^{(\tau)})_{j,t}|^2
 \end{equation}
-Если же напрямую оптимизировать целевую функцию $Q(\theta | \theta^{(\tau-1)})$, можем получить иную аналитическую оценку ковариационной матрицы шума:
+Если же напрямую оптимизировать функцию $Q(\mathbf{\Lambda} | \mathbf{\Lambda}^{(\tau-1)})$, можем получить иную аналитическую оценку ковариационной матрицы шума:
 Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\widetilde{x}_{m_t}^{(\tau)}$.
 \begin{align*}
-\nabla_{\Lambda^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\theta \text{ | } \theta^{(\tau-1)}) \\
+\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) \\
 &= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
 &\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \\
 &= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
 &\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big(  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \big)
 \end{align*}
 \begin{align*}
-\nabla_{\Lambda^{-1}} Q(\theta \text{ | } \theta^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Lambda -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Lambda -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
 &= \frac{1}{2} \big[ G \Lambda - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A{(\tau)}S^{(\tau)})^H
 \end{align*}
 где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $j_1 \in m_t$ и столбцов с номерами $j_2 \in m_t$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.

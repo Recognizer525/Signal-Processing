@@ -140,6 +140,13 @@ def CM_step_S(X, A, Q):
     A_H = A.conj().T
     return np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X
 
+def CM_step_noise_cov(X, A, S):
+    R = X.T - A @ S.T 
+    Sigma_Noise_diag = np.var(R, axis=1, ddof=0)  
+    epsilon = 1e-6
+    Sigma_Noise_diag = Sigma_Noise_diag + epsilon
+    return np.diag(Sigma_Noise_diag)
+
 def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
@@ -176,18 +183,18 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, m
                 K_OM = K_MO.T
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
+        # Шаги условной максимизации
         new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         A = A_ULA(L, theta)
-        new_signals = CM_step_S(X.T, A, Q)
+        new_S = CM_step_S(X.T, A, Q)
+        new_Q = CM_step_noise_cov(X.T, A, new_S.T)
 
 
         
         #if np.linalg.norm(mu - mu_new) < rtol:
-            #break
-
+            #break        
+        theta, S, Q = new_theta, new_S, new_Q
         
-        theta = theta_new
-        signals = signals_new
 
         EM_Iteration += 1
     return theta, neg_likelihood

@@ -164,8 +164,8 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 Параметры апостериорного распределения $P(S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi)$ можно найти исходя из следующих формул
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi} &= \mathbf{P}A^H(A\mathbf{P}A^H+Q)^{-1}\widetilde{x}_t^{(\tau)} \\
-\Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi} &= \mathbf{P} - \mathbf{P}A^H(A\mathbf{P}A^H+Q)^{-1}A\mathbf{P}
+\mu_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi} &= \mathbf{P}A^H(A\mathbf{P}A^H+\mathbf{\Lambda})^{-1}\widetilde{x}_t^{(\tau)} \\
+\Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi} &= \mathbf{P} - \mathbf{P}A^H(A\mathbf{P}A^H+\mathbf{\Lambda})^{-1}A\mathbf{P}
 \end{aligned} \right.
 \end{equation}
 Рассчитаем оценку пространственной ковариационной матрицы (пользуемся результатами выкладок по детерминированной модели):

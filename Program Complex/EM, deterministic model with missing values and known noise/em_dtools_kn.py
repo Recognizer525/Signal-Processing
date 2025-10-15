@@ -158,18 +158,17 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
                 K_OM = K_MO.T
                 Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
-        theta_new = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
+        # Шаги условной максимизации
+        new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         A = A_ULA(L, theta)
-        S_new = CM_step_S(X, A, Q)
+        new_S = CM_step_S(X, A, Q)
 
 
         
         #if np.linalg.norm(mu - mu_new) < rtol:
             #break
 
-        
-        theta = theta_new
-        signals = signals_new
+        theta, S = new_theta, new_S
 
         EM_Iteration += 1
     return theta, neg_likelihood
