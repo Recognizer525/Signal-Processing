@@ -2,6 +2,7 @@ import numpy as np
 import scipy
 import math
 from functools import partial
+from scipy.optimize import minimize
 
 dist_ratio = 0.5
 
@@ -80,14 +81,11 @@ def angle_correcter(theta: np.ndarray) -> np.ndarray:
     """
     # Приведение к диапазону [-pi, pi]
     theta = (theta + np.pi) % (2 * np.pi) - np.pi
-
     # Отражение значений, выходящих за пределы [-pi/2, pi/2]
     mask = theta > np.pi/2
     theta[mask] = np.pi - theta[mask]
-
     mask = theta < -np.pi/2
     theta[mask] = -np.pi - theta[mask]
-
     return theta
 
 def A_ULA(L, theta):
@@ -119,23 +117,42 @@ def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
     theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M).reshape(M,1)
-    signals = gds(len(X), M, seed=seed+20)
-    
+    signals = gds(len(X), M, seed=seed+20)    
     return theta, signals, noise_cov
 
+def cost_theta(theta, X, S, Q_inv_sqrt):
+    L, G = X.shape
+    A = A_ULA(theta, L)
+    cost = np.sum(Q_inv_sqrt @ (X - A @ S))
+    return cost
 
-def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
+    res = minimize(
+            lambda th: cost_theta(th, X.T, S.T, Q_inv_sqrt),
+            theta_guess,
+            method='L-BFGS-B',
+            bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
+        )
+    return res.x    
+
+def CM_step_S(X, A, Q):
+    inv_Q = np.linalg.inv(Q)
+    A_H = A.conj().T
+    return np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X
+
+def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
-    signals - вектор исходных сигналов;
+    S - вектор исходных сигналов;
     X - коллекция полученных сигналов;
     M - число источников;
     Q - ковариация шума;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    Q_inv_sqrt = 1.0 / Q
+    Q_vec = np.diagonal(Q)
+    Q_inv_sqrt = 1.0 / Q_vec
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
@@ -149,18 +166,19 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     X_modified = X.copy()
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = A_theta(L, theta)
+        A = A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m, Q_o, Q_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)], Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
+                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
-                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
+                Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
-        new_theta = m_step_theta(X.T, signals, theta, L, Q_inv_sqrt)
-        A = A_theta(L, theta)
-        new_signals = m_step_S(X.T, A.T, Q_inv_sqrt)
+        new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
+        A = A_ULA(L, theta)
+        new_signals = CM_step_S(X.T, A, Q)
 
 
         
@@ -173,14 +191,6 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
 
         EM_Iteration += 1
     return theta, neg_likelihood
-
-
-def initializer(X: np.ndarray, M: int):
-    theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-    L = len(X[0])
-    A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-    X_clean = X[~np.isnan(X).any(axis=1)].T
-    return theta, (np.linalg.pinv(A) @ X_clean).T
     
     
 
@@ -205,17 +215,6 @@ def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int =
     return best_theta, best_neg_lhd
 
 
-##########################################################################################################
-def generate_initial_signals(G, K):
-    # G - размер выборки, M - число источников
-    A = np.random.uniform(0.5, 1.5, M)         # амплитуды
-    f = np.random.uniform(0.01, 0.1, M)        # нормированные частоты
-    phi = np.random.uniform(0, 2*np.pi, M)     # фазы
-    
-    g = np.arange(G)
-    signals = np.zeros((M, G), dtype=complex)
-    for m in range(M):
-        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    return signals.T
+
 
 

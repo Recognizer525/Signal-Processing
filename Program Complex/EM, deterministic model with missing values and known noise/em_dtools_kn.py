@@ -2,6 +2,7 @@ import numpy as np
 import scipy
 import math
 from functools import partial
+from scipy.optimize import minimize
 
 dist_ratio = 0.5
 
@@ -97,37 +98,29 @@ def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
     theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M).reshape(M,1)
-    signals = gds(len(X), M, seed=seed+20)
-    return theta, signals
-
-
-def weighted_norm(X, Q_inv_sqrt):
-    """
-    Compute weighted Frobenius norm: || Q^{-1/2} X ||_F
-    Q_inv_sqrt is vector of 1/std deviation for each sensor (row)
-    """
-    return np.linalg.norm(Q_inv_sqrt[:, None] * X, 'fro')
+    S = gds(len(X), M, seed=seed+20)
+    return theta, S
     
-def m_step_S(X, A, Q_inv_sqrt):
-    """
-    Solve weighted least squares: minimize || Q^{-1/2} (X - A S) ||_F^2
-    """
-    # Weight X and A rows by Q_inv_sqrt
-    X_w = Q_inv_sqrt[:, None] * X
-    A_w = Q_inv_sqrt[:, None] * A
-    # Solve least squares for each snapshot (column)
-    # S = (A_w^\dagger) X_w
-    return np.linalg.pinv(A_w) @ X_w
+def cost_theta(theta, X, S, Q_inv_sqrt):
+    L, G = X.shape
+    A = A_ULA(theta, L)
+    cost = np.sum(Q_inv_sqrt @ (X - A @ S))
+    return cost
 
-
-def CM_step_theta():
-    pass
+def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
+    res = minimize(
+            lambda th: cost_theta(th, X.T, S.T, Q_inv_sqrt),
+            theta_guess,
+            method='L-BFGS-B',
+            bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
+        )
+    return res.x    
 
 def CM_step_S(X, A, Q):
-    Q = np.diag(Q)
     inv_Q = np.linalg.inv(Q)
     A_H = A.conj().T
     return np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X
+
 
 
 def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
@@ -141,8 +134,8 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    Q = np.diagonal(Q)
-    Q_inv_sqrt = np.sqrt(1/Q)
+    Q_vec = np.diagonal(Q)
+    Q_inv_sqrt = np.sqrt(1/Q_vec)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
@@ -153,21 +146,21 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
         print('Special estimate of K')
     Mu_cond = {}
     X_modified = X.copy()
-    Q_o, Q_m = Q[np.ix_(O_i)], Q[np.ix_(M_i)]
     EM_Iteration = 0
     while EM_Iteration < max_iter:
         A = A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)] 
+                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
+                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
-                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(np.diag(Q_o)) @ (X_modified[i, O_i] - A_o @ signals[i])
+                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
                 X_modified[i, M_i] = Mu_cond[i]
-        new_theta = CM_step_theta(X.T, signals, theta, L, Q_inv_sqrt)
+        theta_new = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         A = A_ULA(L, theta)
-        new_signals = CM_step_S(X.T, A.T, Q_inv_sqrt)
+        S_new = CM_step_S(X, A, Q)
 
 
         

@@ -2,6 +2,7 @@ import numpy as np
 import scipy
 import math
 from functools import partial
+from scipy.optimize import minimize
 
 dist_ratio = 0.5
 
