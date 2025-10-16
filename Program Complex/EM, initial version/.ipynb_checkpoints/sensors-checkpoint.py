@@ -84,21 +84,21 @@ def ESPRIT(M: int, L: int, R: np.ndarray):
     return np.sort(angles)
 
 
-def f(theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
+def f(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
     Минимизируемая, на М-шаге, функция.
     theta - вектор углов, которые соответствуют DOA;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     X - коллекция полученных сигналов;
     K - ковариация апостериорного распределения;
     mu - мат.ожидание апостериорного распределения.
     """
-    M, L, G = P.shape[0], Q.shape[0], X.shape[0]
+    M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
-    inv_P, inv_Q = np.linalg.inv(P), np.linalg.inv(Q)
-    inv_Ga_A, A_H_inv_Ga, A_H_inv_Ga_A = inv_Q @ A, A_H @ inv_Q, A_H @ inv_Q @ A
+    inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
+    inv_Ga_A, A_H_inv_Ga, A_H_inv_Ga_A = inv_Ga_n @ A, A_H @ inv_Ga_n, A_H @ inv_Ga_n @ A
     ans = 0
     ans1 = sum([-X[k].conj() @ inv_Ga_A @ mu[:, k] for k in range(G)])
     ans2 = sum([-mu[:,k].conj().T @ A_H_inv_Ga @ X[k] for k in range(G)])
@@ -107,46 +107,46 @@ def f(theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray, K: np.ndar
     return ans.real
 
 
-def equation_solver(theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
+def equation_solver(theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
     Нахождение оптимального вектора углов на М-шаге.
     theta - вектор углов, которые соответствуют DOA;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     X - коллекция полученных сигналов;
     K - ковариация апостериорного распределения;
     mu - мат.ожидание апостериорного распределения.
     """
-    simplified_f = partial(f, P=P, Q=Q, X=X, K=K, mu=mu)
+    simplified_f = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
     ans = scipy.optimize.minimize(simplified_f, theta.reshape(-1,), method='Nelder-Mead').x
     return ans, simplified_f(ans)
 
 
-def EM(theta: np.ndarray, X: np.ndarray, P: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
     X - коллекция полученных сигналов;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
     no_conv = True
     iteration = 0
-    M, L = P.shape[0], Q.shape[0]
+    M, L = Ga_s.shape[0], Ga_n.shape[0]
     #print(f"Initial theta = {theta}")
-    inv_P, inv_Q = np.linalg.inv(P), np.linalg.inv(Q)
+    inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
     while no_conv and iteration < max_iter:
         #E-step
         A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
         A_H = A.conj().T
-        K = P - P @ A_H @ np.linalg.inv(A @ P @ A_H + Q) @ A @ P
-        mu = P @ A_H @ np.linalg.inv(A @ P @ A_H + Q) @ X.T
+        K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
+        mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
         #print(f"K={K}")
         #print(f"mu={mu}")
         #M-step
-        theta_new, neg_likelihood = equation_solver(theta, P, Q, X, K, mu)
+        theta_new, neg_likelihood = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
         no_conv = np.linalg.norm(theta - theta_new) >= eps
         if not no_conv:
             print(f"norm={np.linalg.norm(theta - theta_new)}")
@@ -176,12 +176,12 @@ def angle_correcter(theta: np.ndarray):
     return theta
 
 
-def multi_start_EM(X: np.ndarray, P: np.ndarray, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
@@ -189,9 +189,9 @@ def multi_start_EM(X: np.ndarray, P: np.ndarray, Q: np.ndarray, num_of_starts: i
     best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        M = P.shape[0]
+        M = Ga_s.shape[0]
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        est_theta, neg_lhd, K, mu = EM(theta, X, P, Q, max_iter, eps)
+        est_theta, neg_lhd, K, mu = EM(theta, X, Ga_s, Ga_n, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)
@@ -212,11 +212,11 @@ def dA(theta: float, L: int, M: int, i: int):
     return dev_A
 
 
-def dCov(theta: np.ndarray, P: np.ndarray, L: int, M: int, i: int):
+def dCov(theta: np.ndarray, Ga_s: np.ndarray, L: int, M: int, i: int):
     """
     Вычисление производной для ковариации распределения полученных сигналов.
     theta - оценка DoA, по которой составляется матрица управляющих векторов;
-    P - ковариация сигнала;
+    Ga_s - ковариация сигнала;
     L - число датчиков;
     M - число источников;
     i - номер компоненты theta, по которой ищем частную производную.
@@ -225,7 +225,7 @@ def dCov(theta: np.ndarray, P: np.ndarray, L: int, M: int, i: int):
     A_H = A.conj().T
     dev_A = dA(theta, L, M, i)
     dev_A_H = dev_A.conj().T
-    dev_cov = dev_A @ P @ A_H + A @ P @ dev_A_H
+    dev_cov = dev_A @ Ga_s @ A_H + A @ Ga_s @ dev_A_H
     return dev_cov
 
 def d_ML1(X: np.ndarray, theta: np.ndarray, L: int, M: int):
@@ -312,35 +312,35 @@ def multi_start_ML1(X: np.ndarray, L: int, M: int, num_of_starts: int = 20, meth
     return best_theta, best_func_val
 
 
-def d_ML2(X: np.ndarray, theta: np.ndarray, P: np.ndarray, sigma2: float, L: int, M: int):
+def d_ML2(X: np.ndarray, theta: np.ndarray, Ga_s: np.ndarray, sigma2: float, L: int, M: int):
     """
     Вычисление градиента функции ML2.
     X - коллекция полученных сигналов;
     theta - начальная оценка направлений прибытия сигнала;
-    P - ковариация сигнала;
+    Ga_s - ковариация сигнала;
     sigma2 - величина на которую умножаем единичную матрицу, чтобы получить ковариацию шума;
     L - число датчиков;
     M - число источников.
     """
     N = len(X)
-    dev_Cov = [dCov(theta, P, L, M, i) for i in range(M)]
+    dev_Cov = [dCov(theta, Ga_s, L, M, i) for i in range(M)]
     I = np.eye(L, dtype=np.float64)
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
     A_H = A.conj().T
-    Cov = A @ P @ A_H + sigma2 * I
+    Cov = A @ Ga_s @ A_H + sigma2 * I
     inv_Cov = np.linalg.inv(Cov)
     R = space_covariance_matrix(X)
     dev_ML2 = [N*np.trace((I - inv_Cov @ R) @ inv_Cov @ dev_Cov[i]).real for i in range(M)]
     return dev_ML2
 
 
-def ML2(theta: np.ndarray, L: int, M: int, P: np.ndarray, sigma2: np.ndarray, X: np.ndarray):
+def ML2(theta: np.ndarray, L: int, M: int, Ga_s: np.ndarray, sigma2: np.ndarray, X: np.ndarray):
     """
     Вычисление максимального правдоподобия в соответствии со статьей Rao (1994). Предполагается, что ковариационные матрицы сигнала и шума известны.
     theta - начальная оценка DoA;
     L - число датчиков;
     M - число источников;
-    P - ковариация сигнала;
+    Ga_s - ковариация сигнала;
     sigma2 - величина на которую умножаем единичную матрицу, чтобы получить ковариацию шума;
     X - коллекция полученных сигналов.
     """
@@ -348,69 +348,69 @@ def ML2(theta: np.ndarray, L: int, M: int, P: np.ndarray, sigma2: np.ndarray, X:
     A_H = A.conj().T
     N = len(X)
     I = np.eye(L, dtype=np.float64)
-    Cov = A @ P @ A_H + sigma2 * I
+    Cov = A @ Ga_s @ A_H + sigma2 * I
     R = space_covariance_matrix(X)
     L2 = N * np.log(np.linalg.det(Cov)) + N * np.trace(np.linalg.inv(Cov) @ R)
     return L2.real
 
 
-def ML2_solution(theta: np.ndarray, X: np.ndarray, P: np.ndarray, Q: np.ndarray, method: str = 'Nelder-Mead'):
+def ML2_solution(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, method: str = 'Nelder-Mead'):
     """
     Запуск поиска параметров со случайно выбранной начальной точки.
     theta - начальная оценка DoA;
     X - коллекция полученных сигналов;
-    P - ковариация сигнала;
-    Q - ковариация шума.
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума.
     """
-    sigma2 = Q[0,0]
-    L = Q.shape[0]
-    M = P.shape[0]
-    ML2_with_one_arg = partial(ML2, L=L, M=M, P=P, sigma2=sigma2, X=X)
+    sigma2 = Ga_n[0,0]
+    L = Ga_n.shape[0]
+    M = Ga_s.shape[0]
+    ML2_with_one_arg = partial(ML2, L=L, M=M, Ga_s=Ga_s, sigma2=sigma2, X=X)
     if method == 'Nelder-Mead':
         ans = scipy.optimize.minimize(ML2_with_one_arg, theta.reshape(-1,), method='Nelder-Mead').x
         return ans, ML2_with_one_arg(ans).real
     if method in ['BFGS', 'Newton-CG', 'CG']:
-        dev_ML2 = d_ML2(X, theta, P, sigma2, L, M)
+        dev_ML2 = d_ML2(X, theta, Ga_s, sigma2, L, M)
         ans = scipy.optimize.minimize(ML2_with_one_arg, theta.reshape(-1,), jac=dev_ML2, method=method).x
         return ans, ML2_with_one_arg(ans).real
 
-def multi_start_ML2(X: np.ndarray, P: np.ndarray, Q: np.ndarray, num_of_starts: int = 20, method: str = 'Nelder-Mead'):
+def multi_start_ML2(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_starts: int = 20, method: str = 'Nelder-Mead'):
     """
     Метод реализует нахождение углов, соответствующих максимальному правдоподобию (на основе статьи Рао 1994 года). 
     Для нахождения глобального оптимума используется мультистарт.
     X - коллекция полученных сигналов;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     num_of_starts - число запусков.
     """
     best_func_val, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        M = P.shape[0]
+        M = Ga_s.shape[0]
         theta = np.random.uniform(-np.pi, np.pi, M).reshape(M,1)
-        est_theta, func_val = ML2_solution(theta, X, P, Q, method)
+        est_theta, func_val = ML2_solution(theta, X, Ga_s, Ga_n, method)
         if func_val < best_func_val:
             best_func_val, best_theta = func_val, est_theta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_func_val
 
 
-def goal_function_EM(X: np.ndarray, P: np.ndarray, Q: np.ndarray, num_of_points: int):
+def goal_function_EM(X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, num_of_points: int):
     """
     Данный метод реализует Е-шаг алгоритма, затем, в отрезке [-pi; pi] выделяется заданное число равноудаленных точек, для каждой из которых вычисляется
     значение функции, которую нужно минимизировать на М-шаге.
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     X - коллекция полученных сигналов;
     num_of_points - число точек, для которых определяем значение функции.
     """
     initial_theta = np.random.RandomState(10).uniform(-np.pi, np.pi, 1)
-    L, M = np.shape(Q)[0], np.shape(P)[0]
+    L, M = np.shape(Ga_n)[0], np.shape(Ga_s)[0]
     A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(initial_theta).reshape(1,-1))
     A_H = A.conj().T
-    K = P - P @ A_H @ np.linalg.inv(A @ P @ A_H + Q) @ A @ P
-    mu = P @ A_H @ np.linalg.inv(A @ P @ A_H + Q) @ X.T
-    funct = partial(f, P=P, Q=Q, X=X, K=K, mu=mu)
+    K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
+    mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
+    funct = partial(f, Ga_s=Ga_s, Ga_n=Ga_n, X=X, K=K, mu=mu)
     B = np.linspace(-np.pi, np.pi, num_of_points)
     f_B = np.zeros(num_of_points, dtype=np.complex128)
     for i in range(num_of_points):
@@ -422,18 +422,18 @@ def goal_function_EM(X: np.ndarray, P: np.ndarray, Q: np.ndarray, num_of_points:
 '''
 
 
-def pdce(i: int, theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
+def pdce(i: int, theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
     """
     pdce - частная производная условного мат.ожидания, которое нужно оптимизировать; 
     i - номер компоненты вектора углов, для которой ищем частную производную;
     theta - вектор углов, которые соответствуют DOA;
-    P - ковариация сигнала;
-    Q - ковариация шума;
+    Ga_s - ковариация сигнала;
+    Ga_n - ковариация шума;
     X - коллекция полученных сигналов;
     K - ковариация апостериорного распределения;
     mu - мат.ожидание апостериорного распределения.
     """
-    M, L, G = P.shape[0], Q.shape[0], X.shape[0]
+    M, L, G = Ga_s.shape[0], Ga_n.shape[0], X.shape[0]
     A = np.zeros((L, M), dtype=np.complex128)
     for i2 in range(M):
         A[:,i2] = np.exp(-2j * np.pi * dist_ratio * np.arange(L) * np.sin(theta[i2]))
@@ -441,21 +441,21 @@ def pdce(i: int, theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray,
     A_H = A.conj().T
     deriv_A = dA(theta[i,0], L, M, i) 
     deriv_A_H = deriv_A.conj().T
-    inv_P = np.linalg.inv(P)
-    inv_Q = np.linalg.inv(Q)
+    inv_Ga_s = np.linalg.inv(Ga_s)
+    inv_Ga_n = np.linalg.inv(Ga_n)
     ans = 0
     for k in range(G):
         P1 = mu[:,k].conj().T
-        P2 = -deriv_A_H @ inv_Q @ X[k]
-        P3 = deriv_A_H @ inv_Q @ A @ mu[:,k]
-        P4 = A_H @ inv_Q @ deriv_A @ mu[:,k]
-        P5 = - X[k].conj() @ inv_Q @ deriv_A @ mu[:, k]
+        P2 = -deriv_A_H @ inv_Ga_n @ X[k]
+        P3 = deriv_A_H @ inv_Ga_n @ A @ mu[:,k]
+        P4 = A_H @ inv_Ga_n @ deriv_A @ mu[:,k]
+        P5 = - X[k].conj() @ inv_Ga_n @ deriv_A @ mu[:, k]
         ans += P1@P2 + P1@P3 + P1@P4 + P5
     #print(f"derivative of X={ans.real} for theta_i={i}")
     return ans
 
-def pdce_real(i: int, theta: np.ndarray, P: np.ndarray, Q: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
-    return pdce(i, theta, P, Q, X, K, mu).real
+def pdce_real(i: int, theta: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, X: np.ndarray, K: np.ndarray, mu: np.ndarray):
+    return pdce(i, theta, Ga_s, Ga_n, X, K, mu).real
 
 def gradient_descent(theta: np.ndarray, deriv_func, lr: float = 0.1, iters: int = 5):
     G = np.zeros(theta.shape)

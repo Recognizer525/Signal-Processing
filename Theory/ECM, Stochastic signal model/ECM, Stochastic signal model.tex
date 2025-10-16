@@ -218,7 +218,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 \end{gathered}
 \end{equation*}
 \begin{equation}
-\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{\tau-1}A^H) \Big)
+\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{(\tau-1)}A^H) \Big)
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
@@ -235,30 +235,30 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ -- о�
 \mathcal{K}(\mathbf{P}) = \Expect_{S|X_=\widetilde{x}, \Psi^{(\tau-1)}}\bigg[- G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg] = \\
 - G \log(\Det(\pi \mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \widetilde{x}^{(\tau)} \bigg ] = \\
 - G \log(\Det(\pi)) - G \log(\Det(\mathbf{P})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t \Big | X = \widetilde{x}^{(\tau)} \bigg ] = \\
- - G \log(\Det(\mathbf{P})) - \sum_{t=1}^G \Tr\Big(\mathbf{P}^{-1} \Expect[S_t S_t^H\Big| X = \widetilde{x}^{(\tau)}]\Big)
+ - G \log(\Det(\mathbf{P})) - \sum_{t=1}^G \Tr\Big(\mathbf{P}^{-1} \Expect[S_t S_t^H | X = \widetilde{x}^{(\tau)}]\Big)
 \end{gathered}
 \end{equation*}
 \begin{equation*}
 \begin{gathered}
-\frac{d}{d\mathbf{P}}\log (\Det (\mathbf{P})) = P^{-1}
+\frac{d}{d\mathbf{P}}\log (\Det (\mathbf{P})) = \mathbf{P}^{-1}
 \end{gathered}
 \end{equation*}
 $X = \widetilde{x}^{(\tau)}$ -- оценка наблюдений, полученная с учетом Е-шага текущей итерации.
 Обозначим через $M$ величину $\Expect[S_t S_t^H\Big| X = \widetilde{x}^{(\tau)}]$.
 \begin{equation*}
 \begin{gathered}
-\frac{d}{d\mathbf{P}}\Tr(P^{-1}M)= -P^{-1}MP^{-1}
+\frac{d}{d\mathbf{P}}\Tr(P^{-1}M)= -\mathbf{P}^{-1}M\mathbf{P}^{-1}
 \end{gathered}
 \end{equation*}
 \begin{equation*}
 \begin{gathered}
-\frac{d\mathcal{K}(\mathbf{P})}{d\mathbf{P}} = -GP^{-1}+P^{-1}MP^{-1}
+\frac{d\mathcal{K}(\mathbf{P})}{d\mathbf{P}} = -G\mathbf{P}^{-1}+\mathbf{P}^{-1}M\mathbf{P}^{-1}
 \end{gathered}
 \end{equation*}
 Приравняем производную к нулю (функция по $\mathbf{P}$ выпукла).
 \begin{equation*}
 \begin{gathered}
-O = -GP^{-1}+P^{-1}MP^{-1} \Rightarrow M =GP \Rightarrow \mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)
+O = -G\mathbf{P}^{-1}+\mathbf{P}^{-1}M\mathbf{P}^{-1} \Rightarrow M =G\mathbf{P} \Rightarrow \mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)
 \end{gathered}
 \end{equation*}
 \begin{equation}

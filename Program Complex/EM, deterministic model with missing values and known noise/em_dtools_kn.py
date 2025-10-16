@@ -97,13 +97,13 @@ def A_ULA(L, theta):
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
-    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M).reshape(M,1)
+    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
     S = gds(len(X), M, seed=seed+20)
     return theta, S
     
 def cost_theta(theta, X, S, Q_inv_sqrt):
     L, G = X.shape
-    A = A_ULA(theta, L)
+    A = A_ULA(L, theta)
     cost = np.sum(Q_inv_sqrt @ (X - A @ S))
     return cost
 
@@ -123,13 +123,12 @@ def CM_step_S(X, A, Q):
 
 
 
-def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
-    signals - вектор исходных сигналов;
+    S - вектор исходных сигналов;
     X - коллекция полученных сигналов;
-    M - число источников;
     Q - ковариация шума;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
@@ -156,7 +155,7 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
                 Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
-                Mu_cond[i] = A_m @ signals[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ signals[i])
+                Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
         new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
@@ -176,12 +175,12 @@ def EM(theta: np.ndarray, signals: np.ndarray, X: np.ndarray, M: int, Q: np.ndar
     
     
 
-def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M - число источников;
-    Ga_n - ковариация шума;
+    Q - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
@@ -189,8 +188,8 @@ def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int =
     best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, signals = initializer(X, M)
-        est_theta, neg_lhd = EM(theta, signals, X, M, Ga_n, max_iter, eps)
+        theta, S = initializer(X, M)
+        est_theta, neg_lhd = EM(theta, S, X, Q, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)

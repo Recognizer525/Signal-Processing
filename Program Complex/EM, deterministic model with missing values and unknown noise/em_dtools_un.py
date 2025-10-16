@@ -103,26 +103,24 @@ def initial_noise_covariance(X, theta, signals):
     A = A_ULA(L, theta)
     # Остатки шума
     R = X.T - A @ signals.T 
-
     # Для каждого канала считаем дисперсию по времени
-    Sigma_N_diag = np.var(R, axis=1, ddof=0)  # ddof=0 — оценка по ML (делим на T)
-
+    Sigma_N_diag = np.nanvar(R, axis=1, ddof=0)  # ddof=0 — оценка по ML (делим на T)
     # Добавим регуляризацию, чтобы избежать нулевых дисперсий (по желанию)
     epsilon = 1e-6
     Sigma_N_diag = Sigma_N_diag + epsilon
-
     return np.diag(Sigma_N_diag)
 
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
-    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M).reshape(M,1)
-    signals = gds(len(X), M, seed=seed+20)    
+    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
+    signals = gds(len(X), M, seed=seed+20) 
+    noise_cov = initial_noise_covariance(X, theta, signals)
     return theta, signals, noise_cov
 
 def cost_theta(theta, X, S, Q_inv_sqrt):
     L, G = X.shape
-    A = A_ULA(theta, L)
+    A = A_ULA(L, theta)
     cost = np.sum(Q_inv_sqrt @ (X - A @ S))
     return cost
 
@@ -142,19 +140,18 @@ def CM_step_S(X, A, Q):
 
 def CM_step_noise_cov(X, A, S):
     R = X.T - A @ S.T 
-    Sigma_Noise_diag = np.var(R, axis=1, ddof=0)  
+    Sigma_Noise_diag = np.nanvar(R, axis=1, ddof=0)  
     epsilon = 1e-6
     Sigma_Noise_diag = Sigma_Noise_diag + epsilon
     return np.diag(Sigma_Noise_diag)
 
-def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def EM(theta: np.ndarray, S: np.ndarray, Q: np.ndarray,  X: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
     S - вектор исходных сигналов;
-    X - коллекция полученных сигналов;
-    M - число источников;
     Q - ковариация шума;
+    X - коллекция полученных сигналов;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
@@ -163,7 +160,6 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, m
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    mu = np.nanmean(X, axis = 0)
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
     K = np.cov(X[observed_rows, ].T)
     if np.isnan(K).any():
@@ -201,12 +197,11 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, m
     
     
 
-def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M - число источников;
-    Ga_n - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
@@ -214,8 +209,8 @@ def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int =
     best_neg_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, signals = initializer(X, M)
-        est_theta, neg_lhd = EM(theta, signals, X, M, Ga_n, max_iter, eps)
+        theta, S, Q = initializer(X, M)
+        est_theta, neg_lhd = EM(theta, S, Q, X, max_iter, eps)
         if neg_lhd < best_neg_lhd:
             best_neg_lhd, best_theta = neg_lhd, est_theta
     best_theta = angle_correcter(best_theta)
