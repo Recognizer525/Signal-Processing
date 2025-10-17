@@ -22,6 +22,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
+
 def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     """
     Генерирует детерминированные сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
@@ -50,6 +51,7 @@ def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     print(f'Shape of signals is {signals.shape} after')
     return signals
 
+
 def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     """
     Генерирует стохастические сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
@@ -69,6 +71,7 @@ def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     B = np.random.RandomState(seed).multivariate_normal(mu, 0.5*C, number)
     signals = B[:,:size] + 1j * B[:, size:]
     return signals
+
 
 def space_covariance_matrix(X: np.ndarray):
     """
@@ -91,11 +94,13 @@ def angle_correcter(theta: np.ndarray) -> np.ndarray:
     theta[mask] = -np.pi - theta[mask]
     return theta
 
+
 def A_ULA(L, theta):
     """
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
     return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
+
 
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
@@ -103,6 +108,7 @@ def initializer(X: np.ndarray, M: int, seed: int = None):
     theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
     S = gds(M=M, G=len(X), seed=seed+20)
     return theta, S
+
     
 def cost_theta(theta, X, S, weights):
     """
@@ -119,6 +125,7 @@ def cost_theta(theta, X, S, weights):
     cost = np.sum(weights * sum_row_wise)  
     return cost.real
 
+
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
     res = minimize(
             lambda th: cost_theta(th, X, S, Q_inv_sqrt),
@@ -128,10 +135,12 @@ def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
         )
     return res.x    
 
+
 def CM_step_S(X, A, Q):
     inv_Q = np.linalg.inv(Q)
     A_H = A.conj().T
     return (np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X).T
+
 
 def likelihood(X, theta, S, Q, inv_Q):
     """
@@ -145,6 +154,23 @@ def likelihood(X, theta, S, Q, inv_Q):
     A = A_ULA(X.shape[0], theta)
     M = X - A @ S
     return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
+
+
+def incomplete_lkhd(X, theta, S, Q, inv_Q):
+    A = A_ULA(X.shape[1], theta)
+    Indicator = np.isnan(X)
+    col_numbers = np.arange(1, X.shape[1] + 1)
+    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    res = - X.shape[1] * np.linalg.det(Q)
+    for i in range(X.shape[0]):
+        if set(O[i, ]) != set(col_numbers - 1):
+            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+            A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
+            res += - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
+        else:
+            res += - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
+    return res
+
 
 def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
@@ -196,8 +222,6 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         EM_Iteration += 1
     return theta, lkhd
 
-    
-    
 
 def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
