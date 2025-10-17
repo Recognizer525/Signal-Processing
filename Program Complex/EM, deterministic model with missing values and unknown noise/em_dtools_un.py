@@ -46,7 +46,9 @@ def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
+    print(f'Shape of signals is {signals.shape} before')
     signals = signals.T
+    print(f'Shape of signals is {signals.shape} after')
     return signals
 
 
@@ -118,8 +120,6 @@ def initial_noise_covariance(X, theta, signals):
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
-    print(f"type(seed)={type(seed)}")
-    print(f"type(M)={type(M)}")
     theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
     signals = gds(M, len(X), seed=seed+20) 
     noise_cov = initial_noise_covariance(X, theta, signals)
@@ -144,7 +144,7 @@ def cost_theta(theta, X, S, weights):
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
     res = minimize(
-            lambda th: cost_theta(th, X.T, S.T, Q_inv_sqrt),
+            lambda th: cost_theta(th, X, S, Q_inv_sqrt),
             theta_guess,
             method='L-BFGS-B',
             bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
@@ -173,11 +173,11 @@ def likelihood(X, theta, S, Q, inv_Q):
     theta - оценка вектора углов;
     S - оценка сигналов, каждый столбец соответствует одному сигналу;
     Q - матрица ковариации шума;
-    inv_Q - матрица, обратная к Q
+    inv_Q - матрица, обратная к Q.
     """
     A = A_ULA(X.shape[0], theta)
     M = X - A @ S
-    return - X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)
+    return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
 
 
 def incomplete_lkhd(X, theta, S, Q, inv_Q):
@@ -210,6 +210,8 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     Q_inv_sqrt = np.sqrt(1/Q_vec)
     L = Q.shape[0]
 
+    print(f'Initial theta = {theta}')
+
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
@@ -233,38 +235,45 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
-        #print(f"Shape of X is {X.shape}, Shape of A is {A.shape}, Shape of S is {S.shape}")
-        new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
+        K = np.cov(X_modified.T)
+        new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
+        print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, theta)
-        new_S = CM_step_S(X.T, A, Q)
-
-        theta, S = new_theta, new_S
-        #print(f'Shape of matrix S after all that is {S.shape}')
-        lkhd = likelihood(X_modified.T, theta, S.T, Q, np.linalg.inv(Q))
-        print(f'likelihood is {lkhd}')
+        new_S = CM_step_S(X_modified.T, A, Q)
+        print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
+        new_Q = CM_step_noise_cov(X_modified, A, new_S)
+        print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {EM_Iteration}')
+        theta, S, Q = new_theta, new_S, new_Q
+        lkhd = incomplete_lkhd(X_modified, theta, S, Q, np.linalg.inv(Q))
+        print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
     return theta, lkhd
-    
 
-def multi_start_EM(X: np.ndarray, M: int, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M - число источников;
+    Q - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    best_lhd, best_theta = np.inf, None
+    best_lhd, best_theta = -np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, S, Q = initializer(X, M, seed = i * 100)
-        est_theta, est_lhd = EM(theta, S, Q, X, max_iter, eps)
-        if est_lhd < best_lhd:
+        theta, S, Q = initializer(X, M, seed=i * 100)
+        #print(f"On multistart shape of S is {S.shape}")
+        est_theta, est_lhd = EM(theta, S, X, Q, max_iter, eps)
+        if est_lhd > best_lhd:
             best_lhd, best_theta = est_lhd, est_theta
     best_theta = angle_correcter(best_theta)
     return best_theta, best_lhd
+
+
+##########################################################################################################
 
 
 

@@ -46,8 +46,8 @@
 \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
   #1\;\delimsize\|\;#2%
 }
-\DeclareMathOperator*{\argmax}{arg \, max}
-\DeclareMathOperator*{\argmin}{arg \, min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator{\Det}{Det}
 \newcommand{\infdiv}{D_{KL}\infdivx}
 \newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
@@ -120,9 +120,9 @@ $$
 \end{enumerate}
 Теперь следует составить первоначальную оценку детерминированных сигналов. Предположим, что детерминированные сигналы мы можем представить в форме:
 \begin{equation}
-S(t) = Ae^{j\omega \cdot t + \phi},
+S(t) = Be^{j\omega \cdot t + \phi},
 \end{equation}
-где $A$ -- амплитуда, $\omega$ -- частота, $\phi$ -- фаза.
+где $B$ -- амплитуда, $\omega$ -- частота, $\phi$ -- фаза.
 Предполагаем, что амплитуда, частота и фаза у сигналов от различных источников могут отличаться, генерируем эти параметры из равномерного распределения. На основе их строим оценку сигналов.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
@@ -149,26 +149,26 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned}
-\mu_{x_{m_t}|x_{o_t}} &= \mu_{x_{m_t}} + \Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}) \\
-\Sigma_{x_{m_t}|x_{o_t}} &= \Sigma_{x_{m_t},x_{m_t}}-\Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\Sigma_{x_{o_t},x_{m_t}}
+\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mu_{x_{m_t}}^{(\tau)} + \Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}^{(\tau)}) \\
+\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \Sigma_{x_{m_t},x_{m_t}}^{(\tau)}-\Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{x_{o_t},x_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Sigma_{x_{o_t},x_{o_t}} &= \mathbf{\Lambda}_{o_t} \\
-\Sigma_{x_{o_t},x_{m_t}} &= \hat{\Sigma}_{x_{o_t},x_{m_t}} \\
-\Sigma_{x_{m_t},x_{o_t}} &= \hat{\Sigma}^H_{x_{o_t},x_{m_t}} \\
-\Sigma_{x_{m_t},x_{m_t}} &= \mathbf{\Lambda}_{m_t} \\
-\mu_{x_{o_t}} &= A_{o_t}S_t \\
-\mu_{x_{m_t}} &= A_{m_t}S_t
+\Sigma_{x_{o_t},x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{o_t} \\
+\Sigma_{x_{o_t},x_{m_t}}^{(\tau)} &= \hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} \\
+\Sigma_{x_{m_t},x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} \\
+\Sigma_{x_{m_t},x_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t} \\
+\mu_{x_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
+\mu_{x_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
 \end{aligned} \right.
 \end{equation}
-где $\hat{\Sigma}_{x_{o_t},x_{m_t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$
+где $\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} $ --- выборочная оценка кросс-ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$, $\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} = \Big(\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}\Big)^H$;
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{x_{m_t}|x_{o_t}} &= A_{m_t}S_t + \hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}S_t) \\
-\Sigma_{x_{m_t}|x_{o_t}} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}
+\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
@@ -184,8 +184,6 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
  \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]
 \end{gathered}
 \end{equation*}
-\\
-\\
 \begin{equation*}
 \begin{gathered}
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
@@ -196,6 +194,10 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \mathbf{\Lambda}^{-1}
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\end{gathered}
+\end{equation*}
+\begin{equation*}
+\begin{gathered}
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}^H
 \begin{bmatrix} \mathbf{\Lambda}_{(m_t, m_t)} & \mathbf{O} \\  \mathbf{O} & \mathbf{\Lambda}_{(o_t, o_t)} \end{bmatrix}^{-1}
@@ -251,7 +253,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 = \sum_{t=1}^G \Big( - (X_t-AS_t)^H \mathbf{\Lambda}^{-1}(X_t-AS_t) \Big) = \\
 - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
-\end{equation*}
+\end{equation*}.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
@@ -313,9 +315,9 @@ $$
 \end{enumerate}
 Теперь следует составить первоначальную оценку детерминированных сигналов. Предположим, что детерминированные сигналы мы можем представить в форме:
 \begin{equation}
-S(t) = Ae^{j\omega \cdot t + \phi},
+S(t) = Be^{j\omega \cdot t + \phi},
 \end{equation}
-где $A$ -- амплитуда, $\omega$ -- частота, $\phi$ -- фаза.
+где $B$ -- амплитуда, $\omega$ -- частота, $\phi$ -- фаза.
 Предполагаем, что амплитуда, частота и фаза у сигналов от различных источников могут отличаться, генерируем эти параметры из равномерного распределения. На основе их строим оценку сигналов.
 Шумы на сенсорах задаются  с учетом дисперсии остатков
 \begin{equation}
@@ -346,26 +348,26 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned}
-\mu_{x_{m_t}|x_{o_t}} &= \mu_{x_{m_t}} + \Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}) \\
-\Sigma_{x_{m_t}|x_{o_t}} &= \Sigma_{x_{m_t},x_{m_t}}-\Sigma_{x_{m_t},x_{o_t}}\Sigma_{x_{o_t},x_{o_t}}^{-1}\Sigma_{x_{o_t},x_{m_t}}
+\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mu_{x_{m_t}}^{(\tau)} + \Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}^{(\tau)}) \\
+\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \Sigma_{x_{m_t},x_{m_t}}^{(\tau)}-\Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{x_{o_t},x_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Sigma_{x_{o_t},x_{o_t}} &= \mathbf{\Lambda}_{o_t} \\
-\Sigma_{x_{o_t},x_{m_t}} &= \hat{\Sigma}_{x_{o_t},x_{m_t}} \\
-\Sigma_{x_{m_t},x_{o_t}} &= \hat{\Sigma}^H_{x_{o_t},x_{m_t}} \\
-\Sigma_{x_{m_t},x_{m_t}} &= \mathbf{\Lambda}_{m_t} \\
-\mu_{x_{o_t}} &= A_{o_t}S_t \\
-\mu_{x_{m_t}} &= A_{m_t}S_t
+\Sigma_{x_{o_t},x_{o_t}} &= \mathbf{\Lambda}_{o_t}^{(\tau)} \\
+\Sigma_{x_{o_t},x_{m_t}} &= \hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} \\
+\Sigma_{x_{m_t},x_{o_t}} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} \\
+\Sigma_{x_{m_t},x_{m_t}} &= \mathbf{\Lambda}_{m_t}^{(\tau)} \\
+\mu_{x_{o_t}} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
+\mu_{x_{m_t}} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 где $\hat{\Sigma}_{x_{o_t},x_{m_t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{x_{m_t}|x_{o_t}} &= A_{m_t}S_t + \hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}S_t) \\
-\Sigma_{x_{m_t}|x_{o_t}} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}^H_{x_{o_t},x_{m_t}}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}
+\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}^{(\tau)}-\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
