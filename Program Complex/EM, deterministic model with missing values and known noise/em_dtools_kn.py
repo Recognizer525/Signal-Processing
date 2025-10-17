@@ -210,6 +210,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
         #print(f"Shape of X is {X.shape}, Shape of A is {A.shape}, Shape of S is {S.shape}")
+        K = np.cov(X_modified.T)
         new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         A = A_ULA(L, theta)
         new_S = CM_step_S(X.T, A, Q)
