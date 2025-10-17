@@ -22,7 +22,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
-def gds(G, M, A = None, f = None, phi = None, seed: int = None):
+def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     """
     Генерирует детерминированные сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
     M - размер вектора сигнала;
@@ -92,7 +92,7 @@ def A_ULA(L, theta):
     """
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
-    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 
 def initial_noise_covariance(X, theta, signals):
@@ -104,8 +104,7 @@ def initial_noise_covariance(X, theta, signals):
     # Остатки шума
     R = X.T - A @ signals.T 
     # Для каждого канала считаем дисперсию по времени
-    Sigma_N_diag = np.nanvar(R, axis=1, ddof=0)  # ddof=0 — оценка по ML (делим на T)
-    # Добавим регуляризацию, чтобы избежать нулевых дисперсий (по желанию)
+    Sigma_N_diag = np.nanvar(R, axis=1, ddof=0)
     epsilon = 1e-6
     Sigma_N_diag = Sigma_N_diag + epsilon
     return np.diag(Sigma_N_diag)
@@ -118,10 +117,18 @@ def initializer(X: np.ndarray, M: int, seed: int = None):
     noise_cov = initial_noise_covariance(X, theta, signals)
     return theta, signals, noise_cov
 
-def cost_theta(theta, X, S, Q_inv_sqrt):
-    L, G = X.shape
-    A = A_ULA(L, theta)
-    cost = np.sum(Q_inv_sqrt @ (X - A @ S))
+def cost_theta(theta, X, S, weights):
+    """
+    theta - вектор углов прибытия;
+    X - набор принятых сигналов, с учетом заполненных пропусков;
+    S - набор отправленных сигналов;
+    weights - вектор, полученный следующим образом:  диагональная ковариационная матрица шума обращается и возводится в степень 1/2, 
+    а затем диагональ этой матрицы приводится к вектору
+    """
+    A = A_ULA(X.shape[0], theta)
+    res = X - A @ S
+    sum_row_wise = np.sum(res**2, axis=1)
+    cost = np.sum(weights * sum_row_wise)  
     return cost
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
@@ -144,6 +151,19 @@ def CM_step_noise_cov(X, A, S):
     epsilon = 1e-6
     Sigma_Noise_diag = Sigma_Noise_diag + epsilon
     return np.diag(Sigma_Noise_diag)
+
+def likelihood(X, theta, S, Q, inv_Q):
+    """
+    X - выборка, состоящая из принятых сигналов, с учетом оценок пропущенных значений, 
+    каждый столбец соответствует одному наблюдению;
+    theta - оценка вектора углов;
+    S - оценка сигналов, каждый столбец соответствует одному сигналу;
+    Q - матрица ковариации шума;
+    inv_Q - матрица, обратная к Q
+    """
+    A = A_ULA(X.shape[0], theta)
+    M = X - A @ S
+    return - X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)
 
 def EM(theta: np.ndarray, S: np.ndarray, Q: np.ndarray,  X: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
@@ -190,10 +210,12 @@ def EM(theta: np.ndarray, S: np.ndarray, Q: np.ndarray,  X: np.ndarray, max_iter
         #if np.linalg.norm(mu - mu_new) < rtol:
             #break        
         theta, S, Q = new_theta, new_S, new_Q
+        # lkhd = likelihood(X_modified, theta, S, Q, np.linalg.inv(Q))
+        # print(lkhd)
         
 
         EM_Iteration += 1
-    return theta, neg_likelihood
+    return theta, lkhd
     
     
 

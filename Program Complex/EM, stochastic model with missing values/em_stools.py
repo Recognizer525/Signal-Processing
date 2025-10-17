@@ -80,7 +80,7 @@ def A_ULA(L, theta):
     """
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
-    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
@@ -90,57 +90,74 @@ def initializer(X: np.ndarray, M: int, seed: int = None):
     P = np.random.RandomState(seed+10).uniform(0.25, 4, L).reshape(L)
     return theta, np.diag(P)
 
-def EM(theta: np.ndarray, X: np.ndarray, Ga_s: np.ndarray, Ga_n: np.ndarray, max_iter: int=50, eps: float=1e-6):
+
+def cost_theta(theta, P, R, Q):
+    """
+    theta - вектор углов прибытия;
+    P - оценка матрицы ковариации исходных сигналов, полученная на предыдущем шаге;
+    R - текущая оценка пространственной ковариационной матрицы сигналов;
+    Q - матрица, обратная к ковариационной матрице шума;
+    """
+    A = A_ULA(R.shape[0], theta)
+    return Q @ (R - A.conj().T @ P @ A)
+
+def CM_step_theta(theta_guess, P, R, Q):
+    res = minimize(
+            lambda th: cost_theta(th, P, R, Q),
+            theta_guess,
+            method='L-BFGS-B',
+            bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
+        )
+    return res.x
+
+def CM_step_P():
+    pass
+
+def likelihood(X, theta, S, Q, inv_Q, P, inv_P):
+    """
+    X - выборка, состоящая из принятых сигналов, с учетом оценок пропущенных значений, 
+    каждый столбец соответствует одному наблюдению;
+    theta - оценка вектора углов;
+    S - оценка сигналов, каждый столбец соответствует одному сигналу;
+    Q - матрица ковариации шума;
+    inv_Q - матрица, обратная к Q;
+    P - матрица ковариации сигнала;
+    inv_P - матрица, обратная к P.
+    """
+    A = A_ULA(X.shape[0], theta)
+    M = X - A @ S
+    return - X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M) - X.shape[1] * np.linalg.det(P) - np.trace(S.conj().T @ inv_P @ S)
+
+def EM(X: np.ndarray, Q: np.ndarray, theta: np.ndarray, P: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
-    theta - вектор углов, которые соответствуют DOA;
     X - коллекция полученных сигналов;
-    Ga_s - ковариация сигнала;
-    Ga_n - ковариация шума;
+    Q - ковариация шума;
+    theta - вектор углов, которые соответствуют DOA;
+    P - ковариация сигнала;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    no_conv = True
-    iteration = 0
-    M, L = Ga_s.shape[0], Ga_n.shape[0]
-    #print(f"Initial theta = {theta}")
-    inv_Ga_s, inv_Ga_n = np.linalg.inv(Ga_s), np.linalg.inv(Ga_n)
-    while no_conv and iteration < max_iter:
-        #E-step
-        A = np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
-        A_H = A.conj().T
-        K = Ga_s - Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ A @ Ga_s
-        mu = Ga_s @ A_H @ np.linalg.inv(A @ Ga_s @ A_H + Ga_n) @ X.T
-        #print(f"K={K}")
-        #print(f"mu={mu}")
-        #M-step
-        theta_new, neg_likelihood = equation_solver(theta, Ga_s, Ga_n, X, K, mu)
-        no_conv = np.linalg.norm(theta - theta_new) >= eps
-        if not no_conv:
-            print(f"norm={np.linalg.norm(theta - theta_new)}")
-        iteration += 1
-        print(f"Iteration={iteration}, theta_new={theta_new:}, -likelihood = {neg_likelihood:.5f}")
-        theta = theta_new
     return theta, neg_likelihood
 
 
 
-def multi_start_EM(X: np.ndarray, M: int, Ga_n: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M -  число источников;
-    Ga_n - ковариация шума;
+    Q - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    best_neg_lhd, best_theta = np.inf, None
+    best_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
         init_theta, init_sig_cov = initializer(seed = 3 * i + 8)
-        est_theta, neg_lhd = EM(X, init_theta, init_sig_cov, Ga_n, max_iter, eps)
-        if neg_lhd < best_neg_lhd:
-            best_neg_lhd, best_theta = neg_lhd, est_theta
+        est_theta, lhd = EM(X, init_theta, init_sig_cov, Q, max_iter, eps)
+        if lhd < best_lhd:
+            best_lhd, best_theta = lhd, est_theta
     best_theta = angle_correcter(best_theta)
-    return best_theta, best_neg_lhd
+    return best_theta, best_lhd

@@ -264,6 +264,10 @@ O = -G\mathbf{P}^{-1}+\mathbf{P}^{-1}M\mathbf{P}^{-1} \Rightarrow M =G\mathbf{P}
 \begin{equation}
 \mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)
 \end{equation}
+Предполагая, что сигналы некоррелированны, изменим оценку так, чтобы учесть лишь диагональные элементы:
+\begin{equation}
+\mathbf{P}^{(\tau)} =  \mathcal{D} \bigg[\frac{1}{G}\sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)\bigg]
+\end{equation}.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S3 Неизвестный шум}}

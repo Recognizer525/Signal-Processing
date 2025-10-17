@@ -22,7 +22,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
-def gds(G, M, A = None, f = None, phi = None, seed: int = None):
+def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     """
     Генерирует детерминированные сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
     M - размер вектора сигнала;
@@ -45,7 +45,10 @@ def gds(G, M, A = None, f = None, phi = None, seed: int = None):
     signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    return signals.T
+    print(f'Shape of signals is {signals.shape} before')
+    signals = signals.T
+    print(f'Shape of signals is {signals.shape} after')
+    return signals
 
 def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     """
@@ -92,24 +95,33 @@ def A_ULA(L, theta):
     """
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
-    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta).reshape(1,-1))
+    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
     theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
-    S = gds(len(X), M, seed=seed+20)
+    S = gds(M=M, G=len(X), seed=seed+20)
     return theta, S
     
-def cost_theta(theta, X, S, Q_inv_sqrt):
-    L, G = X.shape
-    A = A_ULA(L, theta)
-    cost = np.sum(Q_inv_sqrt @ (X - A @ S))
-    return cost
+def cost_theta(theta, X, S, weights):
+    """
+    theta - вектор углов прибытия;
+    X - набор принятых сигналов, с учетом заполненных пропусков;
+    S - набор отправленных сигналов;
+    weights - вектор, полученный следующим образом:  диагональная ковариационная матрица шума обращается и возводится в степень 1/2, 
+    а затем диагональ этой матрицы приводится к вектору
+    """
+    A = A_ULA(X.shape[0], theta)
+    #print(f'The shape of X is {X.shape}')
+    res = X - A @ S
+    sum_row_wise = np.sum(res**2, axis=1)
+    cost = np.sum(weights * sum_row_wise)  
+    return cost.real
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
     res = minimize(
-            lambda th: cost_theta(th, X.T, S.T, Q_inv_sqrt),
+            lambda th: cost_theta(th, X, S, Q_inv_sqrt),
             theta_guess,
             method='L-BFGS-B',
             bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
@@ -119,9 +131,20 @@ def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
 def CM_step_S(X, A, Q):
     inv_Q = np.linalg.inv(Q)
     A_H = A.conj().T
-    return np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X
+    return (np.linalg.inv(A_H @ inv_Q @ A) @ A_H @ inv_Q @ X).T
 
-
+def likelihood(X, theta, S, Q, inv_Q):
+    """
+    X - выборка, состоящая из принятых сигналов, с учетом оценок пропущенных значений, 
+    каждый столбец соответствует одному наблюдению;
+    theta - оценка вектора углов;
+    S - оценка сигналов, каждый столбец соответствует одному сигналу;
+    Q - матрица ковариации шума;
+    inv_Q - матрица, обратная к Q.
+    """
+    A = A_ULA(X.shape[0], theta)
+    M = X - A @ S
+    return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
 
 def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
@@ -135,6 +158,8 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     """
     Q_vec = np.diagonal(Q)
     Q_inv_sqrt = np.sqrt(1/Q_vec)
+    L = Q.shape[0]
+
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
@@ -158,19 +183,18 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
+        #print(f"Shape of X is {X.shape}, Shape of A is {A.shape}, Shape of S is {S.shape}")
         new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         A = A_ULA(L, theta)
-        new_S = CM_step_S(X, A, Q)
-
-
-        
-        #if np.linalg.norm(mu - mu_new) < rtol:
-            #break
+        new_S = CM_step_S(X.T, A, Q)
 
         theta, S = new_theta, new_S
+        #print(f'Shape of matrix S after all that is {S.shape}')
+        lkhd = likelihood(X_modified.T, theta, S.T, Q, np.linalg.inv(Q))
+        print(f'likelihood is {lkhd}')
 
         EM_Iteration += 1
-    return theta, neg_likelihood
+    return theta, lkhd
 
     
     
@@ -185,15 +209,16 @@ def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    best_neg_lhd, best_theta = np.inf, None
+    best_lhd, best_theta = np.inf, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, S = initializer(X, M)
-        est_theta, neg_lhd = EM(theta, S, X, Q, max_iter, eps)
-        if neg_lhd < best_neg_lhd:
-            best_neg_lhd, best_theta = neg_lhd, est_theta
+        theta, S = initializer(X, M, seed=i * 100)
+        #print(f"On multistart shape of S is {S.shape}")
+        est_theta, est_lhd = EM(theta, S, X, Q, max_iter, eps)
+        if est_lhd < best_lhd:
+            best_lhd, best_theta = est_lhd, est_theta
     best_theta = angle_correcter(best_theta)
-    return best_theta, best_neg_lhd
+    return best_theta, best_lhd
 
 
 ##########################################################################################################
