@@ -117,13 +117,27 @@ def initial_noise_covariance(X, theta, signals):
     return np.diag(Sigma_N_diag)
 
 
-def initializer(X: np.ndarray, M: int, seed: int = None):
+def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="circular"):
     if seed is None:
         seed = 100
-    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
-    signals = gds(M, len(X), seed=seed+20) 
-    noise_cov = initial_noise_covariance(X, theta, signals)
-    return theta, signals, noise_cov
+    if type_of_theta_init=="circular":
+        nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
+        theta = np.array([(nu + i * 2 * np.pi/M)%(2 * np.pi) for i in range(M)]) - np.pi
+    elif type_of_theta_init=="unstructured":
+        theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M) 
+    S = gds(M, len(X), seed=seed+20) 
+    noise_cov = initial_noise_covariance(X, theta, S)
+    return theta, S, noise_cov
+
+
+def initializer2(X: np.ndarray, M: int, seed: int = None):
+    if seed is None:
+        seed = 100
+    nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
+    theta = np.array([(nu + i * 2 * np.pi/M)%(2 * np.pi) for i in range(M)]) - np.pi
+    S = gds(M, len(X), seed=seed+20)
+    noise_cov = initial_noise_covariance(X, theta, S)
+    return theta, S
 
 
 def cost_theta(theta, X, S, weights):
@@ -185,14 +199,14 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    res = - X.shape[1] * np.linalg.det(Q)
+    res = 0
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
             M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
             A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
-            res += - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
+            res += - np.linalg.det(Q_o) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:
-            res += - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
+            res += - np.linalg.det(Q) - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
     return res
 
 

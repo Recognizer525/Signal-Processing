@@ -116,12 +116,13 @@ $\mathbf{\Lambda}_{m_t}$ --- ковариационная матрица шум�
 \nu \sim \mathcal{U}([-\pi;\pi]);
 \end{equation}
 \item
-Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = \nu + (i-1)\cdot \frac{2\pi}{M}, i = \overline{1,M}$.
+Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{M})\, \text{mod} \, 2\pi, i = \overline{1,M}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
 \end{enumerate}
 Диагональные элементы матрицы $\mathbf{P}$ задаем с помощью равномерного распределения:
 \begin{equation}
 p_{jj} \sim \mathcal{U}([0.2; 5])
 \end{equation}
+где $j = \overline{1,M}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}
@@ -168,6 +169,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- о
 \Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t}^{(\tau)} = \widetilde{x}_{m_t}, \Psi}^{(\tau)} &= \mathbf{P}^{(\tau-1)} - \mathbf{P}^{(\tau-1)}(A^{(\tau-1)})^H\Big(A^{(\tau-1)}\mathbf{P}^{(\tau-1)}(A^{(\tau-1)})^H+\mathbf{\Lambda}\Big)^{-1}A^{(\tau-1)}\mathbf{P}^{(\tau-1)}
 \end{aligned} \right.
 \end{equation}
+Заметим, что $\Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t}^{(\tau)}}$ не зависит от величин, которые зависят от $t$, эта условная ковариация исходных сигналов вообще не зависит от $t$.
 Рассчитаем оценку пространственной ковариационной матрицы (пользуемся результатами выкладок по детерминированной модели):
 \begin{equation}
 {R}^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
@@ -264,9 +266,14 @@ O = -G\mathbf{P}^{-1}+\mathbf{P}^{-1}M\mathbf{P}^{-1} \Rightarrow M =G\mathbf{P}
 \begin{equation}
 \mathbf{P}^{(\tau)} = \frac{1}{G} \sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)
 \end{equation}
+Учтем, что $\sum_{t=1}^G a_t a_t^H = AA^H$, если $A$ -- матрица, составленная из столбцов $a_t, t=\overline{1,G}$. Также учтем, что $\Sigma_{S_t|X_t}$ принимает одинаковое значение при любом $t$:
+\begin{equation}
+\mathbf{P}^{(\tau)} =  \frac{1}{G}  M_{S|X} \cdot M_{S|X}^H  + \Sigma_{S_1|X_1},
+\end{equation}
+где $M_{S|X}$ -- матрица, составленная из столбцов $\mu_{S_t|X_t}, t=\overline{1,G}$.
 Предполагая, что сигналы некоррелированны, изменим оценку так, чтобы учесть лишь диагональные элементы:
 \begin{equation}
-\mathbf{P}^{(\tau)} =  \mathcal{D} \bigg[\frac{1}{G}\sum_{t=1}^G \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^H \Big)\bigg]
+\mathbf{P}^{(\tau)} =  \mathcal{D} \bigg[  \frac{1}{G} M_{S|X} \cdot M_{S|X}^H  + \Sigma_{S_1|X_1}\bigg]
 \end{equation}.
 \clearpage
 \begin{center}
