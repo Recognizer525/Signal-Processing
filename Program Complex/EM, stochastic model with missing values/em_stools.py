@@ -114,25 +114,21 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     return theta, np.diag(P_diag)
 
     
-def cost_theta(theta, X, S, weights):
+def cost_theta(theta, R, P, Q_inv):
     """
-    theta - вектор углов прибытия;
-    X - набор принятых сигналов, с учетом заполненных пропусков;
-    S - набор отправленных сигналов;
-    weights - вектор, полученный следующим образом:  диагональная ковариационная матрица шума обращается и возводится в степень 1/2, 
-    а затем диагональ этой матрицы приводится к вектору
+    theta - оценка углов прибытия;
+    R - оценка ковариации наблюдений;
+    P - оценка ковариции сигналов;
+    Q_inv - обратная матрица к ковариации шума.
     """
     A = A_ULA(X.shape[0], theta)
-    #print(f'The shape of X is {X.shape}')
-    res = X - A @ S
-    sum_row_wise = np.sum(res**2, axis=1)
-    cost = np.sum(weights * sum_row_wise)  
-    return cost.real
+    cost = Q_inv @ (R - A @ P @ A.conj().T) 
+    return cost
 
 
-def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
+def CM_step_theta(theta, R, P, Q_inv):
     res = minimize(
-            lambda th: cost_theta(th, X, S, Q_inv_sqrt),
+            lambda th: cost_theta(th, R, P, Q_inv),
             theta_guess,
             method='L-BFGS-B',
             bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
@@ -146,7 +142,10 @@ def CM_step_P(mu, sigma):
     sigma - условная ковариация исходного сигнала с учетом наблюдения.
     """
     G = len(sigma)
-    return (1/G) * mu @ mu.conj().T + sigma
+    res = (1/G) * mu @ mu.conj().T + sigma
+    # Оставляем только диагональные элементы
+    res = res * np.eye(res.shape[0]. res.shape[1], dtype=np.complex128)
+    return res
 
 
 def likelihood(X, theta, S, Q, inv_Q):
@@ -201,6 +200,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     Q_vec = np.diagonal(Q)
     Q_inv_sqrt = np.sqrt(1/Q_vec)
     L = Q.shape[0]
+    G = X.shape[0]
 
     print(f'Initial theta = {theta}')
 
@@ -212,8 +212,10 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     if np.isnan(K).any():
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
-    Mu_cond = {}
-    K_cond = {}
+    Mu_Xm_cond = {}
+    K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
+    Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
+    K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
     EM_Iteration = 0
     while EM_Iteration < max_iter:
@@ -223,18 +225,32 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
                 A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
                 Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                # Вычисляем блоки ковариации принятых сигналов (наблюдений)
+                K_OO = K[np.ix_(O_i, O_i)]
+                K_MM = K[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
-                Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
-                X_modified[i, M_i] = Mu_cond[i]
+                # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
+                Mu_Xm_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
+                X_modified[i, M_i] = Mu_Xm_cond[i]
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ cond_inv(K_OO) @ K_OM
+                # Вычисляем блоки совместной ковариации исходных и принятых сигналов
+        K_XX = A @ P @ A.conj().T + Q
+        K_SS = P
+        K_XS = A @ P
+        K_SX = K_XS.conj().T
+        Mu_S_cond = K_SX @ cond_inv(K_XX) @ X_modified.T
+        K_S_cond = K_SS - K_SX @ cond_inv(K_XX) @ K_XS
+
         # Шаги условной максимизации
         K = np.cov(X_modified.T)
-        new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
+        R = K + K_Xm_cond_accum / G
+        new_theta = CM_step_theta(theta, R, P, Q_inv)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
-        A = A_ULA(L, theta)
-        new_S = CM_step_S(X_modified.T, A, Q)
-        print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
-        theta, S = new_theta, new_S
+        A = A_ULA(L, new_theta)
+        new_P = CM_step_P(Mu_S_cond, K_S_cond)
+        print(f'diff of S is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
+        theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q, np.linalg.inv(Q))
         print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
 

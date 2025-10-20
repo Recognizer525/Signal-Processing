@@ -218,7 +218,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K = np.cov(X_modified.T)
         new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
-        A = A_ULA(L, theta)
+        A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
         theta, S = new_theta, new_S
