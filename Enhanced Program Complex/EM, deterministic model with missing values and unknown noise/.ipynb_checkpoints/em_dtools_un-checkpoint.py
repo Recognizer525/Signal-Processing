@@ -102,17 +102,13 @@ def A_ULA(L, theta):
     return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 
-def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="circular"):
+def initializer(X: np.ndarray, M: int, seed: int = None):
     if seed is None:
         seed = 100
-    if type_of_theta_init=="circular":
-        nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-        theta = np.array([(nu + i * 2 * np.pi/M)%(2 * np.pi) for i in range(M)]) - np.pi
-    elif type_of_theta_init=="unstructured":
-        theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M) 
-    S = gds(M, len(X), seed=seed+20)
+    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
+    S = gds(M=M, G=len(X), seed=seed+20)
     return theta, S
-    
+
     
 def cost_theta(theta, X, S, weights):
     """
@@ -126,7 +122,7 @@ def cost_theta(theta, X, S, weights):
     #print(f'The shape of X is {X.shape}')
     res = X - A @ S
     sum_row_wise = np.sum(res**2, axis=1)
-    cost = np.sum((weights**2) * sum_row_wise)  
+    cost = np.sum(weights * sum_row_wise)  
     return cost.real
 
 
@@ -165,14 +161,14 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    res = 0
+    res = - X.shape[1] * np.linalg.det(Q)
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
             M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
             A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
-            res += - np.linalg.det(Q_o) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
+            res += - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:
-            res += - np.linalg.det(Q) - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
+            res += - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
     return res
 
 
@@ -216,10 +212,10 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
         K = np.cov(X_modified.T)
-        new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
+        new_theta = CM_step_theta(X.T, theta, S.T, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
-        A = A_ULA(L, new_theta)
-        new_S = CM_step_S(X_modified.T, A, Q)
+        A = A_ULA(L, theta)
+        new_S = CM_step_S(X.T, A, Q)
         print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
         theta, S = new_theta, new_S
         lkhd = incomplete_lkhd(X_modified, theta, S, Q, np.linalg.inv(Q))
@@ -270,38 +266,3 @@ def alternative_initializer(X: np.ndarray, M: int, seed: int = None):
     signals = gds(M, len(X), seed=seed+20) 
     noise_cov = initial_noise_covariance(X, theta, signals)
     return theta, signals, noise_cov
-
-
-def dA_dtheta_ULA(L, theta):
-    """
-    Производная матрицы управляющих векторов по углам theta для ULA
-    Возвращает массив размером (L, len(theta))
-    """
-    m = np.arange(L).reshape(-1, 1)  # (L,1)
-    A = np.exp(-2j * np.pi * dist_ratio * m * np.sin(theta))  # (L,K)
-    dA = -1j * 2 * np.pi * dist_ratio * m * np.cos(theta) * A  # (L,K)
-    return dA
-
-
-def grad_theta(theta, X, S, weights):
-    L, N = X.shape  # L - число сенсоров, N - число отсчетов
-    K = len(theta)
-    A = A_ULA(L, theta)  # (L,K)
-    dA = dA_dtheta_ULA(L, theta)  # (L,K)
-    
-    residual = X - A @ S  # (L,N)
-    
-    # Apply weights (Q^{-1/2}) по строкам residual
-    weighted_residual = weights[:, np.newaxis] * residual  # (L,N)
-    
-    grad = np.zeros(K, dtype=np.float64)
-    for k in range(K):
-        # dA_k shape (L,), S_k shape (N,)
-        dA_k = dA[:, k:k+1]  # (L,1)
-        S_k = S[k:k+1, :]    # (1,N)
-        term = weighted_residual.conj().T @ dA_k  # (N,1)
-        # Скалярное произведение с S_k: (N,1) @ (1,N) = (N,N) - не нужно, перепишем:
-        # Мы хотим сумму по всем элементам:
-        grad_k = -2 * np.real(np.sum(term.T * S_k))
-        grad[k] = grad_k
-    return grad

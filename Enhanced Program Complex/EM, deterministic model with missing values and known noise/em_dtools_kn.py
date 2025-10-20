@@ -114,20 +114,40 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     return theta, S
     
     
-def cost_theta(theta, X, S, weights):
+def cost_theta(theta, X, S, Q_inv_sqrt):
     """
     theta - вектор углов прибытия;
     X - набор принятых сигналов, с учетом заполненных пропусков;
     S - набор отправленных сигналов;
-    weights - вектор, полученный следующим образом:  диагональная ковариационная матрица шума обращается и возводится в степень 1/2, 
-    а затем диагональ этой матрицы приводится к вектору
+    Q_inv_sqrt - Q^{-1/2}.
     """
     A = A_ULA(X.shape[0], theta)
-    #print(f'The shape of X is {X.shape}')
-    res = X - A @ S
-    sum_row_wise = np.sum(res**2, axis=1)
-    cost = np.sum((weights**2) * sum_row_wise)  
-    return cost.real
+    E = Q_inv_sqrt @ (X - A @ S)  
+    return np.linalg.norm(E, 'fro')**2
+
+
+def numerical_grad(theta, Q_inv_sqrt, X, S, eps=1e-6):
+    grad = np.zeros_like(theta, dtype=np.float64)
+    for i in range(len(theta)):
+        theta_eps_plus = theta.copy()
+        theta_eps_minus = theta.copy()
+        theta_eps_plus[i] += eps
+        theta_eps_minus[i] -= eps
+        
+        f_plus = cost_theta(theta_eps_plus, X, S, Q_inv_sqrt)
+        f_minus = cost_theta(theta_eps_minus, X, S, Q_inv_sqrt)
+        
+        grad_i = (f_plus - f_minus) / (2 * eps)
+        grad[i] = grad_i.real  # берём вещественную часть, чтобы избежать комплексных чисел
+    return grad
+
+
+def CM_step_theta(X, theta0, S, Q_inv_sqrt, method='L-BFGS-B', tol=1e-6):
+    # Создаем частичные функции для minimize, чтобы подавать только theta
+    fun = partial(cost_theta, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
+    jac = partial(numerical_grad, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
+    res = minimize(fun, theta0, jac=jac, method=method, tol=tol)
+    return res.x
 
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
@@ -176,7 +196,7 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     return res
 
 
-def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
+def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, rtol: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
@@ -184,10 +204,10 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     X - коллекция полученных сигналов;
     Q - ковариация шума;
     max_iter - предельное число итерация;
-    eps - величина, используемая для проверки сходимости последних итераций.
+    rtol - величина, используемая для проверки сходимости последних итераций.
     """
-    Q_vec = np.diagonal(Q)
-    Q_inv_sqrt = np.sqrt(1/Q_vec)
+    Q_inv = np.linalg.inv(Q)
+    Q_inv_sqrt = np.sqrt(Q_inv)
     L = Q.shape[0]
 
     print(f'Initial theta = {theta}')
@@ -221,15 +241,17 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
+        lkhd = incomplete_lkhd(X_modified, new_theta, new_S, Q, np.linalg.inv(Q))
+        if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol:
+            break
         theta, S = new_theta, new_S
-        lkhd = incomplete_lkhd(X_modified, theta, S, Q, np.linalg.inv(Q))
         print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
-    return theta, lkhd
+    return theta, S, lkhd
 
 
-def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, rtol: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
@@ -237,71 +259,17 @@ def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30
     Q - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
-    eps - величина, используемая для проверки сходимости последних итераций.
+    rtol - величина, используемая для проверки сходимости последних итераций.
     """
-    best_lhd, best_theta = -np.inf, None
+    best_lhd, best_theta, best_S = -np.inf, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, S = initializer(X, M, seed=i * 100)
-        #print(f"On multistart shape of S is {S.shape}")
-        est_theta, est_lhd = EM(theta, S, X, Q, max_iter, eps)
+        est_theta, est_S, est_lhd = EM(theta, S, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
-            best_lhd, best_theta = est_lhd, est_theta
+            best_lhd, best_theta, best_S = est_lhd, est_theta, est_S
     best_theta = angle_correcter(best_theta)
-    return best_theta, best_lhd
+    return best_theta, best_S, best_lhd
 
 
 ##########################################################################################################
-
-def CM_step_noise_cov(X, A, S):
-    R = X.T - A @ S.T 
-    Sigma_Noise_diag = np.nanvar(R, axis=1, ddof=0)  
-    epsilon = 1e-6
-    Sigma_Noise_diag = Sigma_Noise_diag + epsilon
-    return np.diag(Sigma_Noise_diag)
-
-
-def alternative_initializer(X: np.ndarray, M: int, seed: int = None):
-    if seed is None:
-        seed = 100
-    print(f"type(seed)={type(seed)}")
-    print(f"type(M)={type(M)}")
-    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
-    signals = gds(M, len(X), seed=seed+20) 
-    noise_cov = initial_noise_covariance(X, theta, signals)
-    return theta, signals, noise_cov
-
-
-def dA_dtheta_ULA(L, theta):
-    """
-    Производная матрицы управляющих векторов по углам theta для ULA
-    Возвращает массив размером (L, len(theta))
-    """
-    m = np.arange(L).reshape(-1, 1)  # (L,1)
-    A = np.exp(-2j * np.pi * dist_ratio * m * np.sin(theta))  # (L,K)
-    dA = -1j * 2 * np.pi * dist_ratio * m * np.cos(theta) * A  # (L,K)
-    return dA
-
-
-def grad_theta(theta, X, S, weights):
-    L, N = X.shape  # L - число сенсоров, N - число отсчетов
-    K = len(theta)
-    A = A_ULA(L, theta)  # (L,K)
-    dA = dA_dtheta_ULA(L, theta)  # (L,K)
-    
-    residual = X - A @ S  # (L,N)
-    
-    # Apply weights (Q^{-1/2}) по строкам residual
-    weighted_residual = weights[:, np.newaxis] * residual  # (L,N)
-    
-    grad = np.zeros(K, dtype=np.float64)
-    for k in range(K):
-        # dA_k shape (L,), S_k shape (N,)
-        dA_k = dA[:, k:k+1]  # (L,1)
-        S_k = S[k:k+1, :]    # (1,N)
-        term = weighted_residual.conj().T @ dA_k  # (N,1)
-        # Скалярное произведение с S_k: (N,1) @ (1,N) = (N,N) - не нужно, перепишем:
-        # Мы хотим сумму по всем элементам:
-        grad_k = -2 * np.real(np.sum(term.T * S_k))
-        grad[k] = grad_k
-    return grad

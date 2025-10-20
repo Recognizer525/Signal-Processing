@@ -153,7 +153,7 @@ def cost_theta(theta, X, S, weights):
     res = X - A @ S
     sum_row_wise = np.sum(res**2, axis=1)
     cost = np.sum((weights**2) * sum_row_wise)  
-    return cost
+    return cost.real
 
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
@@ -265,12 +265,11 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     return theta, lkhd
 
 
-def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M - число источников;
-    Q - ковариация шума;
     num_of_starts - число запусков;
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
@@ -279,7 +278,6 @@ def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30
     for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, S, Q = initializer(X, M, seed=i * 100)
-        #print(f"On multistart shape of S is {S.shape}")
         est_theta, est_lhd = EM(theta, S, X, Q, max_iter, eps)
         if est_lhd > best_lhd:
             best_lhd, best_theta = est_lhd, est_theta

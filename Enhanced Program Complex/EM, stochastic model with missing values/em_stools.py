@@ -114,30 +114,40 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     return theta, np.diag(P_diag)
 
     
-def cost_theta(theta, R, P, Q_inv):
+def cost_theta(theta, X, S, Q_inv_sqrt):
     """
-    theta - оценка углов прибытия;
-    R - оценка ковариации наблюдений;
-    P - оценка ковариции сигналов;
-    Q_inv - обратная матрица к ковариации шума.
+    theta - вектор углов прибытия;
+    X - набор принятых сигналов, с учетом заполненных пропусков;
+    S - набор отправленных сигналов;
+    Q_inv_sqrt - Q^{-1/2}.
     """
-    A = A_ULA(R.shape[0], theta)
-    cost = np.trace(Q_inv @ (R - A @ P @ A.conj().T))
-    return cost
+    A = A_ULA(X.shape[0], theta)
+    E = Q_inv_sqrt @ (X - A @ S)  
+    return np.linalg.norm(E, 'fro')**2
 
 
-def CM_step_theta(theta_init, R, P, Q_inv, true_theta, true_P):
-    res = minimize(
-            lambda th: cost_theta(th, R, P, Q_inv),
-            theta_init,
-            method='L-BFGS-B',
-            bounds=[(-np.pi/2, np.pi/2)] * len(theta_init)
-        )
-    true_value = cost_theta(true_theta, R, true_P, Q_inv)
-    false_value = cost_theta(res.x, R, P, Q_inv)
-    print(f"true_value = {true_value}, false_value = {false_value}")
-    return res.x    
+def numerical_grad(theta, Q_inv_sqrt, X, S, eps=1e-6):
+    grad = np.zeros_like(theta, dtype=np.float64)
+    for i in range(len(theta)):
+        theta_eps_plus = theta.copy()
+        theta_eps_minus = theta.copy()
+        theta_eps_plus[i] += eps
+        theta_eps_minus[i] -= eps
+        
+        f_plus = cost_theta(theta_eps_plus, X, S, Q_inv_sqrt)
+        f_minus = cost_theta(theta_eps_minus, X, S, Q_inv_sqrt)
+        
+        grad_i = (f_plus - f_minus) / (2 * eps)
+        grad[i] = grad_i.real  # берём вещественную часть, чтобы избежать комплексных чисел
+    return grad
 
+
+def CM_step_theta(X, theta0, S, Q_inv_sqrt, method='L-BFGS-B', tol=1e-6):
+    # Создаем частичные функции для minimize, чтобы подавать только theta
+    fun = partial(cost_theta, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
+    jac = partial(numerical_grad, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
+    res = minimize(fun, theta0, jac=jac, method=method, tol=tol)
+    return res.x
 
 def CM_step_P(mu, sigma):
     """
@@ -178,20 +188,23 @@ def incomplete_lkhd(X, theta, P, Q):
     return res
 
 
-def EM_attempt(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, true_theta, true_P):
+def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
     """
     Запуск ЕМ-алгоритма из случайно выбранной точки.
     theta - вектор углов, которые соответствуют DOA;
     P - ковариация исходных сигналов;
     X - коллекция полученных сигналов;
     Q - ковариация шума;
+    max_iter - предельное число итерация;
+    eps - величина, используемая для проверки сходимости последних итераций.
     """
     Q_inv = np.linalg.inv(Q)
+    Q_inv_sqrt = np.sqrt(Q_inv)
+    
     L = Q.shape[0]
     G = X.shape[0]
 
     print(f'Initial theta = {theta}')
-    print(f'True theta = {true_theta}')
 
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
@@ -206,60 +219,83 @@ def EM_attempt(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, t
     Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
+    EM_Iteration = 0
+    while EM_Iteration < max_iter:
+        A = A_ULA(L, theta)
+        for i in range(X.shape[0]):
+            if set(O[i, ]) != set(col_numbers - 1):
+                M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
+                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                # Вычисляем блоки ковариации принятых сигналов (наблюдений)
+                K_OO = K[np.ix_(O_i, O_i)]
+                K_MM = K[np.ix_(M_i, M_i)]
+                K_MO = K[np.ix_(M_i, O_i)]
+                K_OM = K_MO.T
+                # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
+                Mu_Xm_cond[i] = K_MO @ cond_inv(K_OO) @ X_modified[i, O_i]
+                X_modified[i, M_i] = Mu_Xm_cond[i]
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ cond_inv(K_OO) @ K_OM
+                # Вычисляем блоки совместной ковариации исходных и принятых сигналов
+        K_XX = A @ P @ A.conj().T + Q
+        K_SS = P
+        K_XS = A @ P
+        K_SX = K_XS.conj().T
+        Mu_S_cond = K_SX @ cond_inv(K_XX) @ X_modified.T
+        K_S_cond = K_SS - K_SX @ cond_inv(K_XX) @ K_XS
 
-    A = A_ULA(L, theta)
-    for i in range(X.shape[0]):
-        if set(O[i, ]) != set(col_numbers - 1):
-            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-            A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
-            Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
-            # Вычисляем блоки ковариации принятых сигналов (наблюдений)
-            K_OO = K[np.ix_(O_i, O_i)]
-            K_MM = K[np.ix_(M_i, M_i)]
-            K_MO = K[np.ix_(M_i, O_i)]
-            K_OM = K_MO.T
-            # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
-            Mu_Xm_cond[i] = K_MO @ cond_inv(K_OO) @ X_modified[i, O_i]
-            X_modified[i, M_i] = Mu_Xm_cond[i]
-            K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ cond_inv(K_OO) @ K_OM
-            # Вычисляем блоки совместной ковариации исходных и принятых сигналов
-    K_XX = A @ P @ A.conj().T + Q
-    K_SS = P
-    K_XS = A @ P
-    K_SX = K_XS.conj().T
-    Mu_S_cond = K_SX @ cond_inv(K_XX) @ X_modified.T
-    K_S_cond = K_SS - K_SX @ cond_inv(K_XX) @ K_XS
+        # Шаги условной максимизации
+        K = np.cov(X_modified.T)
+        R = K + K_Xm_cond_accum / G
+        new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
+        print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        A = A_ULA(L, new_theta)
+        new_P = CM_step_P(Mu_S_cond, K_S_cond)
+        print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
+        theta, P = new_theta, new_P
+        lkhd = incomplete_lkhd(X_modified, theta, P, Q)
+        print(f'likelihood is {lkhd.real} on iteration {EM_Iteration}')
 
-    # Шаги условной максимизации
-    K = np.cov(X_modified.T)
-    R = K + K_Xm_cond_accum / G
-    new_theta = CM_step_theta(theta, R, P, Q_inv, true_theta, true_P)
-    print(f'diff of theta is {new_theta-theta}')
-    A = A_ULA(L, new_theta)
-    new_P = CM_step_P(Mu_S_cond, K_S_cond)
-    print(f'diff of P is {np.sum((new_P-P)**2)}')
-    theta, P = new_theta, new_P
-    lkhd = incomplete_lkhd(X_modified, theta, P, Q)
-    print(f'incomplete likelihood is {lkhd.real}')
+        EM_Iteration += 1
     return theta, lkhd
 
 
-def test_EM(X: np.ndarray, M: int, Q: np.ndarray, true_theta = None, true_P = None):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
     M - число источников;
     Q - ковариация шума;
-    true_theta - истинное значение углов прибытия;
-    true_P - истинное значение ковариации сигналов.
+    num_of_starts - число запусков;
+    max_iter - предельное число итерация;
+    eps - величина, используемая для проверки сходимости последних итераций.
     """
-
-    for i in range(3):
+    best_lhd, best_theta = -np.inf, None
+    for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, P = initializer(X, M, seed=i * 100)
-        est_theta, est_lhd = EM_attempt(theta, P, X, Q, true_theta, true_P)
-    return None
+        #print(f"On multistart shape of S is {S.shape}")
+        est_theta, est_lhd = EM(theta, P, X, Q, max_iter, eps)
+        if est_lhd > best_lhd:
+            best_lhd, best_theta = est_lhd, est_theta
+    best_theta = angle_correcter(best_theta)
+    return best_theta, best_lhd
 
 
 ##########################################################################################################
+
+
+def likelihood(X, theta, S, Q, inv_Q):
+    """
+    X - выборка, состоящая из принятых сигналов, с учетом оценок пропущенных значений, 
+    каждый столбец соответствует одному наблюдению;
+    theta - оценка вектора углов;
+    S - оценка сигналов, каждый столбец соответствует одному сигналу;
+    Q - матрица ковариации шума;
+    inv_Q - матрица, обратная к Q.
+    """
+    A = A_ULA(X.shape[0], theta)
+    M = X - A @ S
+    return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
+
 

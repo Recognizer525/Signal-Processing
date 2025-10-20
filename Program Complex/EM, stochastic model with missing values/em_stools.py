@@ -127,7 +127,7 @@ def cost_theta(theta, X, S, weights):
     res = X - A @ S
     sum_row_wise = np.sum(res**2, axis=1)
     cost = np.sum((weights**2) * sum_row_wise)  
-    return cost
+    return cost.real
 
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
@@ -137,6 +137,7 @@ def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
             method='L-BFGS-B',
             bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
         )
+    print(f'res.jac={res.jac}')
     return res.x    
 
 
@@ -246,7 +247,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q)
-        print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
+        print(f'likelihood is {lkhd.real} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
     return theta, lkhd
