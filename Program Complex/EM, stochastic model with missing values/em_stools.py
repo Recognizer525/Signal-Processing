@@ -114,24 +114,28 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     return theta, np.diag(P_diag)
 
     
-def cost_theta(theta, R, P, Q_inv):
+def cost_theta(theta, X, S, weights):
     """
-    theta - оценка углов прибытия;
-    R - оценка ковариации наблюдений;
-    P - оценка ковариции сигналов;
-    Q_inv - обратная матрица к ковариации шума.
+    theta - вектор углов прибытия;
+    X - набор принятых сигналов, с учетом заполненных пропусков;
+    S - набор отправленных сигналов;
+    weights - вектор, полученный следующим образом:  диагональная ковариационная матрица шума обращается и возводится в степень 1/2, 
+    а затем диагональ этой матрицы приводится к вектору
     """
-    A = A_ULA(R.shape[0], theta)
-    cost = np.trace(Q_inv @ (R - A @ P @ A.conj().T))
-    return cost.real
+    
+    A = A_ULA(X.shape[0], theta)
+    res = X - A @ S
+    sum_row_wise = np.sum(res**2, axis=1)
+    cost = np.sum((weights**2) * sum_row_wise)  
+    return cost
 
 
-def CM_step_theta(theta_init, R, P, Q_inv):
+def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
     res = minimize(
-            lambda th: cost_theta(th, R, P, Q_inv),
-            theta_init,
+            lambda th: cost_theta(th, X, S, Q_inv_sqrt),
+            theta_guess,
             method='L-BFGS-B',
-            bounds=[(-np.pi/2, np.pi/2)] * len(theta_init)
+            bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
         )
     return res.x    
 
@@ -186,6 +190,9 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     eps - величина, используемая для проверки сходимости последних итераций.
     """
     Q_inv = np.linalg.inv(Q)
+    Q_vec = np.diagonal(Q)
+    Q_inv_sqrt = np.sqrt(1/Q_vec)
+    
     L = Q.shape[0]
     G = X.shape[0]
 
@@ -232,7 +239,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         # Шаги условной максимизации
         K = np.cov(X_modified.T)
         R = K + K_Xm_cond_accum / G
-        new_theta = CM_step_theta(theta, R, P, Q_inv)
+        new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)

@@ -126,8 +126,8 @@ def cost_theta(theta, X, S, weights):
     #print(f'The shape of X is {X.shape}')
     res = X - A @ S
     sum_row_wise = np.sum(res**2, axis=1)
-    cost = np.sum(weights * sum_row_wise)  
-    return cost.real
+    cost = np.sum((weights**2) * sum_row_wise)  
+    return cost
 
 
 def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
