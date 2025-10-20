@@ -211,16 +211,16 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- о
 \\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t\bigg]
 \end{gathered}
 \end{equation*}
-Тогда минимизируемая функция примет следующий вид:
+Тогда максимизируемая функция примет следующий вид:
 \begin{equation*}
 \begin{gathered}
 \mathcal{J}(\theta) = \sum_{t=1}^G \Expect \Big[ (X_t-A(\theta)S_t)^H\mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) \text{|}X_o = x_o\Big] = \\
-\sum_{t=1}^G \Tr \Big( \mathbf{\Lambda}^{-1} \Expect \Big[ (X_t-A(\theta)S_t)(X_t-A(\theta)S_t)^H \Big{|}X_o = x_o \Big] \Big) = \\
-\Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{\tau-1}A^H) \Big)
+= - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2.
 \end{gathered}
 \end{equation*}
+Оценка УМО, полученная выше, была выведена в документе для детерминированной модели сигналов.
 \begin{equation}
-\argmin_{\theta} = \Tr \Big( \mathbf{\Lambda}^{-1} ({R}^{(\tau)} - A\mathbf{P}^{(\tau-1)}A^H) \Big)
+\argmin_{\theta} = ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}

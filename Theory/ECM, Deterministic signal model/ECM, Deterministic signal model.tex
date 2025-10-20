@@ -187,13 +187,13 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
-\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{m_t}|X_{o_t}=x_{o_t}\Big)\Big]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
--L \log(\pi) - \log (\Det(\mathbf{\Lambda})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{o_t}=x_{o_t}\Big)\Big]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{o_t}=x_{o_t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{o_t}=x_{o_t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{o_t}=x_{o_t}\bigg]=\\
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \mathbf{\Lambda}^{-1}
-\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{o_t}=x_{o_t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 \begin{equation*}
@@ -201,17 +201,17 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}^H
 \begin{bmatrix} \mathbf{\Lambda}_{(m_t, m_t)} & \mathbf{O} \\  \mathbf{O} & \mathbf{\Lambda}_{(o_t, o_t)} \end{bmatrix}^{-1}
-\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}\Big|X_{o_t}=x_{o_t}\bigg] = \\
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - \\ \Expect_{\Psi^{(\tau-1)}}
 \bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) + \\
 (X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t)
-\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Big|X_{o_t}=x_{o_t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 \begin{equation*}
 \begin{gathered}
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - (X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t) - \\ \Expect_{\Psi^{(\tau-1)}} \bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) 
-\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Big|X_{o_t}=x_{o_t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 Заметим, что: 
@@ -221,7 +221,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
 \begin{equation*}
 \begin{gathered}
-\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{o_t}=x_{o_t}\bigg] = \\
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}\bigg[\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t}\Big]^H\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t}\Big]\bigg] = \\
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[W_t^HW_t] = \\
 \Tr \Big( \Expect_{\Psi^{(\tau-1)},X_{m_t}|X_{o_t}=x_{o_t}}[W_tW_t^H] \Big) = \\
@@ -388,13 +388,13 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})]=\\
-\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{m_t}|X_{o_t}=x_{o_t}\Big)\Big]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
-\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
--L \log(\pi) - \log (\Det(\mathbf{\Lambda})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\Big[\log P\Big(X_{o_t}, X_{m_t}\Big|X_{o_t}=x_{o_t}\Big)\Big]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[\log \left(\frac{1}{\pi^{L}\Det(\Sigma)}e^{-(X_t-\mu)^H\Sigma^{-1}(X_t-\mu)}\right)\Big|X_{o_t}=x_{o_t}\bigg]=\\
+\Expect_{\Psi^{(\tau-1)}}\bigg[-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{o_t}=x_{o_t}\bigg]=\\
+-L \log(\pi) - \log (\Det(\mathbf{\Lambda})) + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- (X_t - \mu)^H\mathbf{\Lambda}^{-1}(X_t - \mu)\Big|X_{o_t}=x_{o_t}\bigg]=\\
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}^H \mathbf{\Lambda}^{-1}
-\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\begin{bmatrix} X_{m_t} - \mu_{X_{m_t}} \\  X_{o_t} - \mu_{X_{o_t}} \end{bmatrix}\Big|X_{o_t}=x_{o_t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 \begin{equation*}
@@ -402,7 +402,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  + \\ + \Expect_{\Psi^{(\tau-1)}}\bigg[- 
 \begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}^H
 \begin{bmatrix} \mathbf{\Lambda}_{(m_t, m_t)} & \mathbf{O} \\  \mathbf{O} & \mathbf{\Lambda}_{(o_t, o_t)} \end{bmatrix}^{-1}
-\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\begin{bmatrix} X_{m_t} - A_{m_t}S_t \\  X_{o_t} - A_{o_t}S_t  \end{bmatrix}\Big|X_{o_t}=x_{o_t}\bigg] = \\
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - \\ \Expect_{\Psi^{(\tau-1)}}
 \bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) + \\
 (X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t)
@@ -412,7 +412,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 -L \log(\pi) - \log (\Det(\mathbf{\Lambda}))  - (X_{o_t} - A_{o_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)} (X_{o_t} - A_{o_t}S_t) - \\ \Expect_{\Psi^{(\tau-1)}} \bigg[ (X_{m_t} - A_{m_t}S_t)^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} (X_{m_t} - A_{m_t}S_t) 
-\Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Big|X_{o_t}=x_{o_t}\bigg] = \\
 \end{gathered}
 \end{equation*}
 Заметим, что: 
@@ -422,7 +422,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 Выполняем последующие преобразования, используя тот факт, что: $\Expect(WW^H)=\Cov(W,W)+\Expect(W)\Expect(W)^H$.
 \begin{equation*}
 \begin{gathered}
-\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{m_t}|X_{o_t}=x_{o_t}\bigg] = \\
+\Expect_{\Psi^{(\tau-1)}}\bigg[X_{m_t}^H (\mathbf{\Lambda}^{-1})_{(m_t, m_t)}X_{m_t}   \Big|X_{o_t}=x_{o_t}\bigg] = \\
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}\bigg[\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t}\Big]^H\Big[[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]^{\frac{1}{2}}X_{m_t}\Big]\bigg] = \\
 \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[W_t^HW_t] = \\
 \Tr \Big( \Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[W_tW_t^H] \Big) = \\
