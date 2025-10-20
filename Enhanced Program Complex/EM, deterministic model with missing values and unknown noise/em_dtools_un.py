@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 import math
+import torch
 from functools import partial
 from scipy.optimize import minimize
 
@@ -130,50 +131,46 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     return theta, S, noise_cov
 
 
-def initializer2(X: np.ndarray, M: int, seed: int = None):
-    if seed is None:
-        seed = 100
-    nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-    theta = np.array([(nu + i * 2 * np.pi/M)%(2 * np.pi) for i in range(M)]) - np.pi
-    S = gds(M, len(X), seed=seed+20)
-    noise_cov = initial_noise_covariance(X, theta, S)
-    return theta, S
 
-
-def cost_theta(theta, X, S, Q_inv_sqrt):
+def A_ULA_torch(L, theta):
     """
-    theta - вектор углов прибытия;
-    X - набор принятых сигналов, с учетом заполненных пропусков;
-    S - набор отправленных сигналов;
-    Q_inv_sqrt - Q^{-1/2}.
+    Создает матрицу управляющих векторов для массива сенсоров типа ULA (PyTorch)
+    L - число сенсоров,
+    theta - тензор углов прибытия (размер [n_angles])
     """
-    A = A_ULA(X.shape[0], theta)
-    E = Q_inv_sqrt @ (X - A @ S)  
-    return np.linalg.norm(E, 'fro')**2
+    device = theta.device
+    sensor_indices = torch.arange(L, device=device).reshape(-1, 1).float()  # (L,1)
+    return torch.exp(-2j * np.pi * dist_ratio * sensor_indices * torch.sin(theta))  # (L, n_angles)
 
 
-def numerical_grad(theta, Q_inv_sqrt, X, S, eps=1e-6):
-    grad = np.zeros_like(theta, dtype=np.float64)
-    for i in range(len(theta)):
-        theta_eps_plus = theta.copy()
-        theta_eps_minus = theta.copy()
-        theta_eps_plus[i] += eps
-        theta_eps_minus[i] -= eps
-        
-        f_plus = cost_theta(theta_eps_plus, X, S, Q_inv_sqrt)
-        f_minus = cost_theta(theta_eps_minus, X, S, Q_inv_sqrt)
-        
-        grad_i = (f_plus - f_minus) / (2 * eps)
-        grad[i] = grad_i.real  # берём вещественную часть, чтобы избежать комплексных чисел
-    return grad
+def cost_theta_torch(theta, X, S, Q_inv_sqrt):
+    """
+    theta - тензор углов прибытия (requires_grad=True)
+    X, S, Q_inv_sqrt - тоже тензоры PyTorch, dtype=torch.cfloat или torch.float
+    """
+    A = A_ULA_torch(X.shape[0], theta)  # (L, n_angles)
+    E = torch.matmul(Q_inv_sqrt, X - torch.matmul(A, S))  
+    return torch.norm(E, 'fro')**2  # скалярный тензор
 
+def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='L-BFGS-B', tol=1e-6):
+    """
+    X_np, theta0_np, S_np, Q_inv_sqrt_np - numpy массивы
+    """
+    
+    # Объявляем функцию для scipy, которая принимает numpy theta, внутри переводим в torch и вычисляем
+    def fun(theta_np):
+        theta_t = torch.tensor(theta_np, dtype=torch.float32, requires_grad=True)
+        X_t = torch.tensor(X_np, dtype=torch.cfloat)
+        S_t = torch.tensor(S_np, dtype=torch.cfloat)
+        Q_inv_sqrt_t = torch.tensor(Q_inv_sqrt_np, dtype=torch.cfloat)
 
-def CM_step_theta(X, theta0, S, Q_inv_sqrt, method='L-BFGS-B', tol=1e-6):
-    # Создаем частичные функции для minimize, чтобы подавать только theta
-    fun = partial(cost_theta, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
-    jac = partial(numerical_grad, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
-    res = minimize(fun, theta0, jac=jac, method=method, tol=tol)
-    return res.x
+        loss = cost_theta_torch(theta_t, X_t, S_t, Q_inv_sqrt_t)
+        loss.backward()
+        grad = theta_t.grad.detach().numpy().astype(np.float64)
+        return loss.item(), grad
+
+    res = minimize(lambda th: fun(th)[0], theta0_np, jac=lambda th: fun(th)[1], method=method, tol=tol)
+    return res.x 
 
 
 def CM_step_S(X, A, Q):
@@ -260,7 +257,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
         K = np.cov(X_modified.T)
-        new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
+        new_theta = CM_step_theta_torch(X_modified.T, theta, S.T, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)

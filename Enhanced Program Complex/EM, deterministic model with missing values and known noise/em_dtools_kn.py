@@ -147,17 +147,7 @@ def CM_step_theta(X, theta0, S, Q_inv_sqrt, method='L-BFGS-B', tol=1e-6):
     fun = partial(cost_theta, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
     jac = partial(numerical_grad, Q_inv_sqrt=Q_inv_sqrt, X=X, S=S)
     res = minimize(fun, theta0, jac=jac, method=method, tol=tol)
-    return res.x
-
-
-def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
-    res = minimize(
-            lambda th: cost_theta(th, X, S, Q_inv_sqrt),
-            theta_guess,
-            method='L-BFGS-B',
-            bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
-        )
-    return res.x    
+    return res.x   
 
 
 def CM_step_S(X, A, Q):
