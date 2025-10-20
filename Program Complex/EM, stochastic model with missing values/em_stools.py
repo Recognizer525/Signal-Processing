@@ -236,7 +236,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
-        print(f'diff of S is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
+        print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q)
         print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
