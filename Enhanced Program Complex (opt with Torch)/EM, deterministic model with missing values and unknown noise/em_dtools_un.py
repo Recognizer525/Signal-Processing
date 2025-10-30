@@ -19,7 +19,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     X1 = X.copy()
     for i in range(len(mis_cols)):
         h = np.array([1]*size_mv[i]+[0]*(len(X)-size_mv[i]))
-        np.random.RandomState(rs).shuffle(h)
+        np.random.RandomState(rs+i).shuffle(h)
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
@@ -203,11 +203,11 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     A = A_ULA(X.shape[1], theta)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    O = col_numbers * (Indicator == False) - 1
     res = 0
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
-            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+            O_i = O[i, ][O[i, ] > -1]
             A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
             res += - np.linalg.det(Q_o) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:

@@ -19,7 +19,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     X1 = X.copy()
     for i in range(len(mis_cols)):
         h = np.array([1]*size_mv[i]+[0]*(len(X)-size_mv[i]))
-        np.random.RandomState(rs).shuffle(h)
+        np.random.RandomState(rs+i).shuffle(h)
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
@@ -222,7 +222,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
                 A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
-                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
+                Q_o = Q[np.ix_(O_i, O_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 K_OM = K_MO.T
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])

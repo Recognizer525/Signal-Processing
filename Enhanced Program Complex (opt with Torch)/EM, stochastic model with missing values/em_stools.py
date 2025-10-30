@@ -19,7 +19,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     X1 = X.copy()
     for i in range(len(mis_cols)):
         h = np.array([1]*size_mv[i]+[0]*(len(X)-size_mv[i]))
-        np.random.RandomState(rs).shuffle(h)
+        np.random.RandomState(rs+i).shuffle(h)
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
@@ -132,7 +132,7 @@ def cost_theta_torch(theta, X, S, Q_inv_sqrt):
     E = torch.matmul(Q_inv_sqrt, X - torch.matmul(A, S))  
     return torch.norm(E, 'fro')**2  # скалярный тензор
 
-def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', tol=1e-6):
+def CM_step_theta_start(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', tol=1e-6):
     """
     X_np, theta0_np, S_np, Q_inv_sqrt_np - numpy массивы
     """
@@ -140,6 +140,8 @@ def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', to
     # Объявляем функцию для scipy, которая принимает numpy theta, внутри переводим в torch и вычисляем
     def fun(theta_np):
         theta_t = torch.tensor(theta_np, dtype=torch.float32, requires_grad=True)
+        if theta_t.grad is not None:
+            theta_t.grad.zero_()
         X_t = torch.tensor(X_np, dtype=torch.cfloat)
         S_t = torch.tensor(S_np, dtype=torch.cfloat)
         Q_inv_sqrt_t = torch.tensor(Q_inv_sqrt_np, dtype=torch.cfloat)
@@ -150,7 +152,24 @@ def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', to
         return loss.item(), grad
 
     res = minimize(lambda th: fun(th)[0], theta0_np, jac=lambda th: fun(th)[1], method=method, tol=tol)
-    return res.x 
+    #print(f"Optim.res={res.success}")
+    return res.x, res.fun
+
+
+def CM_step_theta(X_np, theta0_np, S_np, Q_inv_sqrt_np, num_of_starts=5):
+    best_theta, best_fun = None, np.inf
+    for i in range(num_of_starts):
+        if i == 0:
+            est_theta, est_fun = CM_step_theta_start(X_np, theta0_np, S_np, Q_inv_sqrt_np)
+        else:
+            M = len(theta0_np)
+            nu = np.random.RandomState(42+i).uniform(-np.pi, np.pi)
+            theta = np.array([(nu + j * 2 * np.pi/M)%(2 * np.pi) for j in range(M)]) - np.pi
+            est_theta, est_fun = CM_step_theta_start(X_np, theta, S_np, Q_inv_sqrt_np)
+            if est_fun < best_fun:
+                best_fun, best_theta = est_fun, est_theta
+    return best_theta
+
 
 def CM_step_P(mu, sigma):
     """
@@ -179,12 +198,12 @@ def incomplete_lkhd(X, theta, P, Q):
     inv_R = cond_inv(R)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    O = col_numbers * (Indicator == False) - 1
     res = 0
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
-            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-            A_o, R_o = A[np.ix_(O_i, O_i)], R[np.ix_(O_i, O_i)]
+            O_i = O[i, ][O[i, ] > -1]
+            R_o = R[np.ix_(O_i, O_i)]
             res += - np.linalg.det(R_o) - (X[i, O_i].T).conj().T @ cond_inv(R_o) @ (X[i, O_i].T)
         else:
             res += - np.linalg.det(R) - (X[i].T).conj().T @ inv_R @ (X[i].T)
@@ -218,7 +237,6 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
     Mu_Xm_cond = {}
-    K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
     Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
@@ -228,17 +246,12 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
-                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
                 # Вычисляем блоки ковариации принятых сигналов (наблюдений)
                 K_OO = K[np.ix_(O_i, O_i)]
-                K_MM = K[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
-                K_OM = K_MO.T
                 # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
                 Mu_Xm_cond[i] = K_MO @ cond_inv(K_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ cond_inv(K_OO) @ K_OM
                 # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = A @ P @ A.conj().T + Q
         K_SS = P
@@ -249,21 +262,22 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
 
         # Шаги условной максимизации
         K = np.cov(X_modified.T)
-        R = K + K_Xm_cond_accum / G
-        new_theta = CM_step_theta_torch(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
-        print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
+        if EM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
+            print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
-        print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q)
-        print(f'likelihood is {lkhd.real} on iteration {EM_Iteration}')
+        if EM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
+            print(f'likelihood is {lkhd.real} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
     return theta, lkhd
 
 
-def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;
@@ -273,15 +287,15 @@ def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30
     max_iter - предельное число итерация;
     eps - величина, используемая для проверки сходимости последних итераций.
     """
-    best_lhd, best_theta = -np.inf, None
+    best_lhd, best_theta, best_start = -np.inf, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, P = initializer(X, M, seed=i * 100)
-        #print(f"On multistart shape of S is {S.shape}")
         est_theta, est_lhd = EM(theta, P, X, Q, max_iter, eps)
         if est_lhd > best_lhd:
-            best_lhd, best_theta = est_lhd, est_theta
+            best_lhd, best_theta, best_start = est_lhd, est_theta, i
     best_theta = angle_correcter(best_theta)
+    print(f"best_start={best_start}")
     return best_theta, best_lhd
 
 
@@ -300,5 +314,3 @@ def likelihood(X, theta, S, Q, inv_Q):
     A = A_ULA(X.shape[0], theta)
     M = X - A @ S
     return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
-
-
