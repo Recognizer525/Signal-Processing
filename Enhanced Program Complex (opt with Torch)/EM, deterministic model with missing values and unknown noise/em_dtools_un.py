@@ -24,6 +24,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     return X1
 
 
+
 def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     """
     Генерирует детерминированные сигналы, представляющие из себя комплексные нормальные вектора (circularly-symmetric case).
@@ -149,7 +150,7 @@ def cost_theta_torch(theta, X, S, Q_inv_sqrt):
     E = torch.matmul(Q_inv_sqrt, X - torch.matmul(A, S))  
     return torch.norm(E, 'fro')**2  # скалярный тензор
 
-def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', tol=1e-6):
+def CM_step_theta_start(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', tol=1e-6):
     """
     X_np, theta0_np, S_np, Q_inv_sqrt_np - numpy массивы
     """
@@ -167,8 +168,22 @@ def CM_step_theta_torch(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', to
         return loss.item(), grad
 
     res = minimize(lambda th: fun(th)[0], theta0_np, jac=lambda th: fun(th)[1], method=method, tol=tol)
-    return res.x 
+    #print(f"Optim.res={res.success}")
+    return res.x, res.fun
 
+def CM_step_theta(X_np, theta0_np, S_np, Q_inv_sqrt_np, num_of_starts=5):
+    best_theta, best_fun = None, np.inf
+    for i in range(num_of_starts):
+        if i == 0:
+            est_theta, est_fun = CM_step_theta_start(X_np, theta0_np, S_np, Q_inv_sqrt_np)
+        else:
+            M = len(theta0_np)
+            nu = np.random.RandomState(42+i).uniform(-np.pi, np.pi)
+            theta = np.array([(nu + j * 2 * np.pi/M)%(2 * np.pi) for j in range(M)]) - np.pi
+            est_theta, est_fun = CM_step_theta_start(X_np, theta, S_np, Q_inv_sqrt_np)
+            if est_fun < best_fun:
+                best_fun, best_theta = est_fun, est_theta
+    return best_theta
 
 def CM_step_S(X, A, Q):
     inv_Q = np.linalg.inv(Q)
@@ -235,7 +250,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = np.cov(X[observed_rows, ].T)
+    K = space_covariance_matrix(X[observed_rows, ])
     if np.isnan(K).any():
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
@@ -256,14 +271,14 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 K_Xm_cond_accum += Q_m - K_MO @ np.linalg.inv(Q_o) @ K_OM
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
-        K = np.cov(X_modified.T)
-        new_theta = CM_step_theta_torch(X_modified.T, theta, S.T, Q_inv_sqrt)
-        print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        K = space_covariance_matrix(X_modified)
+        new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
+        #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
-        print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
         new_Q = CM_step_noise_cov(X_modified, A, new_S)
-        print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {EM_Iteration}')
         lkhd = incomplete_lkhd(X_modified, new_theta, new_S, new_Q, np.linalg.inv(Q))
         if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol and np.linalg.norm(Q - new_Q, ord = 2) < rtol:
             break
@@ -282,14 +297,15 @@ def multi_start_EM(X: np.ndarray, M: int, num_of_starts: int = 30, max_iter: int
     max_iter - предельное число итерация;
     rtol - величина, используемая для проверки сходимости последних итераций.
     """
-    best_lhd, best_theta, best_S, best_Q = -np.inf, None, None, None
+    best_lhd, best_theta, best_S, best_Q, best_start = -np.inf, None, None, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, S, Q = initializer(X, M, seed=i * 100)
         est_theta, est_S, est_Q, est_lhd = EM(theta, S, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
-            best_theta, best_S, best_Q, best_lhd = est_theta, est_S, est_Q, est_lhd
+            best_theta, best_S, best_Q, best_lhd, best_start = est_theta, est_S, est_Q, est_lhd, i
     best_theta = angle_correcter(best_theta)
+    print(f'best_start={best_start}')
     return best_theta, best_S, best_Q, best_lhd
 
 

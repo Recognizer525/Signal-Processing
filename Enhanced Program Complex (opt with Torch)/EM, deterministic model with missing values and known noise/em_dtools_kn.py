@@ -209,7 +209,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = np.cov(X[observed_rows, ].T)
+    K = space_covariance_matrix(X[observed_rows, ])
     if np.isnan(K).any():
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
@@ -224,16 +224,15 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
                 Q_o = Q[np.ix_(O_i, O_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
-                K_OM = K_MO.T
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
-        K = np.cov(X_modified.T)
+        K = space_covariance_matrix(X_modified)
         new_theta = CM_step_theta_torch(X_modified.T, theta, S.T, Q_inv_sqrt)
-        print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
-        print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
         lkhd = incomplete_lkhd(X_modified, new_theta, new_S, Q, np.linalg.inv(Q))
         if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol:
             break

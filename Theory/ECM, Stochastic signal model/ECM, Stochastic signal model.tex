@@ -170,11 +170,6 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- о
 \end{aligned} \right.
 \end{equation}
 Заметим, что $\Sigma_{S_t|X_{o_t} = x_{o_t}, X_{m_t}^{(\tau)}}$ не зависит от величин, которые зависят от $t$, эта условная ковариация исходных сигналов вообще не зависит от $t$.
-Рассчитаем оценку пространственной ковариационной матрицы (пользуемся результатами выкладок по детерминированной модели):
-\begin{equation}
-{R}^{(\tau)} = \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} + \widetilde{x}_t^{(\tau)}(\widetilde{x}_t^{(\tau)})^H \Big]
-\end{equation}
-где $\widetilde{\Sigma_{t}}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $j_1 \in m_t$ и столбцов с номерами $j_2 \in m_t$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
  \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
@@ -184,7 +179,8 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- о
 \\
 \begin{equation*}
 \begin{gathered}
-\log P(X,S|\theta, \mathbf{P}) = -G \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^G (X_t-A(\theta)S_t)^H \mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) 
+\log P(X,S|\theta, \mathbf{P}) = \log P(X|S, \theta) + \log P(S|\mathbf{P}) = \\
+ = -G \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^G (X_t-A(\theta)S_t)^H \mathbf{\Lambda}^{-1}(X_t-A(\theta)S_t) 
 \\ - G \log(\Det(\pi \mathbf{P})) - \sum_{t=1}^G S_t^H \mathbf{P}^{-1}S_t
 \end{gathered}
 \end{equation*}
@@ -220,7 +216,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- о
 \end{equation*}
 Оценка УМО, полученная выше, была выведена в документе для детерминированной модели сигналов.
 \begin{equation}
-\argmin_{\theta} = ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\theta^{(\tau)}=\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
@@ -275,23 +271,6 @@ O = -G\mathbf{P}^{-1}+\mathbf{P}^{-1}M\mathbf{P}^{-1} \Rightarrow M =G\mathbf{P}
 \begin{equation}
 \mathbf{P}^{(\tau)} =  \mathcal{D} \bigg[  \frac{1}{G} M_{S|X} \cdot M_{S|X}^H  + \Sigma_{S_1|X_1}\bigg]
 \end{equation}.
-\clearpage
-\begin{center}
-\fontsize{16}{20}\selectfont \color{teal}{\textbf{\S3 Неизвестный шум}}
-\end{center}
-\begin{center}
-\fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
-\end{center}
-\begin{center}
-\fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
-\end{center}
-\begin{center}
-\fontsize{14}{18}\selectfont \color{red}{\textbf{Первый СM-шаг}}
-\end{center}
-\begin{center}
-\fontsize{14}{18}\selectfont \color{red}{\textbf{Второй СM-шаг}}
-\end{center}
-\clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
 \end{center}
