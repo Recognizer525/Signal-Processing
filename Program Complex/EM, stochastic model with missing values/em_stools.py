@@ -1,6 +1,5 @@
 import numpy as np
 import scipy
-import math
 from functools import partial
 from scipy.optimize import minimize
 
@@ -18,7 +17,7 @@ def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.
     X1 = X.copy()
     for i in range(len(mis_cols)):
         h = np.array([1]*size_mv[i]+[0]*(len(X)-size_mv[i]))
-        np.random.RandomState(rs).shuffle(h)
+        np.random.RandomState(rs+i).shuffle(h)
         X1[:,mis_cols[i]][np.where(h==1)] = np.nan
     return X1
 
@@ -73,7 +72,7 @@ def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     return signals
 
 
-def space_covariance_matrix(X: np.ndarray):
+def complex_cov(X: np.ndarray):
     """
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
     X - коллекция полученных сигналов.
@@ -137,7 +136,7 @@ def CM_step_theta(X, theta_guess, S, Q_inv_sqrt):
             method='L-BFGS-B',
             bounds=[(-np.pi/2, np.pi/2)] * len(theta_guess)
         )
-    print(f'res.jac={res.jac}')
+    #print(f'res.jac={res.jac}')
     return res.x    
 
 
@@ -168,12 +167,12 @@ def incomplete_lkhd(X, theta, P, Q):
     inv_R = cond_inv(R)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    O = col_numbers * (Indicator == False) - 1
     res = 0
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
-            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-            A_o, R_o = A[np.ix_(O_i, O_i)], R[np.ix_(O_i, O_i)]
+            O_i = O[i, ][O[i, ] > -1]
+            R_o = R[np.ix_(O_i, O_i)]
             res += - np.linalg.det(R_o) - (X[i, O_i].T).conj().T @ cond_inv(R_o) @ (X[i, O_i].T)
         else:
             res += - np.linalg.det(R) - (X[i].T).conj().T @ inv_R @ (X[i].T)
@@ -203,7 +202,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = np.cov(X[observed_rows, ].T)
+    K = complex_cov(X[observed_rows, ])
     if np.isnan(K).any():
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
@@ -218,8 +217,6 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
-                Q_o, Q_m = Q[np.ix_(O_i, O_i)], Q[np.ix_(M_i, M_i)]
                 # Вычисляем блоки ковариации принятых сигналов (наблюдений)
                 K_OO = K[np.ix_(O_i, O_i)]
                 K_MM = K[np.ix_(M_i, M_i)]
@@ -238,7 +235,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K_S_cond = K_SS - K_SX @ cond_inv(K_XX) @ K_XS
 
         # Шаги условной максимизации
-        K = np.cov(X_modified.T)
+        K = complex_cov(X_modified)
         R = K + K_Xm_cond_accum / G
         new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
@@ -292,55 +289,6 @@ def likelihood(X, theta, S, Q, inv_Q):
     return (- X.shape[1] * np.linalg.det(Q) - np.trace(M.conj().T @ inv_Q @ M)).real
 
 
-def CM_step_noise_cov(X, A, S):
-    R = X.T - A @ S.T 
-    Sigma_Noise_diag = np.nanvar(R, axis=1, ddof=0)  
-    epsilon = 1e-6
-    Sigma_Noise_diag = Sigma_Noise_diag + epsilon
-    return np.diag(Sigma_Noise_diag)
 
 
-def alternative_initializer(X: np.ndarray, M: int, seed: int = None):
-    if seed is None:
-        seed = 100
-    print(f"type(seed)={type(seed)}")
-    print(f"type(M)={type(M)}")
-    theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M)
-    signals = gds(M, len(X), seed=seed+20) 
-    noise_cov = initial_noise_covariance(X, theta, signals)
-    return theta, signals, noise_cov
 
-
-def dA_dtheta_ULA(L, theta):
-    """
-    Производная матрицы управляющих векторов по углам theta для ULA
-    Возвращает массив размером (L, len(theta))
-    """
-    m = np.arange(L).reshape(-1, 1)  # (L,1)
-    A = np.exp(-2j * np.pi * dist_ratio * m * np.sin(theta))  # (L,K)
-    dA = -1j * 2 * np.pi * dist_ratio * m * np.cos(theta) * A  # (L,K)
-    return dA
-
-
-def grad_theta(theta, X, S, weights):
-    L, N = X.shape  # L - число сенсоров, N - число отсчетов
-    K = len(theta)
-    A = A_ULA(L, theta)  # (L,K)
-    dA = dA_dtheta_ULA(L, theta)  # (L,K)
-    
-    residual = X - A @ S  # (L,N)
-    
-    # Apply weights (Q^{-1/2}) по строкам residual
-    weighted_residual = weights[:, np.newaxis] * residual  # (L,N)
-    
-    grad = np.zeros(K, dtype=np.float64)
-    for k in range(K):
-        # dA_k shape (L,), S_k shape (N,)
-        dA_k = dA[:, k:k+1]  # (L,1)
-        S_k = S[k:k+1, :]    # (1,N)
-        term = weighted_residual.conj().T @ dA_k  # (N,1)
-        # Скалярное произведение с S_k: (N,1) @ (1,N) = (N,N) - не нужно, перепишем:
-        # Мы хотим сумму по всем элементам:
-        grad_k = -2 * np.real(np.sum(term.T * S_k))
-        grad[k] = grad_k
-    return grad

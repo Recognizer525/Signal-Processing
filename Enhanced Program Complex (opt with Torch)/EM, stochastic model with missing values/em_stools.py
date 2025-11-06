@@ -71,7 +71,7 @@ def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
     return signals
 
 
-def space_covariance_matrix(X: np.ndarray):
+def complex_cov(X: np.ndarray):
     """
     Метод предназначен для формирования оценки матрицы пространственной ковариации.
     X - коллекция полученных сигналов.
@@ -225,7 +225,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = space_covariance_matrix(X[observed_rows, ])
+    K = complex_cov(X[observed_rows, ])
     if np.isnan(K).any():
         K = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
@@ -255,7 +255,7 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
 
         # Шаги условной максимизации
-        K = space_covariance_matrix(X_modified)
+        K = complex_cov(X_modified)
         new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
         #if EM_Iteration in [0, 1, 5, 11, 16, 21, 26]:
             #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
