@@ -1,6 +1,5 @@
 import numpy as np
 import scipy
-import math
 from functools import partial
 from scipy.optimize import minimize
 
@@ -46,10 +45,7 @@ def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    print(f'Shape of signals is {signals.shape} before')
-    signals = signals.T
-    print(f'Shape of signals is {signals.shape} after')
-    return signals
+    return signals.T
 
 
 def gss(size: int, number: int, Gamma: np.ndarray, seed: int = None):
@@ -188,11 +184,11 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     A = A_ULA(X.shape[1], theta)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
-    M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
+    O =  col_numbers * (Indicator == False) - 1
     res = 0
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
-            M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+            O_i = O[i, ][O[i, ] > -1]
             A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
             res += - np.linalg.det(Q_o) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:

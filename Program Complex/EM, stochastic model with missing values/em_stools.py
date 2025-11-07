@@ -45,9 +45,7 @@ def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    print(f'Shape of signals is {signals.shape} before')
     signals = signals.T
-    print(f'Shape of signals is {signals.shape} after')
     return signals
 
 
@@ -152,19 +150,9 @@ def CM_step_P(mu, sigma):
     return res
 
 
-def cond_inv(A):
-    is_invertible = np.linalg.matrix_rank(A) == A.shape[0]
-    if is_invertible:
-        inv_A = np.linalg.inv(A)
-    else:
-        inv_A = np.linalg.pinv(A)
-    return inv_A
-
-
 def incomplete_lkhd(X, theta, P, Q):
     A = A_ULA(X.shape[1], theta)
-    R = A @ P @ A.conj().T + Q
-    inv_R = cond_inv(R)
+    R = A @ P @ A.conj().T + Q + 1e-6 * np.eye(Q.shape[0])
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     O = col_numbers * (Indicator == False) - 1
@@ -173,9 +161,10 @@ def incomplete_lkhd(X, theta, P, Q):
         if set(O[i, ]) != set(col_numbers - 1):
             O_i = O[i, ][O[i, ] > -1]
             R_o = R[np.ix_(O_i, O_i)]
-            res += - np.linalg.det(R_o) - (X[i, O_i].T).conj().T @ cond_inv(R_o) @ (X[i, O_i].T)
+            R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
+            res += - np.linalg.det(R_o) - (X[i, O_i].T).conj().T @ np.linalg.inv(R_o) @ (X[i, O_i].T)
         else:
-            res += - np.linalg.det(R) - (X[i].T).conj().T @ inv_R @ (X[i].T)
+            res += - np.linalg.det(R) - (X[i].T).conj().T @ np.linalg.inv(R) @ (X[i].T)
     return res
 
 
@@ -219,24 +208,24 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
                 # Вычисляем блоки ковариации принятых сигналов (наблюдений)
                 K_OO = K[np.ix_(O_i, O_i)]
+                K_OO = K_OO + 1e-6 * np.eye(K_OO.shape[0])
                 K_MM = K[np.ix_(M_i, M_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
-                K_OM = K_MO.T
+                K_OM = K_MO.conj().T
                 # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
-                Mu_Xm_cond[i] = K_MO @ cond_inv(K_OO) @ X_modified[i, O_i]
+                Mu_Xm_cond[i] = K_MO @ np.linalg.inv(K_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ cond_inv(K_OO) @ K_OM
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ np.linalg.inv(K_OO) @ K_OM
                 # Вычисляем блоки совместной ковариации исходных и принятых сигналов
-        K_XX = A @ P @ A.conj().T + Q
+        K_XX = A @ P @ A.conj().T + Q + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
         K_SX = K_XS.conj().T
-        Mu_S_cond = K_SX @ cond_inv(K_XX) @ X_modified.T
-        K_S_cond = K_SS - K_SX @ cond_inv(K_XX) @ K_XS
+        Mu_S_cond = K_SX @ np.linalg.inv(K_XX) @ X_modified.T
+        K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
 
         # Шаги условной максимизации
-        K = complex_cov(X_modified)
-        R = K + K_Xm_cond_accum / G
+        K = complex_cov(X_modified) + K_Xm_cond_accum / G
         new_theta = CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
         print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
         A = A_ULA(L, new_theta)

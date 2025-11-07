@@ -1,6 +1,4 @@
 import numpy as np
-import scipy
-import math
 import torch
 from functools import partial
 from scipy.optimize import minimize
@@ -163,8 +161,8 @@ def CM_step_theta(X_np, theta0_np, S_np, Q_inv_sqrt_np, num_of_starts=5):
             nu = np.random.RandomState(42+i).uniform(-np.pi, np.pi)
             theta = np.array([(nu + j * 2 * np.pi/M)%(2 * np.pi) for j in range(M)]) - np.pi
             est_theta, est_fun = CM_step_theta_start(X_np, theta, S_np, Q_inv_sqrt_np)
-            if est_fun < best_fun:
-                best_fun, best_theta = est_fun, est_theta
+        if est_fun < best_fun:
+            best_fun, best_theta = est_fun, est_theta
     return best_theta
 
 def CM_step_S(X, A, Q):
@@ -196,7 +194,7 @@ def incomplete_lkhd(X, theta, S, Q, inv_Q):
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
             O_i = O[i, ][O[i, ] > -1]
-            A_o, Q_o = A[np.ix_(O_i, O_i)], Q[np.ix_(O_i, O_i)]
+            A_o, Q_o = A[O_i, :], Q[np.ix_(O_i, O_i)]
             res += - np.linalg.det(Q_o) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:
             res += - np.linalg.det(Q) - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
@@ -235,7 +233,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
-                A_o, A_m = A[np.ix_(O_i, O_i)], A[np.ix_(M_i, M_i)]
+                A_o, A_m = A[O_i, :], A[M_i, :]
                 Q_o = Q[np.ix_(O_i, O_i)]
                 K_MO = K[np.ix_(M_i, O_i)]
                 Mu_cond[i] = A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ (X_modified[i, O_i] - A_o @ S[i])
@@ -244,6 +242,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K = complex_cov(X_modified)
         new_theta = CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
         #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        print(f"new_theta={new_theta}")
         A = A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         #print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
@@ -257,7 +256,7 @@ def EM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
     return theta, S, lkhd
 
 
-def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 30, max_iter: int = 20, rtol: float = 1e-6):
+def multi_start_EM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, rtol: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     X - коллекция полученных сигналов;

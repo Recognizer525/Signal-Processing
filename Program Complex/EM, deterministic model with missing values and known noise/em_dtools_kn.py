@@ -1,6 +1,5 @@
 import numpy as np
 import scipy
-import math
 from functools import partial
 from scipy.optimize import minimize
 
@@ -46,9 +45,7 @@ def gds(M, G, A = None, f = None, phi = None, seed: int = None):
     signals = np.zeros((M, G), dtype=complex)
     for m in range(M):
         signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
-    #print(f'Shape of signals is {signals.shape} before')
     signals = signals.T
-    #print(f'Shape of signals is {signals.shape} after')
     return signals
 
 
@@ -123,7 +120,6 @@ def cost_theta(theta, X, S, weights):
     а затем диагональ этой матрицы приводится к вектору
     """
     A = A_ULA(X.shape[0], theta)
-    #print(f'The shape of X is {X.shape}')
     res = X - A @ S
     sum_row_wise = np.sum(res**2, axis=1)
     cost = np.sum((weights**2) * sum_row_wise)  
