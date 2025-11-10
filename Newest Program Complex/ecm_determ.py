@@ -90,9 +90,9 @@ def incomplete_lkhd(X: np.ndarray, theta: np.ndarray, S: np.ndarray, Q: np.ndarr
             sign, Q_o_logdet = np.linalg.slogdet(Q_o)
             if sign <= 0:
                raise ValueError("Q_o is not positive definite (det <= 0)") 
-            res += - Q_o_logdet - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
+            res += - np.log(np.linalg.det(Q_o)) - (X[i, O_i].T - A_o @ S[i].T).conj().T @ np.linalg.inv(Q_o) @ (X[i, O_i].T - A_o @ S[i].T)
         else:
-            res += - Q_logdet - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
+            res += - np.log(np.linalg.det(Q)) - (X[i].T - A @ S[i].T).conj().T @ inv_Q @ (X[i].T - A @ S[i].T)
     return res.real
 
 
@@ -210,8 +210,8 @@ def ECM_un(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_i
     Mu_cond = {}
     K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
     X_modified = X.copy()
-    EM_Iteration = 0
-    while EM_Iteration < max_iter:
+    ECM_Iteration = 0
+    while ECM_Iteration < max_iter:
         A = sensors.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
@@ -227,19 +227,19 @@ def ECM_un(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_i
         K = sensors.robust_complex_cov(X_modified)
         #print(f"K={K}")
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, S.T, Q_inv_sqrt)
-        #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        #print(f'diff of theta is {new_theta-theta} on iteration {ECM_Iteration}')
         A = sensors.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
-        #print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of S is {np.sum((new_S-S)**2)} on iteration {ECM_Iteration}')
         new_Q = CM_step_Q(X_modified, A, new_S)
         #print(f"new_Q = {new_Q}")
-        #print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {EM_Iteration}')
+        #print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {ECM_Iteration}')
         lkhd = incomplete_lkhd(X_modified, new_theta, new_S, new_Q, np.linalg.inv(Q))
-        if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol and np.linalg.norm(Q - new_Q, ord = 2) < rtol:
-            break
+        #if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol and np.linalg.norm(Q - new_Q, ord = 2) < rtol:
+            #break
         theta, S, Q = new_theta, new_S, new_Q
-        print(f'incomplete likelihood is {lkhd.real} on iteration {EM_Iteration}')
-        EM_Iteration += 1
+        print(f'incomplete likelihood is {lkhd.real} on iteration {ECM_Iteration}')
+        ECM_Iteration += 1
     return theta, S, Q, lkhd
 
 

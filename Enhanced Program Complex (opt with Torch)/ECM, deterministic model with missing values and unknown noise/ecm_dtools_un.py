@@ -389,8 +389,8 @@ def ECM(theta: np.ndarray, S: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter
         new_Q = CM_step_noise_cov(X_modified, A, new_S)
         #print(f'diff of Q is {np.sum((new_Q-Q)**2)} on iteration {EM_Iteration}')
         lkhd = incomplete_lkhd(X_modified, new_theta, new_S, new_Q, np.linalg.inv(Q))
-        if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol and np.linalg.norm(Q - new_Q, ord = 2) < rtol:
-            break
+        #if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(S - new_S, ord = 2) < rtol and np.linalg.norm(Q - new_Q, ord = 2) < rtol:
+            #break
         theta, S, Q = new_theta, new_S, new_Q
         print(f'incomplete likelihood is {lkhd.real} on iteration {ECM_Iteration}')
         ECM_Iteration += 1
@@ -433,9 +433,6 @@ def multi_start_ECM(X: np.ndarray, M: int, num_of_starts: int = 30, max_iter: in
     best_theta = angle_correcter(best_theta)
     print(f'best_start={best_start}')
     return best_theta, best_S, best_Q, best_lhd
-
-
-##########################################################################################################
 
 
 
