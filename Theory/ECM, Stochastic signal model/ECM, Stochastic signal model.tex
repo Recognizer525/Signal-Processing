@@ -156,12 +156,13 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_{m_t}|X_{o_t}=x_{o_t},\Psi)$ на итерации $\tau$ можно найти следующим образом:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{X_{m_t}|x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\hat{\Sigma}_{x_{o_t},x_{o_t}}^{(\tau)})^{-1}\cdot x_{o_t} \\
-\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{x_{m_t},x_{m_t}}^{(\tau)}-\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\hat{\Sigma}_{x_{o_t},x_{o_t}}^{(\tau)})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}(\hat{\Sigma}_{X_{o_t},X_{o_t}}^{(\tau)})^{-1}\cdot x_{o_t} \\
+\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{X_{m_t},X_{m_t}}^{(\tau)}-\hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}(\hat{\Sigma}_{X_{o_t},X_{o_t}}^{(\tau)})^{-1}\hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
 $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$. $\widetilde{x}_t^{(\tau)}$ --- оценка $x_t$ с учетом оценки пропусков.
+Находим новую оценку ковариации наблюдений $\hat{\Sigma}_{X}^{(\tau+1)}$ как выборочную ковариацию восстановленного набора данных.
 Параметры апостериорного распределения $P(S_t|X_{o_t} = x_{o_t}, X_{m_t} = \widetilde{x}_{m_t}, \Psi)$ можно найти исходя из следующих формул
 \begin{equation}
 \left\{ \begin{aligned} 

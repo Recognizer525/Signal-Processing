@@ -169,7 +169,7 @@ def ECM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter
     return theta, P, lkhd
 
 
-def multi_start_ECM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, rtol: float = 1e-6):
+def multi_start_ECM(X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 10, max_iter: int = 20, rtol: float = 1e-6):
     """
     Мультистарт для ЕCМ-алгоритма.
 

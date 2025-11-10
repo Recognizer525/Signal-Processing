@@ -149,30 +149,30 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned}
-\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mu_{x_{m_t}}^{(\tau)} + \Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}^{(\tau)}) \\
-\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \Sigma_{x_{m_t},x_{m_t}}^{(\tau)}-\Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{x_{o_t},x_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|X_{o_t}}^{(\tau)} &= \mu_{X_{m_t}}^{(\tau)} + \Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{X_{o_t}}^{(\tau)}) \\
+\Sigma_{X_{m_t}|X_{o_t}}^{(\tau)} &= \Sigma_{X_{m_t},X_{m_t}}^{(\tau)}-\Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Sigma_{x_{o_t},x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{o_t} \\
-\Sigma_{x_{o_t},x_{m_t}}^{(\tau)} &= \hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} \\
-\Sigma_{x_{m_t},x_{o_t}}^{(\tau)} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} \\
-\Sigma_{x_{m_t},x_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t} \\
-\mu_{x_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
-\mu_{x_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
+\Sigma_{X_{o_t},X_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{o_t} \\
+\Sigma_{X_{o_t},X_{m_t}}^{(\tau)} &= \hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)} \\
+\Sigma_{X_{m_t},X_{o_t}}^{(\tau)} &= \hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)} \\
+\Sigma_{X_{m_t},X_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t} \\
+\mu_{X_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
+\mu_{X_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
 \end{aligned} \right.
 \end{equation}
-где $\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} $ --- выборочная оценка кросс-ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$, $\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} = \Big(\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}\Big)^H$;
+где $\hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)} $ --- выборочная оценка кросс-ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$, $\hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)} = \Big(\hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)}\Big)^H$;
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
-\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|X_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\Sigma_{X_{m_t}|X_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}-\hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}(\mathbf{\Lambda}_{o_t})^{-1}\hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
-$\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
+$\widetilde{x}_{m_t} = \mu_{X_{m_t}|X_{o,t}=x_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
  \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)].
