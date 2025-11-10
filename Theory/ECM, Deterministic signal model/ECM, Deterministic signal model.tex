@@ -129,7 +129,7 @@ S(t) = Be^{j\omega \cdot t + \phi},
 \end{center}
 Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и текущей оценки параметров
 \begin{equation}
- \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)]
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)]
 \end{equation}
 Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой Байеса:
 \begin{gather}
@@ -149,8 +149,8 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned}
-\mu_{X_{m_t}|X_{o_t}}^{(\tau)} &= \mu_{X_{m_t}}^{(\tau)} + \Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{X_{o_t}}^{(\tau)}) \\
-\Sigma_{X_{m_t}|X_{o_t}}^{(\tau)} &= \Sigma_{X_{m_t},X_{m_t}}^{(\tau)}-\Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{X_{o_t},X_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|X_{o_t}=x_{o,t}}^{(\tau)} &= \mu_{X_{m_t}}^{(\tau)} + \Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{X_{o_t}}^{(\tau)}) \\
+\Sigma_{X_{m_t}|X_{o_t}=x_{o,t}}^{(\tau)} &= \Sigma_{X_{m_t},X_{m_t}}^{(\tau)}-\Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
@@ -240,16 +240,16 @@ $\widetilde{x}_{m_t} = \mu_{X_{m_t}|X_{o,t}=x_{o_t}}$.
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
  \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})] = \\
-\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
+\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{X_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
 Рассмотрим второе слагаемое: внутри следа находится скаляр, соответственно, преобразуем выражение:
 \clearpage
 \begin{equation*}
 \begin{gathered}
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
-\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - (\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})  \bigg] = \\
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{X_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
+\sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{X_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - (\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})  \bigg] = \\
 = \sum_{t=1}^G \Big( - (X_t-AS_t)^H \mathbf{\Lambda}^{-1}(X_t-AS_t) \Big) = \\
 - ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
 \end{gathered}
@@ -328,7 +328,7 @@ S(t) = Be^{j\omega \cdot t + \phi},
 \end{center}
 Требуется найти условное математическое ожидание с учетом апостериорного распределения ненаблюдаемых/пропущенных принятых сигналов и текущей оценки параметров
 \begin{equation}
- \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)]
+ \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)]
 \end{equation}
 Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой Байеса:
 \begin{gather}
@@ -348,30 +348,30 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 Параметры апостериорного распределения $P(X_m|X_o=x_o,\Psi)$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned}
-\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mu_{x_{m_t}}^{(\tau)} + \Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{x_{o_t}}^{(\tau)}) \\
-\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \Sigma_{x_{m_t},x_{m_t}}^{(\tau)}-\Sigma_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\Sigma_{x_{o_t},x_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{x_{o_t},x_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|X_{o,t}=x_{o_t}}^{(\tau)} &= \mu_{X_{m_t}}^{(\tau)} + \Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\cdot(x_{o_t}-\mu_{X_{o_t}}^{(\tau)}) \\
+\Sigma_{X_{m_t}|X_{o_t}=x_{o,t}}^{(\tau)} &= \Sigma_{X_{m_t},X_{m_t}}^{(\tau)}-\Sigma_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\Sigma_{X_{o_t},X_{o_t}}^{(\tau)}\Big)^{-1}\Sigma_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 В рамках данной задачи:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Sigma_{x_{o_t},x_{o_t}} &= \mathbf{\Lambda}_{o_t}^{(\tau)} \\
-\Sigma_{x_{o_t},x_{m_t}} &= \hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)} \\
-\Sigma_{x_{m_t},x_{o_t}} &= \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)} \\
-\Sigma_{x_{m_t},x_{m_t}} &= \mathbf{\Lambda}_{m_t}^{(\tau)} \\
-\mu_{x_{o_t}} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
-\mu_{x_{m_t}} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
+\Sigma_{X_{o_t},X_{o_t}} &= \mathbf{\Lambda}_{o_t}^{(\tau)} \\
+\Sigma_{X_{o_t},X_{m_t}} &= \hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)} \\
+\Sigma_{X_{m_t},X_{o_t}} &= \hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)} \\
+\Sigma_{X_{m_t},X_{m_t}} &= \mathbf{\Lambda}_{m_t}^{(\tau)} \\
+\mu_{X_{o_t}} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
+\mu_{X_{m_t}} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
 \end{aligned} \right.
 \end{equation}
-где $\hat{\Sigma}_{x_{o_t},x_{m_t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$
+где $\hat{\Sigma}_{X_{o_t},X_{m_t}}$ -- выборочная оценка ковариации на основе полных наблюдений, т.е. таких, что $x_t = x_{o_t}$
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{x_{m_t}|x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
-\Sigma_{x_{m_t}|x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}^{(\tau)}-\hat{\Sigma}_{x_{m_t},x_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\hat{\Sigma}_{x_{o_t},x_{m_t}}^{(\tau)}
+\mu_{X_{m_t}|X_{O_t}=x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\Sigma_{X_{m_t}|X_{o_t}=x_{o,t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}^{(\tau)}-\hat{\Sigma}_{X_{m_t},X_{o_t}}^{(\tau)}\Big(\mathbf{\Lambda}_{o_t}^{(\tau)}\Big)^{-1}\hat{\Sigma}_{X_{o_t},X_{m_t}}^{(\tau)}
 \end{aligned} \right.
 \end{equation}
 Оцениваем пропущенные значения для каждого наблюдения через условное математическое ожидание:
-$\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
+$\widetilde{x}_{m_t} = \mu_{X_{m_t}|X_{o_t}}$.
 Вернемся к ранее рассмотренному условному математическому ожиданию:
 \begin{equation*}
  \Expect_{X_m|X_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)].
@@ -441,7 +441,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{gathered}
  \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] = \\
  \sum_{t=1}^G\Expect_{X_{m_t}|X_{o_t}=x_{o_t}, \Psi^{(\tau-1)}}[\log P(X_{o_t}, X_{m_t})] = \\
-\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
+\sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] =\\
 \sum_{t=1}^G \bigg[- (x_{o_t}-\mu_{x_{o_t}}) ^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}})  - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg]
 \end{gathered}
 \end{equation*}
@@ -462,7 +462,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{gathered}
 \Psi^{(\tau)}=\argmax_{\Psi} \Expect_{X_m|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X_o, X_m)] =\\
 \argmax_{\Psi}  \sum_{t=1}^G \bigg[ -L \log(\pi) - \log (\Det(\mathbf{\Lambda})) - (x_{o_t}-\mu_{X_{o_t}})^H (\mathbf{\Lambda}^{-1})_{(o_t, o_t)}(x_{o_t}-\mu_{X_{o_t}}) -  \\ \Tr \Big( [(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}]\mathbf{\Lambda}_{m_t} \Big) - \Tr \Big((\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}})^H[(\mathbf{\Lambda}^{-1})_{(m_t, m_t)}](\widetilde{x}_{m_t}^{(\tau)} - \mu_{X_{m_t}}) \Big)  \bigg] = \\
-\argmin_{\Psi} ||\mathbf{\Lambda}^{-1/2}(X-AS)||_F^2
+\argmin_{\Psi} ||\mathbf{\Lambda}^{-1/2}(\tilde{x}^{(\tau)}-AS)||_F^2
 \end{gathered}
 \end{equation*}
 \begin{center}
@@ -472,7 +472,7 @@ $\widetilde{x}_{m_t} = \mu_{x_{m_t}|x_{o_t}}$.
 \begin{equation*}
 \begin{gathered}
 \theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
-\argmin_{\theta} ||[\mathbf{\Lambda}^{(\tau-1)}]^{-1/2}(X^{(\tau)}-A^{(\tau-1)}S^{(\tau-1)})||_F^2
+\argmin_{\theta} ||[\mathbf{\Lambda}^{(\tau-1)}]^{-1/2}(\tilde{x}^{(\tau)}-A(\theta)S^{(\tau-1)})||_F^2
 \end{gathered}
 \end{equation*}
 \\
@@ -506,27 +506,27 @@ S_G^{(\tau)} &= (A^{(\tau)})^H [\mathbf{\Lambda}^{(\tau-1)}]^{-1} A^{(\tau)})^{-
 Если же напрямую оптимизировать функцию $Q(\mathbf{\Lambda} | \mathbf{\Lambda}^{(\tau-1)})$, можем получить иную аналитическую оценку ковариационной матрицы шума:
 Пусть $\widetilde{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $x_{m_t}$ оценены с помощью $\widetilde{x}_{m_t}^{(\tau)}$.
 \begin{align*}
-\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} Q_t (\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) \\
-&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \frac{1}{2} \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
-&\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Sigma^{-1}}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \\
-&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \log |\Sigma^{-1}| - \nabla_{\Sigma^{-1}} \Tr \big( (\Sigma^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{x_{m_t}|x_{o_t}} \big) \\
-&\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Sigma^{-1}} \Tr \big(  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Sigma^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \big)
+\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \sum_{t = 1}^{G} \nabla_{\mathbf{\Lambda}^{-1}} Q_t (\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) \\
+&= \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Lambda^{-1}} \log |\mathbf{\Lambda}^{-1}| - \frac{1}{2} \nabla_{\Lambda^{-1}} \Tr \big( (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{X_{m_t}|X_{o_t}} \big) \\
+&\hspace{10pt} - \sum_{t = 1}^{G} \frac{1}{2} \nabla_{\Lambda^{-1}}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \mathbf{\Lambda}^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \\
+&= \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\Lambda^{-1}} \log |\mathbf{\Lambda}^{-1}| - \nabla_{\Lambda^{-1}} \Tr \big( (\mathbf{\Lambda}^{-1})_{(m_t, m_t)} \Sigma^{(\tau)}_{X_{m_t}|X_{o_t}} \big) \\
+&\hspace{10pt} - \frac{1}{2} \sum_{t = 1}^{G} \nabla_{\mathbf{\Lambda}^{-1}} \Tr \big(  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \mathbf{\Lambda}^{-1}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) \big)
 \end{align*}
 \begin{align*}
-\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \Lambda -  \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
-&= \frac{1}{2} \big[ G \Lambda - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H
+\nabla_{\Lambda^{-1}} Q(\mathbf{\Lambda} \text{ | } \mathbf{\Lambda}^{(\tau-1)}) &= \frac{1}{2} \big[ \sum_{t = 1}^{G} \mathbf{\Lambda} -  \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+&= \frac{1}{2} \big[ G \mathbf{\Lambda} - \sum_{t = 1}^{G} \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H
 \end{align*}
-где $\Sigma_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $j_1 \in m_t$ и столбцов с номерами $j_2 \in m_t$: они заменены величиной $\Sigma^{(\tau)}_{x_{m_t}|x_{o_t}}$.
+где $\widetilde{\mathbf{\Lambda}}_{t}^{(\tau)}$ --- матрица размера $L \times L$, в которой все элементы являются нулями, за исключением тех, что стоят на пересечении строк с номерами $j_1 \in m_t$ и столбцов с номерами $j_2 \in m_t$: они заменены величиной $\Sigma^{(\tau)}_{X_{m_t}|X_{o_t}}$.
 Приравняем производную к нулю, чтобы получить значение $\Sigma$, соответствующее максимуму.
 \begin{align*}
-O &= \frac{1}{2} \big[ G \Lambda^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})(\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
-&= \big[ G \Lambda^{(\tau)} - \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})(\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
-\iff G \Lambda^{(\tau)} &= \sum_{t = 1}^{G} \widetilde{\Sigma}_{t}^{(\tau)} + \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
-\iff \Lambda^{(\tau)} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]
+O &= \frac{1}{2} \big[ G \mathbf{\Lambda^{(\tau)}} - \sum_{t = 1}^{G} \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} \big] - \frac{1}{2} \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})(\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+&= \big[ G \mathbf{\Lambda^{(\tau)}}  - \sum_{t = 1}^{G} \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} \big] - \sum_{t = 1}^{G} (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})(\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+\iff G \mathbf{\Lambda^{(\tau)}} &= \sum_{t = 1}^{G} \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} + \sum_{t = 1}^{G}  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \\
+\iff \mathbf{\Lambda^{(\tau)}} &= \frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]
 \end{align*}
 Учтем тот факт, что матрица шума оценивается как диагональная:
 \begin{align*}
-\iff \mathbf{\Lambda}^{(\tau)}  &= \text{diag}\bigg(\frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\Sigma}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]\bigg)
+\iff \mathbf{\Lambda}^{(\tau)}  &= \text{diag}\bigg(\frac{1}{G} \sum_{t = 1}^{G} \Big[ \widetilde{\mathbf{\Lambda}}_{t}^{(\tau)} +  (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)}) (\widetilde{x}_t^{(\tau)}- A^{(\tau)}S^{(\tau)})^H \Big]\bigg)
 \end{align*}
 Шаги повторяются либо до достижения максимального числа итераций либо до сходимости оценок параметров, полученных на соседних двух итерациях.
 \begin{center}
