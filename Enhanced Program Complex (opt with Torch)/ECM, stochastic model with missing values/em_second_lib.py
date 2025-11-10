@@ -57,6 +57,7 @@ def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="cir
     if seed is None:
         seed = 100 
     P_diag = np.random.RandomState(seed).uniform(0.2, 5, M)
+    #P_diag = np.ones(M)
     return np.diag(P_diag)
 
 
@@ -65,7 +66,7 @@ def M_step(mu, sigma):
     mu - массив, составленный из векторов УМО исходного сигнала, в зависимости от наблюдений. Число столбцов соответствует числу наблюдений.
     sigma - условная ковариация исходного сигнала с учетом наблюдения.
     """
-    G = len(sigma)
+    G = mu.shape[1]
     res = (1/G) * mu @ mu.conj().T + sigma
     # Оставляем только диагональные элементы
     res = res * np.eye(res.shape[0], res.shape[1], dtype=np.complex128)
@@ -86,10 +87,10 @@ def incomplete_lkhd(X, theta, P, Q):
             O_i = O[i, ][O[i, ] > -1]
             R_o = R[np.ix_(O_i, O_i)]
             R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
-            res += - np.linalg.det(R_o) - (X[i, O_i].T).conj().T @ np.linalg.inv(R_o) @ (X[i, O_i].T)
+            res += - np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ np.linalg.inv(R_o) @ (X[i, O_i].T)
         else:
-            res += - np.linalg.det(R) - (X[i].T).conj().T @ inv_R @ (X[i].T)
-    return res
+            res += - np.log(np.linalg.det(R)) - (X[i].T).conj().T @ inv_R @ (X[i].T)
+    return res.real
 
 
 def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter: int=50, eps: float=1e-6):
@@ -114,9 +115,9 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
 
     # Строим первоначальную оценку ковариации наблюдений
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    K = complex_cov(X[observed_rows, ])
-    if np.isnan(K).any():
-        K = np.diag(np.nanvar(X, axis = 0))
+    R = complex_cov(X[observed_rows, ])
+    if np.isnan(R).any():
+        R = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
 
     Mu_Xm_cond = {}
@@ -130,14 +131,14 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
                 # Вычисляем блоки ковариации принятых сигналов (наблюдений)
-                K_OO = K[np.ix_(O_i, O_i)]
-                K_OO = K_OO + 1e-6 * np.eye(K_OO.shape[0])
-                K_MO = K[np.ix_(M_i, O_i)]
-                K_MM = K[np.ix_(M_i, M_i)]
+                R_OO = R[np.ix_(O_i, O_i)]
+                R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
+                R_MO = R[np.ix_(M_i, O_i)]
+                R_MM = R[np.ix_(M_i, M_i)]
                 # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
-                Mu_Xm_cond[i] = K_MO @ np.linalg.inv(K_OO) @ X_modified[i, O_i]
+                Mu_Xm_cond[i] = R_MO @ np.linalg.inv(R_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] += K_MM - K_MO @ np.linalg.inv(K_OO) @ K_MO.conj().T
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += R_MM - R_MO @ np.linalg.inv(R_OO) @ R_MO.conj().T
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = A @ P @ A.conj().T + Q + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
@@ -147,19 +148,18 @@ def EM(theta: np.ndarray, P: np.ndarray, X: np.ndarray, Q: np.ndarray, max_iter:
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
 
         # Шаг максимизации
-        K = complex_cov(X_modified) + K_Xm_cond_accum / G
+        R = complex_cov(X_modified) + K_Xm_cond_accum / G
         new_P = M_step(Mu_S_cond, K_S_cond)
         #print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
         P = new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q)
-        if EM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
-            print(f'likelihood is {lkhd.real} on iteration {EM_Iteration}')
+        print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
     return P, lkhd
 
 
-def multi_start_EM(theta: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 20, max_iter: int = 20, eps: float = 1e-6):
+def multi_start_EM(theta: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, num_of_starts: int = 1, max_iter: int = 20, eps: float = 1e-6):
     """
     Мультистарт для ЕМ-алгоритма.
     theta - угол;
@@ -177,5 +177,5 @@ def multi_start_EM(theta: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, num_
         est_P, est_lhd = EM(theta, P, X, Q, max_iter, eps)
         if est_lhd > best_lhd:
             best_lhd, best_P, best_start = est_lhd, est_P, i
-    print(f"best_start={best_start}")
+    #print(f"best_start={best_start}")
     return best_P, best_lhd
