@@ -35,6 +35,7 @@ def CM_step_theta_start(X_np, theta0_np, S_np, Q_inv_sqrt_np, method='SLSQP', to
         X_t = torch.tensor(X_np, dtype=torch.cfloat)
         S_t = torch.tensor(S_np, dtype=torch.cfloat)
         Q_inv_sqrt_t = torch.tensor(Q_inv_sqrt_np, dtype=torch.cfloat)
+        
         loss = cost_theta_torch(theta_t, X_t, S_t, Q_inv_sqrt_t)
         loss.backward()
         grad = theta_t.grad.detach().numpy().astype(np.float64)
