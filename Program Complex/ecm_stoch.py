@@ -232,7 +232,7 @@ def ECM(theta: np.ndarray,
         A = sensors.A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
         theta, P = new_theta, new_P
-        lkhd = incomplete_lkhd(X_modified, theta, P, Q)
+        lkhd = incomplete_lkhd(X, theta, P, Q)
         if ECM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
             print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
 

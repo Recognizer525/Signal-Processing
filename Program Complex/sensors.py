@@ -5,31 +5,31 @@ from scipy.signal import find_peaks
 DIST_RATIO = 0.5
 
 def MCAR(X: np.ndarray,
-         mis_cols: object,
-         num_mv: object,
+         mis_cols: int|list,
+         num_mv: int|list,
          rs: int = 42) -> np.ndarray:
     '''
     Реализует создание абсолютно случайных пропусков.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
         Двумерный массив, представляет из себя выборку, 
         состоящую из наблюдений, каждому из них соответствует своя строка.
-    mis_cols: object
+    mis_cols: int|list
         Целое число (int), либо список (list[int]). 
         Указывает на индексы столбцов, в которые следует добавить пропуски.
-    num_mv: object 
+    num_mv: int|list
         Целое число (int), либо список (list[int]). 
         Указывает на количество пропусков, которые следует добавить 
         в каждый столбец из числа указанных в mis_cols.
     rs: int
-        Целое число (int), соответствует randomstate для выбора 
+        Randomstate для выбора 
         конкретных позиций, где будут размещены пропуски.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
-    X: np.ndarray
+    X1: np.ndarray
         Двумерный массив, представляет собой выборку, 
         в которую добавлены абсолютно случайные пропуски.
     '''
@@ -46,61 +46,61 @@ def MCAR(X: np.ndarray,
     return X1
 
 
-def gds(M, G, A = None, f = None, phi = None, seed: int = None):
+def gds(K, G, A = None, f = None, phi = None, seed: int = None) -> np.ndarray:
     """
     Генерирует детерминированные сигналы, 
     представляющие из себя комплексные нормальные вектора 
     с круговой симметрией.
     
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
-    M: int
+    K: int
         Число источников.
     G: int
         Число наблюдений.
     A: np.ndarray
-        Одномерный массив размера M, 
+        Одномерный массив размера K, 
         в котором указаны амплитуды сигналов от источников.
     f: np.ndarray
-        Одномерный массив размера M, 
+        Одномерный массив размера K, 
         в котором указаны частоты сигналов от источников.
     phi: np.ndarray
-        Одномерный массив размера M, 
+        Одномерный массив размера K, 
         в котором указаны фазы сигналов от источников.
     seed: int
         Randomstate для генерации амплитуд, частот и фаз, 
         если таковые не указаны пользователем.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     signals: np.ndarray
-        Сгенерированные сигналы в формате двумерного массива размера (G,M).
+        Сгенерированные сигналы в формате двумерного массива размера (G,K).
     """ 
     if seed is None:
         seed = 10
-    # G - размер выборки, M - число источников
+    # G - размер выборки, K - число источников
     if A is None:
-        A = np.random.RandomState(seed + 40).uniform(0.5, 1.5, M)         
+        A = np.random.RandomState(seed + 40).uniform(0.5, 1.5, K)         
     if f is None:
-        f = np.random.RandomState(seed + 10).uniform(0.01, 0.1, M)        
+        f = np.random.RandomState(seed + 10).uniform(0.01, 0.1, K)        
     if phi is None:
-        phi = np.random.RandomState(seed + 1).uniform(0, 2*np.pi, M)
+        phi = np.random.RandomState(seed + 1).uniform(0, 2*np.pi, K)
     
     g = np.arange(G)
-    signals = np.zeros((M, G), dtype=complex)
-    for m in range(M):
-        signals[m] = A[m] * np.exp(1j * (2 * np.pi * f[m] * g + phi[m]))
+    signals = np.zeros((K, G), dtype=complex)
+    for k in range(K):
+        signals[k] = A[k] * np.exp(1j * (2 * np.pi * f[k] * g + phi[k]))
     signals = signals.T
     return signals
 
 
-def gss(K: int, G: int, Cov: np.ndarray, seed: int = None):
+def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
     """
     Генерирует детерминированные сигналы, 
     представляющие из себя комплексные нормальные вектора 
     с круговой симметрией.
     
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     K: int
         Число источников.
@@ -109,10 +109,10 @@ def gss(K: int, G: int, Cov: np.ndarray, seed: int = None):
     Cov: np.ndarray
         Ковариационная матрица исходных сигналов.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     signals: np.ndarray
-        Сгенерированные сигналы в формате двумерного массива размера (G,M).
+        Сгенерированные сигналы в формате двумерного массива размера (G,K).
     """
     if seed is None:
         seed = 70
@@ -128,47 +128,50 @@ def gss(K: int, G: int, Cov: np.ndarray, seed: int = None):
     return signals
 
 
-def complex_cov(X: np.ndarray, ddof: int = 0):
+def complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
     """
     Вычисляет оценку пространственной ковариационной матрицы.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
-        Двумерный массив. Представляет собой коллекцию полученных сигналов. 
-        Каждая строка соответствует одному вектору сигналов.
+        Выборка, состоящая из реализаций комплексных случайных векторов.
+        Предполагается, что математическое ожидание равно нулю, 
+        расположенных построчно.
     ddof: int
         Поправка на число степеней свободы.
    
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     cov: np.ndarray
-        Двумерный массив. Представляет собой оценку ковариационной матрицы.
+        Оценка ковариационной матрицы.
     """
     return np.einsum('ni,nj->ij', X, X.conj()) / (X.shape[0] - ddof)
 
 
-def robust_complex_cov(X: np.ndarray, ddof: int = 0):
+def robust_complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
     """
     Вычисляет оценку пространственной ковариационной матрицы, таким образом, 
-    чтобы обнулить мнимую часть диагональных элементов.
+    чтобы обнулить мнимую часть диагональных элементов, которая возникает из-за
+    погрешностей вычислений.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
-        Коллекция полученных сигналов, представленная двумерным массивом. 
-        Каждая строка соответствует одному вектору сигналов.
+        Выборка, состоящая из реализаций комплексных случайных векторов.
+        Предполагается, что математическое ожидание равно нулю, 
+        расположенных построчно.
     ddof: int
         Поправка на число степеней свободы.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
-    K: np.ndarray
+    Cov: np.ndarray
         Оценка ковариационной матрицы.
     """
-    K = np.einsum('ni,nj->ij', X, X.conj()) / (X.shape[0] - ddof)
-    K = (K + K.conj().T)/2
-    return K
+    Cov = np.einsum('ni,nj->ij', X, X.conj()) / (X.shape[0] - ddof)
+    Cov = (Cov + Cov.conj().T)/2
+    return Cov
 
 
 def angle_correcter(theta: np.ndarray) -> np.ndarray:
@@ -185,24 +188,26 @@ def angle_correcter(theta: np.ndarray) -> np.ndarray:
     return theta
 
 
-def A_ULA(L: int, theta:np.ndarray):
+def A_ULA(L: int, theta:np.ndarray) -> np.ndarray:
     """
     Создает матрицу векторов направленности для 
     равномерного линейного массива сенсоров (ULA).
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     L: int
         Число сенсоров.
     theta: np.ndarray
-        Одномерный массив размера (M,1). Соответствует DoA.
+        Оценка DoA, представлена в форме одномерного массива размера (K,1).
     
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     A: np.ndarray
-        Двумерный массив размера (L,M). Матрица векторов направленности.
+        Матрица векторов направленности. 
+        Представлена в форме двумерного массива размера (L,K).
     """
-    return np.exp(-2j * np.pi * DIST_RATIO * np.arange(L).reshape(-1,1) * np.sin(theta))
+    return (np.exp(-2j * np.pi * DIST_RATIO * 
+                   np.arange(L).reshape(-1,1) * np.sin(theta)))
 
 
 def random_complex_cov(n: int, max_real: float, seed: int|None = None):
@@ -214,6 +219,8 @@ def random_complex_cov(n: int, max_real: float, seed: int|None = None):
     n: int
         Размер матрицы.
     max_real: float
+        Определяет максимальное значение действительной части
+        элементов создаваемой матрицы.
     seed: int|None
         Фиксирует генератор случайных чисел.
     
@@ -240,11 +247,11 @@ def random_complex_cov(n: int, max_real: float, seed: int|None = None):
 
 def MUSIC_DoA(R: np.ndarray, 
               num_sources: int, 
-              scan_angles=np.arange(-90, 90.5, 0.5)):
+              scan_angles=np.arange(-90, 90.5, 0.5)) -> np.ndarray:
     """
     Вычисляет оценку DoA через использование алгоритма MUSIC.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     R: np.ndarray
         Пространственная ковариационная матрица.
@@ -253,7 +260,7 @@ def MUSIC_DoA(R: np.ndarray,
     scan_angles: np.ndarray
         Сетка углов, представлена одномерным массивом.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     doa_estimates: np.ndarray
         Оценка DoA, представлена одномерным массивом.
@@ -266,7 +273,8 @@ def MUSIC_DoA(R: np.ndarray,
     En = eigvecs[:, :-num_sources] 
     P_music = []
     for theta in scan_angles:
-        a = np.exp(-1j * 2 * np.pi * DIST_RATIO * np.arange(L) * np.sin(np.deg2rad(theta)))
+        a = (np.exp(-1j * 2 * np.pi * DIST_RATIO * 
+                    np.arange(L) * np.sin(np.deg2rad(theta))))
         a = a.reshape(-1, 1)
         denom = np.conjugate(a.T) @ En @ np.conjugate(En.T) @ a
         P_music.append(1 / np.abs(denom)[0, 0])
