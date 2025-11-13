@@ -205,6 +205,39 @@ def A_ULA(L: int, theta:np.ndarray):
     return np.exp(-2j * np.pi * DIST_RATIO * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 
+def random_complex_cov(n: int, max_real: float, seed: int|None = None):
+    """
+    Создаёт случайную эрмитову неотрицательно определённую (PSD) матрицу размера n×n.
+    
+    Parameters
+    ---------------------------------------------------
+    n: int
+        Размер матрицы.
+    max_real: float
+    seed: int|None
+        Фиксирует генератор случайных чисел.
+    
+    Returns
+    ---------------------------------------------------
+    C: np.ndarray
+        Эрмитова, неотрицательно определенная матрица.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+    else:
+        seed = 42
+
+    # Случайная комплексная матрица
+    A = (np.random.RandomState(seed).randn(n, n) 
+         + 1j * np.random.RandomState(seed+1).randn(n, n))
+    C = A @ A.conj().T
+    C /= np.trace(C).real
+
+    if max_real is not None:
+        C *= max_real
+    return C
+
+
 def MUSIC_DoA(R: np.ndarray, 
               num_sources: int, 
               scan_angles=np.arange(-90, 90.5, 0.5)):
