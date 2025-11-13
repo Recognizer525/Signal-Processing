@@ -10,11 +10,11 @@ def is_diagonal(A: np.ndarray) -> bool:
     return np.all(A == np.diag(np.diagonal(A)))
 
 
-def is_spd(A: np.ndarray, tol=1e-3) -> bool:
+def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
     """
     Проверяет, что матрица A симметрична и положительно определена.
     """
-    # Проверим симметрию
+    # Проверим эрмитовость
     if not np.allclose(A, A.conj().T, atol=tol):
         return False
     # Проверим положительную определённость
@@ -25,26 +25,45 @@ def is_spd(A: np.ndarray, tol=1e-3) -> bool:
         return False
 
 
-def init_est(X: np.ndarray,
-             M: int,
-             seed: int = None,
-             type_of_theta_init="circular"):
+def init_est(K: int,
+             seed: int|None = None,
+             type_of_theta_init: str = "circular") -> tuple[np.ndarray,
+                                                            np.ndarray]:
+    """
+    Создает первоначальную оценку DoA и ковариационной матрицы 
+    исходных сигналов.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    K: int
+        Число источников.
+    seed: int
+        Randomstate для генерации данных.
+
+    Returns
+    ---------------------------------------------------------------------------
+    theta: np.ndarray
+        Оценка DoA. Представляет собой одномерный массив размера (K,1).
+    R: np.ndarray
+        Оценка ковариационной матрицы исходных сигналов.
+    """
     if seed is None:
         seed = 100
     if type_of_theta_init=="circular":
         nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-        theta = np.array([(nu + i * 2 * np.pi/M)%(2 * np.pi) for i in range(M)]) - np.pi
+        theta = np.array([(nu + i * 2 * np.pi/K)%(2 * np.pi) 
+                          for i in range(K)]) - np.pi
     elif type_of_theta_init=="unstructured":
-        theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, M) 
-    P_diag = np.random.RandomState(seed).uniform(0.2, 5, M)
+        theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, K) 
+    P_diag = np.random.RandomState(seed).uniform(0.2, 5, K)
     return theta, np.diag(P_diag)
 
 
-def CM_step_P(mu: np.ndarray, sigma: np.ndarray):
+def CM_step_P(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
     """
     Реализует шаг условной максимизации по ковариации исходных сигналов.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     mu: np.ndarray
         Массив, составленный из векторов УМО исходного сигнала, 
@@ -53,10 +72,10 @@ def CM_step_P(mu: np.ndarray, sigma: np.ndarray):
     sigma: np.ndarray
         Условная ковариация исходных сигналов с учетом наблюдений.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     res: np.ndarray
-        Новая оценка ковариации исходных сигналов.
+        Новая оценка ковариационной матрицы исходных сигналов.
     """
     G = mu.shape[1]
     res = (1/G) * mu @ mu.conj().T + sigma
@@ -68,7 +87,28 @@ def CM_step_P(mu: np.ndarray, sigma: np.ndarray):
 def incomplete_lkhd(X: np.ndarray,
                     theta: np.ndarray, 
                     P: np.ndarray, 
-                    Q: np.ndarray):
+                    Q: np.ndarray) -> np.float64:
+    """
+    Вычисляет неполное правдоподобие на основании доступных наблюдений 
+    и текущей оценки параметров.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    X: np.ndarray
+        Двумерный массив, соответствующий наблюдениям
+        (с учетом оценок пропущенных значений).
+    theta: np.ndarray
+        Одномерный массив размера (K,1). Соответствует оценке DoA.
+    P: np.ndarray
+        Оценка ковариационной матрицы исходных сигналов.
+    Q: np.ndarray
+        Ковариационная матрица шума.
+
+    Returns
+    ---------------------------------------------------------------------------
+    res: np.float64
+        Значение неполного правдоподобия.
+    """
     A = sensors.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
     R = 0.5* (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
@@ -86,9 +126,11 @@ def incomplete_lkhd(X: np.ndarray,
             O_i = O[i, ][O[i, ] > -1]
             R_o = R[np.ix_(O_i, O_i)]
             R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
-            res += - np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ np.linalg.inv(R_o) @ (X[i, O_i].T)
+            res += (- np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ 
+                      np.linalg.inv(R_o) @ (X[i, O_i].T))
         else:
-            res += - np.log(np.linalg.det(R)) - (X[i].T).conj().T @ inv_R @ (X[i].T)
+            res += (- np.log(np.linalg.det(R)) - 
+                    (X[i].T).conj().T @ inv_R @ (X[i].T))
     return res.real
 
 
@@ -96,12 +138,14 @@ def ECM(theta: np.ndarray,
         P: np.ndarray,
         X: np.ndarray,
         Q: np.ndarray,
-        max_iter: int=50,
-        rtol: float=1e-6):
+        max_iter: int = 50,
+        rtol: float = 1e-6) -> tuple[np.ndarray,
+                                     np.ndarray,
+                                     np.float64]:
     """
     Запускает ЕCМ-алгоритм из случайно выбранной точки.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     theta: np.ndarray
         Начальная оценка вектора углов, которые соответствуют DOA.
@@ -116,13 +160,13 @@ def ECM(theta: np.ndarray,
     rtol: float
         Величина, используемая для проверки сходимости итерационного процесса.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     theta: np.ndarray
         Новая оценка DoA.
     P: np.ndarray
         Новая оценка ковариации исходных сигналов.
-    lkhd: np.complex128
+    lkhd: np.float64
         Новая оценка неполного правдоподобия.
     """
     Q_inv = np.linalg.inv(Q)
@@ -137,75 +181,85 @@ def ECM(theta: np.ndarray,
     col_numbers = np.arange(1, X.shape[1] + 1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
     observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
+
     R = sensors.robust_complex_cov(X[observed_rows, ])
     if np.isnan(R).any():
         R = np.diag(np.nanvar(X, axis = 0))
         print('Special estimate of K')
+
     Mu_Xm_cond = {}
     K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
     Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
-    EM_Iteration = 0
-    while EM_Iteration < max_iter:
+
+    ECM_Iteration = 0
+    while ECM_Iteration < max_iter:
         A = sensors.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
+
                 # Вычисляем блоки ковариации принятых сигналов (наблюдений)
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
-                # Оцениваем параметры апостериорного распределения ненаблюдаемых данных и пропущенные значения
+
+                # Оцениваем параметры апостериорного распределения 
+                # ненаблюдаемых данных и пропущенные значения
                 Mu_Xm_cond[i] = R_MO @ np.linalg.inv(R_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] += R_MM - R_MO @ np.linalg.inv(R_OO) @ R_MO.conj().T
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += (R_MM - R_MO @ 
+                                                      np.linalg.inv(R_OO) @ 
+                                                      R_MO.conj().T)
+        
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = A @ P @ A.conj().T + Q
         K_XX = 0.5 * (K_XX + K_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
         K_SX = K_XS.conj().T
+
+        # Е-шаг
         Mu_S_cond = K_SX @ np.linalg.inv(K_XX) @ X_modified.T
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
+
         # Шаги условной максимизации
         R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
-        new_theta = optim_doa.CM_step_theta(X_modified.T, theta, Mu_S_cond, Q_inv_sqrt)
-        #if EM_Iteration in [0, 1, 5, 11, 16, 21, 26]:
-            #print(f'diff of theta is {new_theta-theta} on iteration {EM_Iteration}')
+        new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
+                                            Mu_S_cond, Q_inv_sqrt)
         A = sensors.A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
-        if np.linalg.norm(np.array(sorted(theta)) - np.array(sorted(new_theta))) < rtol and np.linalg.norm(P - new_P, ord = 2) < rtol:
-            break
-        #print(f'diff of P is {np.sum((new_P-P)**2)} on iteration {EM_Iteration}')
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X_modified, theta, P, Q)
-        if EM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
-            print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
+        if ECM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
+            print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
 
-        EM_Iteration += 1
+        ECM_Iteration += 1
     return theta, P, lkhd
 
 
 def multi_start_ECM(X: np.ndarray,
-                    M: int,
+                    K: int,
                     Q: np.ndarray,
                     num_of_starts: int = 10,
                     max_iter: int = 20,
-                    rtol: float = 1e-6):
+                    rtol: float = 1e-6) -> tuple[np.ndarray,
+                                                 np.ndarray,
+                                                 np.float64]:
     """
     Мультистарт для ЕCМ-алгоритма.
 
-    Параметры:
+    Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
         Двумерный массив, соответствующий наблюдениям
         (с учетом оценок пропущенных значений).
-    M: int
+    K: int
         Число источников.
     Q: np.ndarray
-        Ковариация шума.
+        Ковариационная матрица шума.
     num_of_starts: int
         Число запусков.
     max_iter: int
@@ -213,22 +267,23 @@ def multi_start_ECM(X: np.ndarray,
     rtol: float
         Величина, используемая для проверки сходимости итерационного процесса.
 
-    Возвращает:
+    Returns
     ---------------------------------------------------------------------------
     best_theta: np.ndarray
         Оценка DoA.
     best_P: np.ndarray
         Оценка ковариационной матрицы исходных сигналов.
-    best_lhd: np.complex128
+    best_lhd: np.float64
         Оценка неполного правдоподобия.
     """
     best_lhd, best_theta, best_P, best_start = -np.inf, None, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, P = init_est(X, M, seed=i * 100)
+        theta, P = init_est(K, seed=i*100)
         est_theta, est_P, est_lhd = ECM(theta, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
-            best_lhd, best_P, best_theta, best_start = est_lhd, est_P, est_theta, i
+            best_lhd, best_start = est_lhd, i
+            best_P, best_theta = est_P, est_theta
     best_theta = sensors.angle_correcter(best_theta)
     print(f"best_start={best_start}")
     return best_theta, best_P, best_lhd
