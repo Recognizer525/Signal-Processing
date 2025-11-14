@@ -39,6 +39,12 @@ def init_est(K: int,
         Число источников.
     seed: int
         Randomstate для генерации данных.
+    type_of_theta_init: str
+        Способ инициализации начальной оценки DoA. Либо случайный вектор
+        из многомерного равномерного распределения ("unstructured"),
+        либо выбирается первый угол случайным образом, а затем относительно
+        него вычисляется арифметическая прогрессия по модулю 2pi, число
+        членов прогрессии равно K.
 
     Returns
     ---------------------------------------------------------------------------
@@ -56,7 +62,7 @@ def init_est(K: int,
     elif type_of_theta_init=="unstructured":
         theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, K) 
     P_diag = np.random.RandomState(seed).uniform(0.2, 5, K)
-    return theta, np.diag(P_diag)
+    return np.sort(theta), np.diag(P_diag)
 
 
 def CM_step_P(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
@@ -143,14 +149,14 @@ def ECM(theta: np.ndarray,
                                      np.ndarray,
                                      np.float64]:
     """
-    Запускает ЕCМ-алгоритм из случайно выбранной точки.
+    Запускает ЕCМ-алгоритм для выбранной начальной оценки параметров.
 
     Parameters
     ---------------------------------------------------------------------------
     theta: np.ndarray
         Начальная оценка вектора углов, которые соответствуют DOA.
     P: np.ndarray
-        Ковариация исходных сигналов.
+        Начальная оценка ковариационной матрицы исходных сигналов.
     X: np.ndarray
         Коллекция полученных сигналов.
     Q: np.ndarray
@@ -228,13 +234,15 @@ def ECM(theta: np.ndarray,
         # Шаги условной максимизации
         R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
-                                            Mu_S_cond, Q_inv_sqrt)
+                                            Mu_S_cond, Q_inv_sqrt) 
+        idx = np.argsort(new_theta)
+        new_theta[:] = new_theta[idx]
         A = sensors.A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
+        new_P[:] = new_P[np.ix_(idx, idx)]
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X, theta, P, Q)
-        if ECM_Iteration in set([0, 1, 5, 11, 16, 21, 26]):
-            print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
+        print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
 
         ECM_Iteration += 1
     return theta, P, lkhd
@@ -249,7 +257,7 @@ def multi_start_ECM(X: np.ndarray,
                                                  np.ndarray,
                                                  np.float64]:
     """
-    Мультистарт для ЕCМ-алгоритма.
+    Реализует мультистарт для ЕCМ-алгоритма.
 
     Parameters
     ---------------------------------------------------------------------------

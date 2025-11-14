@@ -46,7 +46,9 @@ def MCAR(X: np.ndarray,
     return X1
 
 
-def gds(K, G, A = None, f = None, phi = None, seed: int = None) -> np.ndarray:
+def gds(K: int, G: int,
+        A: np.ndarray = None, f: np.ndarray = None, phi: np.ndarray = None, 
+        seed: int = None) -> np.ndarray:
     """
     Генерирует детерминированные сигналы, 
     представляющие из себя комплексные нормальные вектора 
@@ -212,7 +214,7 @@ def A_ULA(L: int, theta:np.ndarray) -> np.ndarray:
 
 def random_complex_cov(n: int, max_real: float, seed: int|None = None):
     """
-    Создаёт случайную эрмитову неотрицательно определённую (PSD) матрицу размера n×n.
+    Создаёт случайную эрмитову неотрицательно определённую матрицу размера n×n.
     
     Parameters
     ---------------------------------------------------
@@ -234,7 +236,6 @@ def random_complex_cov(n: int, max_real: float, seed: int|None = None):
     else:
         seed = 42
 
-    # Случайная комплексная матрица
     A = (np.random.RandomState(seed).randn(n, n) 
          + 1j * np.random.RandomState(seed+1).randn(n, n))
     C = A @ A.conj().T

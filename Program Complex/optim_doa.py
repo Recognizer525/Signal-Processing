@@ -90,7 +90,10 @@ def CM_step_theta_start(X_np: np.ndarray,
     res.fun: float
         Значение минимизируемой фробениусовой нормы для полученной оценки DoA.
     """
-    def fun(theta_np):
+    def fun(theta_np: np.ndarray) -> tuple[float, np.ndarray]:
+        """
+        Возвращает значение функции потерь и значение градиента.
+        """
         theta_t = torch.tensor(theta_np, 
                                dtype=torch.float32, 
                                requires_grad=True)
@@ -113,7 +116,7 @@ def CM_step_theta(X_np: np.ndarray,
                   theta0_np: np.ndarray, 
                   S_np: np.ndarray, 
                   Q_inv_sqrt_np: np.ndarray, 
-                  num_of_starts: int = 5)-> np.ndarray:
+                  num_of_starts: int = 5) -> np.ndarray:
     """
     Функция предназначена для поиска оценки DoA, которая минимизирует норму
     ||Q^{-1/2}(X-AS)||^2_F.
