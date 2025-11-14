@@ -101,8 +101,7 @@ def incomplete_lkhd(X: np.ndarray,
     Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
-        Двумерный массив, соответствующий наблюдениям
-        (с учетом оценок пропущенных значений).
+        Двумерный массив, соответствующий наблюдениям.
     theta: np.ndarray
         Одномерный массив размера (K,1). Соответствует оценке DoA.
     P: np.ndarray
@@ -158,7 +157,7 @@ def ECM(theta: np.ndarray,
     P: np.ndarray
         Начальная оценка ковариационной матрицы исходных сигналов.
     X: np.ndarray
-        Коллекция полученных сигналов.
+        Двумерный массив, соответствующий наблюдениям.
     Q: np.ndarray
         Ковариационная матрица шума.
     max_iter: int
@@ -240,6 +239,8 @@ def ECM(theta: np.ndarray,
         A = sensors.A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
         new_P[:] = new_P[np.ix_(idx, idx)]
+        if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(P - new_P, ord = 2) < rtol:
+            break
         theta, P = new_theta, new_P
         lkhd = incomplete_lkhd(X, theta, P, Q)
         print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
@@ -262,8 +263,7 @@ def multi_start_ECM(X: np.ndarray,
     Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
-        Двумерный массив, соответствующий наблюдениям
-        (с учетом оценок пропущенных значений).
+        Двумерный массив, соответствующий наблюдениям.
     K: int
         Число источников.
     Q: np.ndarray
