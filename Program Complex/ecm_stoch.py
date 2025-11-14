@@ -3,27 +3,6 @@ import numpy as np
 import sensors
 import optim_doa
 
-def is_diagonal(A: np.ndarray) -> bool:
-    """
-    Проверяет свойство диагональности для матрицы A.
-    """
-    return np.all(A == np.diag(np.diagonal(A)))
-
-
-def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
-    """
-    Проверяет, что матрица A симметрична и положительно определена.
-    """
-    # Проверим эрмитовость
-    if not np.allclose(A, A.conj().T, atol=tol):
-        return False
-    # Проверим положительную определённость
-    try:
-        np.linalg.cholesky(A)
-        return True
-    except np.linalg.LinAlgError:
-        return False
-
 
 def init_est(K: int,
              seed: int|None = None,
@@ -117,9 +96,9 @@ def incomplete_lkhd(X: np.ndarray,
     A = sensors.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
     R = 0.5* (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
-    #print(f"is_spd(R)={is_spd(R)}")
-    #print(f"is_spd(P)={is_spd(P)}")
-    #print(f"is_spd(Q)={is_spd(Q)}")
+    #print(f"is_spd(R)={sensors.is_spd(R)}")
+    #print(f"is_spd(P)={sensors.is_spd(P)}")
+    #print(f"is_spd(Q)={sensors.is_spd(Q)}")
     #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
     inv_R = np.linalg.inv(R)
     Indicator = np.isnan(X)

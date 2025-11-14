@@ -287,3 +287,26 @@ def MUSIC_DoA(R: np.ndarray,
     top_peaks = peaks[np.argsort(peak_vals)[-num_sources:]]
     doa_estimates = np.sort(scan_angles[top_peaks])
     return np.deg2rad(doa_estimates)
+
+
+def is_diagonal(A: np.ndarray) -> bool:
+    """
+    Проверяет свойство диагональности для матрицы A.
+    """
+    return np.all(A == np.diag(np.diagonal(A)))
+
+
+def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
+    """
+    Проверяет, что матрица A симметрична и положительно определена.
+    """
+    # Проверим эрмитовость
+    if not np.allclose(A, A.conj().T, atol=tol):
+        return False
+    # Проверим положительную определённость
+    try:
+        np.linalg.cholesky(A)
+        return True
+    except np.linalg.LinAlgError:
+        print('Not positive semi-definite', 'det=', np.linalg.det(A))
+        return False

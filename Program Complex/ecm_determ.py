@@ -99,7 +99,7 @@ def CM_step_Q(X: np.ndarray,
               A: np.ndarray, 
               S: np.ndarray, 
               cond_cov: np.ndarray, 
-              epsilon = 1e-6) -> np.ndarray:
+              epsilon = 1e-3) -> np.ndarray:
     """
     Осуществляет условную максимизацию по ковариационной матрице шума.
 
@@ -128,7 +128,7 @@ def CM_step_Q(X: np.ndarray,
     r = X.T - A @ S.T 
     Q =  (sensors.robust_complex_cov(r.T) + cond_cov/X.shape[0] + 
            epsilon  * np.eye(X.shape[1], dtype=np.complex128))
-    return Q
+    return 0.5 * (Q + Q.conj().T) 
 
 
 def incomplete_lkhd(X: np.ndarray, 
@@ -164,10 +164,14 @@ def incomplete_lkhd(X: np.ndarray,
     col_numbers = np.arange(1, X.shape[1] + 1)
     O = col_numbers * (Indicator == False) - 1
     res = 0
+    if not sensors.is_spd(Q):
+        print(f"Q is wrong!")
     for i in range(X.shape[0]):
         if set(O[i, ]) != set(col_numbers - 1):
             O_i = O[i, ][O[i, ] > -1]
             A_o, Q_o = A[O_i, :], Q[np.ix_(O_i, O_i)]
+            if not sensors.is_spd(Q_o):
+                print(f"Q_o is wrong!")
             #print(f"log is {np.log(np.linalg.det(Q_o))}")
             res += (- np.log(np.linalg.det(Q_o)) - 
                     (X[i, O_i].T - A_o @ S[i].T).conj().T @ 
@@ -368,7 +372,7 @@ def ECM_un(theta: np.ndarray,
                 K_OM = K_MO.conj().T
                 Mu_cond[i] = (A_m @ S[i] + K_MO @ np.linalg.inv(Q_o) @ 
                               (X_modified[i, O_i] - A_o @ S[i]))
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] = (Q_m - K_MO @ 
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += (Q_m - K_MO @ 
                                                      np.linalg.inv(Q_o) @ K_OM)
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
