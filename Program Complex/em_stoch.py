@@ -118,16 +118,16 @@ def incomplete_lkhd(X: np.ndarray,
     return res.real
 
 
-def ECM(theta: np.ndarray,
+def EM(theta: np.ndarray,
         P: np.ndarray,
         X: np.ndarray,
         Q: np.ndarray,
         max_iter: int = 50,
-        rtol: float = 1e-6) -> tuple[np.ndarray,
+        rtol: float = 1e-3) -> tuple[np.ndarray,
                                      np.ndarray,
                                      np.float64]:
     """
-    Запускает ЕCМ-алгоритм для выбранной начальной оценки параметров.
+    Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -177,8 +177,8 @@ def ECM(theta: np.ndarray,
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
 
-    ECM_Iteration = 0
-    while ECM_Iteration < max_iter:
+    EM_Iteration = 0
+    while EM_Iteration < max_iter:
         A = sensors.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
@@ -212,23 +212,26 @@ def ECM(theta: np.ndarray,
         # Шаги условной максимизации
         R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
-                                            Mu_S_cond, Q_inv_sqrt) 
+                                            Mu_S_cond, Q_inv_sqrt)
+        new_P = CM_step_P(Mu_S_cond, K_S_cond) 
+        new_theta = sensors.angle_correcter(new_theta)
         idx = np.argsort(new_theta)
         new_theta[:] = new_theta[idx]
-        A = sensors.A_ULA(L, new_theta)
         new_P = CM_step_P(Mu_S_cond, K_S_cond)
         new_P[:] = new_P[np.ix_(idx, idx)]
-        if np.linalg.norm(theta - new_theta) < rtol and np.linalg.norm(P - new_P, ord = 2) < rtol:
+        if (np.linalg.norm(theta - new_theta) < rtol 
+            and np.linalg.norm(P - new_P, ord = 2) < rtol):
             break
         theta, P = new_theta, new_P
+        #print(f'sorted? theta = {theta}')
         lkhd = incomplete_lkhd(X, theta, P, Q)
-        print(f'likelihood is {lkhd} on iteration {ECM_Iteration}')
+        print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
 
-        ECM_Iteration += 1
+        EM_Iteration += 1
     return theta, P, lkhd
 
 
-def multi_start_ECM(X: np.ndarray,
+def multi_start_EM(X: np.ndarray,
                     K: int,
                     Q: np.ndarray,
                     num_of_starts: int = 10,
@@ -237,7 +240,7 @@ def multi_start_ECM(X: np.ndarray,
                                                  np.ndarray,
                                                  np.float64]:
     """
-    Реализует мультистарт для ЕCМ-алгоритма.
+    Реализует мультистарт для ЕМ-алгоритма.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -267,11 +270,10 @@ def multi_start_ECM(X: np.ndarray,
     for i in range(num_of_starts):
         print(f'{i}-th start')
         theta, P = init_est(K, seed=i*100)
-        est_theta, est_P, est_lhd = ECM(theta, P, X, Q, max_iter, rtol)
+        est_theta, est_P, est_lhd = EM(theta, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_theta = est_P, est_theta
-    best_theta = sensors.angle_correcter(best_theta)
     print(f"best_start={best_start}")
     return best_theta, best_P, best_lhd
 

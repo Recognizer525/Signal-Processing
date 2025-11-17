@@ -187,7 +187,7 @@ def angle_correcter(theta: np.ndarray) -> np.ndarray:
     theta[mask] = np.pi - theta[mask]
     mask = theta < -np.pi/2
     theta[mask] = -np.pi - theta[mask]
-    return theta
+    return np.sort(theta)
 
 
 def A_ULA(L: int, theta:np.ndarray) -> np.ndarray:
@@ -304,13 +304,7 @@ def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
     if not np.allclose(A, A.conj().T, atol=tol):
         return False
     # Проверим положительную определённость
-    #try:
-        #np.linalg.cholesky(A)
     evals = np.linalg.eigvalsh(A)
     is_psd = evals.min() >= -1e-8
-    #if not is_psd:
     print(f'min={evals.min()}')
     return is_psd
-    #except np.linalg.LinAlgError:
-        #print('Not positive semi-definite', 'det=', np.linalg.det(A))
-        #return False
