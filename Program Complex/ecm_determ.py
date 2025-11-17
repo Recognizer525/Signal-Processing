@@ -99,7 +99,7 @@ def CM_step_Q(X: np.ndarray,
               A: np.ndarray, 
               S: np.ndarray, 
               cond_cov: np.ndarray, 
-              epsilon = 1e-3) -> np.ndarray:
+              epsilon = 1e-9) -> np.ndarray:
     """
     Осуществляет условную максимизацию по ковариационной матрице шума.
 
@@ -311,6 +311,7 @@ def ECM_un(theta: np.ndarray,
            S: np.ndarray, 
            X: np.ndarray,
            Q: np.ndarray,
+           gamma: float=0.07,
            max_iter: int=20,
            rtol: float=1e-5) -> tuple[np.ndarray,
                                       np.ndarray,
@@ -330,6 +331,8 @@ def ECM_un(theta: np.ndarray,
         Двумерный массив, соответствующий наблюдениям.
     Q: np.ndarray
         Первоначальная оценка ковариационной матрицы шума.
+    gamma: float
+        Константа, используемая для более точной оценки ковариации шума.
     max_iter: int
         Предельное число итераций.
     rtol: float
@@ -381,6 +384,11 @@ def ECM_un(theta: np.ndarray,
         A = sensors.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         new_Q = CM_step_Q(X_modified, A, new_S, K_Xm_cond_accum)
+        weighted_Q  = (1-gamma) * Q + gamma * new_Q
+        weighted_Q = 0.5 * (weighted_Q + weighted_Q.conj().T)
+        print('is_spd(weighted_Q)', sensors.is_spd(weighted_Q))
+        print('is_spd(Q)', sensors.is_spd(Q))
+        print('is_spd(new_Q)', sensors.is_spd(new_Q))
         lkhd = incomplete_lkhd(X, new_theta, new_S, 
                                new_Q, np.linalg.inv(Q))
         if (np.linalg.norm(theta - new_theta) < rtol 
