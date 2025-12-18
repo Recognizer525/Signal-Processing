@@ -93,7 +93,7 @@ def gds(K: int, G: int,
     for k in range(K):
         signals[k] = A[k] * np.exp(1j * (2 * np.pi * f[k] * g + phi[k]))
     signals = signals.T
-    return signals
+    return signals, sum(A**2).real
 
 
 def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
@@ -306,5 +306,5 @@ def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
     # Проверим положительную определённость
     evals = np.linalg.eigvalsh(A)
     is_psd = evals.min() >= -1e-8
-    print(f'min={evals.min()}')
+    #print(f'min={evals.min()}')
     return is_psd

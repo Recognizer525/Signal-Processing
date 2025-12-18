@@ -1,6 +1,6 @@
 import numpy as np
 
-dist_ratio = 0.5
+DIST_RATIO = 0.5
 
 def MCAR(X: np.ndarray, mis_cols: object, size_mv: object , rs: int = 42) -> np.ndarray:
     '''
@@ -46,11 +46,15 @@ def complex_cov(X: np.ndarray):
     return (np.einsum('ni,nj->ij', X, X.conj()) / X.shape[0])
 
 
+def normalization(y: object):
+    return (y-min(y))/(max(y)-min(y))
+
+
 def A_ULA(L, theta):
     """
     Создает матрицу управляющих векторов для массива сенсоров типа ULA
     """
-    return np.exp(-2j * np.pi * dist_ratio * np.arange(L).reshape(-1,1) * np.sin(theta))
+    return np.exp(-2j * np.pi * DIST_RATIO * np.arange(L).reshape(-1,1) * np.sin(theta))
 
 
 def initializer(X: np.ndarray, M: int, seed: int = None, type_of_theta_init="circular"):
@@ -179,3 +183,38 @@ def multi_start_EM(theta: np.ndarray, X: np.ndarray, M: int, Q: np.ndarray, num_
             best_lhd, best_P, best_start = est_lhd, est_P, i
     #print(f"best_start={best_start}")
     return best_P, best_lhd
+
+
+def steering_ula(theta, M):
+    """Steering vector для ULA: M датчиков, шаг d, длина волны lam."""
+    m = np.arange(M)
+    return np.exp(-1j * 2 * np.pi * 0.5 * m * np.sin(theta))
+
+
+def ESPRIT_spectrum(X, K, left_bound, right_bound, num_points):
+    """
+    Строит пространственный спектр P(theta) от -pi/2 до pi/2.
+    """
+    G, M = X.shape
+    X = X.T
+
+    # Ковариационная матрица
+    R = X @ X.conj().T / G
+
+    # EVD
+    eigvals, eigvecs = np.linalg.eig(R)
+    idx = np.argsort(-eigvals.real)
+
+    Us = eigvecs[:, idx[:K]]          # подпространство сигналов
+    Un = eigvecs[:, idx[K:]]          # подпространство шума
+
+    # Угловая сетка
+    thetas = np.linspace(left_bound, right_bound, num_points)
+
+    P = np.zeros(num_points)
+
+    for i, th in enumerate(thetas):
+        a = steering_ula(th, M)
+        P[i] = 1.0 / np.abs(a.conj().T @ Un @ Un.conj().T @ a)
+
+    return thetas, P

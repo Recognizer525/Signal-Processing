@@ -78,7 +78,7 @@ def CM_step_theta_start(X_np: np.ndarray,
     Q_inv_sqrt_np: np.ndarray
         Квадратный корень от матрицы, обратной к ковариационной матрице шума. 
     method: str = 'SLSQP'
-        Метод оптимизации.
+        Метод оптимизации функции потерь для DoA.
     tol: int
         Порог для остановки оптимизационного процесса.
 
@@ -116,7 +116,8 @@ def CM_step_theta(X_np: np.ndarray,
                   theta0_np: np.ndarray, 
                   S_np: np.ndarray, 
                   Q_inv_sqrt_np: np.ndarray, 
-                  num_of_starts: int = 5) -> np.ndarray:
+                  num_of_starts: int = 7,
+                  method: str = 'SLSQP') -> np.ndarray:
     """
     Функция предназначена для поиска оценки DoA, которая минимизирует норму
     ||Q^{-1/2}(X-AS)||^2_F.
@@ -136,6 +137,8 @@ def CM_step_theta(X_np: np.ndarray,
     num_of_starts: int
         Число начальных приближений относительно которых нужно проводить
         оптимизационный процесс.
+    method: str
+        Метод оптимизации функции потерь для DoA.
 
     Returns
     ---------------------------------------------------------------------------

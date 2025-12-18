@@ -160,13 +160,13 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 \Sigma_{X_{o_t},X_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{o_t, m_t} \\
 \Sigma_{X_{m_t},X_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t, o_t} \\
 \Sigma_{X_{m_t},X_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t} \\
-\mu_{X_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
-\mu_{X_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
+\mu_{X_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau-1)}S_t^{(\tau-1)} \\
+\mu_{X_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau-1)}S_t^{(\tau-1)}
 \end{aligned} \right.
 \end{equation}
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \mathbf{\Lambda}_{m_t, o_t}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\mu_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau-1)}S_t^{(\tau-1)} + \mathbf{\Lambda}_{m_t, o_t}(\mathbf{\Lambda}_{o_t})^{-1}\cdot(x_o-A_{o_t}^{(\tau-1)}S_t^{(\tau-1)}) \\
 \Sigma_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}-\mathbf{\Lambda}_{m_t, o_t}(\mathbf{\Lambda}_{o_t})^{-1}\mathbf{\Lambda}_{o_t, m_t}
 \end{aligned} \right.
 \end{equation}
@@ -376,13 +376,13 @@ P(X_o|\Psi) = \prod_{t=1}^G \frac{1}{\pi^{L_{o_t}} \Det(\mathbf{\Lambda}_{o_t})}
 \Sigma_{X_{o_t},X_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{o_t, m_t}^{(\tau)} \\
 \Sigma_{X_{m_t},X_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t, o_t}^{(\tau)} \\
 \Sigma_{X_{m_t},X_{m_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}^{(\tau)} \\
-\mu_{X_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau)}S_t^{(\tau)} \\
-\mu_{X_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)}
+\mu_{X_{o_t}}^{(\tau)} &= A_{o_t}^{(\tau-1)}S_t^{(\tau-1)} \\
+\mu_{X_{m_t}}^{(\tau)} &= A_{m_t}^{(\tau-1)}S_t^{(\tau-1)}
 \end{aligned} \right.
 \end{equation}
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau)}S_t^{(\tau)} + \mathbf{\Lambda}_{m_t, o_t}^{(\tau)}(\mathbf{\Lambda}_{o_t}^{(\tau)})^{-1}\cdot(x_o-A_{o_t}^{(\tau)}S_t^{(\tau)}) \\
+\mu_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= A_{m_t}^{(\tau-1)}S_t^{(\tau-1)} + \mathbf{\Lambda}_{m_t, o_t}^{(\tau)}(\mathbf{\Lambda}_{o_t}^{(\tau)})^{-1}\cdot(x_o-A_{o_t}^{(\tau-1)}S_t^{(\tau-1)}) \\
 \Sigma_{X_{m_t}|X_{o_t}=x_{o_t}}^{(\tau)} &= \mathbf{\Lambda}_{m_t}^{(\tau)}-\mathbf{\Lambda}_{m_t, o_t}^{(\tau)}(\mathbf{\Lambda}_{o_t}^{(\tau)})^{-1}\mathbf{\Lambda}_{o_t, m_t}^{(\tau)}
 \end{aligned} \right.
 \end{equation}

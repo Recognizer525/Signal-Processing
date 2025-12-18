@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import sqrtm
 
 import sensors
-import optim_doa
+import alter_optim_doa as optim_doa
 
 def init_est(X: np.ndarray, 
              K: int, 
@@ -188,7 +188,8 @@ def ECM_kn(theta: np.ndarray,
            X: np.ndarray, 
            Q: np.ndarray, 
            max_iter: int=50, 
-           rtol: float=1e-6) -> tuple[np.ndarray,
+           rtol: float=1e-6,
+           method: str = 'L-BFGS-B') -> tuple[np.ndarray,
                                       np.ndarray,
                                       np.float64]:
     """
@@ -209,6 +210,8 @@ def ECM_kn(theta: np.ndarray,
         Предельное число итераций.
     rtol: float
         Величина, используемая для проверки сходимости итерационного процесса.
+    method: str
+        Метод оптимизации функции потерь для DoA.
     
     Returns
     ---------------------------------------------------------------------------
@@ -244,7 +247,9 @@ def ECM_kn(theta: np.ndarray,
                 X_modified[i, M_i] = Mu_cond[i]
         # Шаги условной максимизации
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
-                                            S.T, Q_inv_sqrt)
+                                            S.T, Q_inv_sqrt, method=method)
+        new_theta = sensors.angle_correcter(new_theta)
+        new_theta = np.sort(new_theta)
         print(f"new_theta={new_theta}")
         A = sensors.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
@@ -311,7 +316,7 @@ def ECM_un(theta: np.ndarray,
            S: np.ndarray, 
            X: np.ndarray,
            Q: np.ndarray,
-           gamma: float=0.07,
+           #gamma: float=0.07,
            max_iter: int=20,
            rtol: float=1e-5) -> tuple[np.ndarray,
                                       np.ndarray,
@@ -381,14 +386,16 @@ def ECM_un(theta: np.ndarray,
         # Шаги условной максимизации
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
                                             S.T, Q_inv_sqrt)
+        new_theta = sensors.angle_correcter(new_theta)
+        new_theta = np.sort(new_theta)
         A = sensors.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         new_Q = CM_step_Q(X_modified, A, new_S, K_Xm_cond_accum)
-        weighted_Q  = (1-gamma) * Q + gamma * new_Q
-        weighted_Q = 0.5 * (weighted_Q + weighted_Q.conj().T)
-        print('is_spd(weighted_Q)', sensors.is_spd(weighted_Q))
-        print('is_spd(Q)', sensors.is_spd(Q))
-        print('is_spd(new_Q)', sensors.is_spd(new_Q))
+        #weighted_Q  = (1-gamma) * Q + gamma * new_Q
+        #weighted_Q = 0.5 * (weighted_Q + weighted_Q.conj().T)
+        #print('is_spd(weighted_Q)', sensors.is_spd(weighted_Q))
+        #print('is_spd(Q)', sensors.is_spd(Q))
+        #print('is_spd(new_Q)', sensors.is_spd(new_Q))
         lkhd = incomplete_lkhd(X, new_theta, new_S, 
                                new_Q, np.linalg.inv(Q))
         if (np.linalg.norm(theta - new_theta) < rtol 
@@ -447,6 +454,6 @@ def multi_start_ECM_un(X: np.ndarray,
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_theta, best_S, best_Q = est_theta, est_S, est_Q
-    best_theta = sensors.angle_correcter(best_theta)
+    #best_theta = sensors.angle_correcter(best_theta)
     print(f'best_start={best_start}')
     return best_theta, best_S, best_Q, best_lhd
