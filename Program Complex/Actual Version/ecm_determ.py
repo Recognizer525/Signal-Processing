@@ -3,6 +3,7 @@ from scipy.linalg import sqrtm
 
 import sensors
 import optim_doa
+import diff_sensor_structures as dss
 
 def init_est(X: np.ndarray, 
              K: int, 
@@ -159,7 +160,7 @@ def incomplete_lkhd(X: np.ndarray,
     res: np.float64
         Значение неполного правдоподобия.
     """
-    A = sensors.A_ULA(X.shape[1], theta)
+    A = dss.A_ULA(X.shape[1], theta)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
     O = col_numbers * (Indicator == False) - 1
@@ -235,7 +236,7 @@ def ECM_kn(theta: np.ndarray,
     X_modified = X.copy()
     ECM_Iteration = 0
     while ECM_Iteration < max_iter:
-        A = sensors.A_ULA(L, theta)
+        A = dss.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -251,7 +252,7 @@ def ECM_kn(theta: np.ndarray,
         new_theta = sensors.angle_correcter(new_theta)
         new_theta = np.sort(new_theta)
         print(f"new_theta={new_theta}")
-        A = sensors.A_ULA(L, new_theta)
+        A = dss.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         lkhd = incomplete_lkhd(X, new_theta, new_S, 
                                Q, np.linalg.inv(Q))
@@ -369,7 +370,7 @@ def ECM_un(theta: np.ndarray,
     X_modified = X.copy()
     ECM_Iteration = 0
     while ECM_Iteration < max_iter:
-        A = sensors.A_ULA(L, theta)
+        A = dss.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -387,7 +388,7 @@ def ECM_un(theta: np.ndarray,
                                             S.T, Q_inv_sqrt)
         new_theta = sensors.angle_correcter(new_theta)
         new_theta = np.sort(new_theta)
-        A = sensors.A_ULA(L, new_theta)
+        A = dss.A_ULA(L, new_theta)
         new_S = CM_step_S(X_modified.T, A, Q)
         new_Q = CM_step_Q(X_modified, A, new_S, K_Xm_cond_accum)
         #weighted_Q  = (1-gamma) * Q + gamma * new_Q

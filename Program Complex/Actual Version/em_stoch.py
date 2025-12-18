@@ -2,6 +2,7 @@ import numpy as np
 
 import sensors
 import optim_doa
+import diff_sensor_structures as dss
 
 
 def init_est(K: int,
@@ -93,7 +94,7 @@ def incomplete_lkhd(X: np.ndarray,
     res: np.float64
         Значение неполного правдоподобия.
     """
-    A = sensors.A_ULA(X.shape[1], theta)
+    A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
     R = 0.5* (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
@@ -178,7 +179,7 @@ def EM(theta: np.ndarray,
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = sensors.A_ULA(L, theta)
+        A = dss.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -187,7 +188,6 @@ def EM(theta: np.ndarray,
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
-                R_MM = R[np.ix_(M_i, M_i)]
 
                 # Оцениваем параметры апостериорного распределения 
                 # ненаблюдаемых данных и пропущенные значения
@@ -219,7 +219,7 @@ def EM(theta: np.ndarray,
             and np.linalg.norm(P - new_P, ord = 2) < rtol):
             break
         theta, P = new_theta, new_P
-        A = sensors.A_ULA(L, theta)
+        A = dss.A_ULA(L, theta)
         R = A @ P @ A.conj().T + Q
         #print(f'sorted? theta = {theta}')
         lkhd = incomplete_lkhd(X, theta, P, Q)

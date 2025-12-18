@@ -4,7 +4,7 @@ import torch
 DIST_RATIO = 0.5
 
 
-def A_ULA(L: int, theta:np.ndarray, dist: float = DIST_RATIO) -> np.ndarray:
+def A_ULA(L: int, theta: np.ndarray, dist: float = DIST_RATIO) -> np.ndarray:
     """
     Создает матрицу векторов направленности для 
     равномерной линейной антенной решетки (ULA).
@@ -27,9 +27,9 @@ def A_ULA(L: int, theta:np.ndarray, dist: float = DIST_RATIO) -> np.ndarray:
                    np.arange(L).reshape(-1,1) * np.sin(theta)))
 
 
-def A_URA(M:int, N:int, 
-          theta:np.ndarray, phi:np.ndarray, 
-          dx: float = DIST_RATIO, dy: float = DIST_RATIO):
+def A_URA(M: int, N: int, 
+          theta: np.ndarray, phi: np.ndarray, 
+          dx: float = DIST_RATIO, dy: float = DIST_RATIO) -> np.ndarray:
     """
     Создает матрицу векторов направленности для 
     равномерной прямоугольной антенной решетки (URA).
@@ -63,7 +63,7 @@ def A_URA(M:int, N:int,
                                  dy * n * np.sin(phi) * np.sin(theta))).reshape(-1,1)
 
 
-def A_UCA(N: int, theta: np.ndarray, phi: np.ndarray, R: float = 0.5):
+def A_UCA(N: int, theta: np.ndarray, phi: np.ndarray, R: float = 0.5) -> np.ndarray:
     """
     Создает матрицу векторов направленности для 
     равномерной круговой антенной решетки (URA).
@@ -89,7 +89,7 @@ def A_UCA(N: int, theta: np.ndarray, phi: np.ndarray, R: float = 0.5):
     return np.exp(-2j * np.pi * R * np.sin(phi) * np.cos(theta - theta_n)).reshape(-1,1)
 
 
-def A_custom(coords: np.ndarray, theta: np.ndarray, phi: np.ndarray):
+def A_custom(coords: np.ndarray, theta: np.ndarray, phi: np.ndarray) -> np.ndarray:
     """
     Создает матрицу векторов направленности для 
     произвольной антенной решетки.
@@ -115,7 +115,7 @@ def A_custom(coords: np.ndarray, theta: np.ndarray, phi: np.ndarray):
     return np.exp(-1j * coords @ k.reshape(-1,1))
 
 
-def A_ULA_torch(L: int, theta: torch.Tensor, dist: float) -> torch.Tensor:
+def A_ULA_torch(L: int, theta: torch.Tensor, dist: float = DIST_RATIO) -> torch.Tensor:
     """
     Создает матрицу векторов направленности для линейной равномерной антенной
     решетки (ULA).
@@ -179,7 +179,10 @@ def A_URA_torch(M: int, N: int,
     return exponent.reshape(-1, theta.shape[0]).exp()
 
 
-def A_UCA_torch(N: int, theta: torch.Tensor, phi: torch.Tensor, R: float = 0.5) -> torch.Tensor:
+def A_UCA_torch(N: int, 
+                theta: torch.Tensor, 
+                phi: torch.Tensor, 
+                R: float = DIST_RATIO) -> torch.Tensor:
     """
     Создает матрицу векторов направленности для 
     равномерной круговой антенной решетки (UCA) в PyTorch.
@@ -208,7 +211,9 @@ def A_UCA_torch(N: int, theta: torch.Tensor, phi: torch.Tensor, R: float = 0.5) 
     return exponent.exp()  # размер (N, K)
 
 
-def A_custom_torch(coords: torch.Tensor, theta: torch.Tensor, phi: torch.Tensor) -> torch.Tensor:
+def A_custom_torch(coords: torch.Tensor, 
+                   theta: torch.Tensor, 
+                   phi: torch.Tensor) -> torch.Tensor:
     """
     Создает матрицу векторов направленности для 
     произвольной антенной решетки в PyTorch.

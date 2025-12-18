@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from scipy.optimize import minimize
 
-import torch_sensor_structures as tss
+import diff_sensor_structures as dss
 
 DIST_RATIO = 0.5
 
@@ -31,7 +31,7 @@ def cost_theta_torch(theta: torch.Tensor,
     res: torch.Tensor
         Значение фробениусовой нормы ||Q^{-1/2}(X-AS)||^2_F.
     """
-    A = tss.A_ULA_torch(X.shape[0], theta)
+    A = dss.A_ULA_torch(X.shape[0], theta)
     E = torch.matmul(Q_inv_sqrt, X - torch.matmul(A, S))  
     return torch.norm(E, 'fro')**2  # скалярный тензор
 
