@@ -1,0 +1,252 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм, стохастическая модель сигнала}}
+\end{center}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{ \S1 Постановка проблемы}}
+\end{center}
+Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющийся во времени. По итогам измерений было получено $\text{G}$ снимков полученного сигнала, причем ввиду технических неполадок, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- полный набор наблюдений (сигналов, полученных сенсорами в моменты времени $t=1, 2, ..., \text{G}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{G}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{G}$, причем $o_t \cup m_t = \{1,...,L\}, o_t \cap m_t = \varnothing,  \forall t \in \{1, ..., \text{G}\}$. Предполагается, что $\nexists o_t: |o_t|=0$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. Набор наблюдений $X$ является результатом следующей модели наблюдений:
+\begin{equation}
+X = \text{A} S + N,
+\end{equation}
+где $N=\{N_t\}_{t=1}^\text{G}$ соответствует набору шумов, связанных с датчиками в моменты времени $t=1, 2, ..., \text{G}$, $S=\{S_t\}_{t=1}^\text{G}$ -- соответствует набору сигналов, испускаемых источниками в моменты времени $t=1, 2, ..., \text{G}$, $\text{A}$ -- матрица векторов направленности для равномерного линейного массива:
+\begin{gather}
+\text{A}(\theta) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
+\end{bmatrix}.
+\nonumber
+\end{gather}
+Сигналы, испускаемые источниками, также как и шумы на сенсорах, предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma}),t=1, 2, ..., \text{G}$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. и сигналы, и шумы, являются некоррелированными. Для простоты дальнейших рассуждений введем также следующие величины:
+\begin{itemize}
+\item
+$L_{o_t}$ --- число исправных сенсоров в момент времени $t$;
+\item
+ $L_{m_t}$ --- число неисправных сенсоров в момент времени $t$.
+\end{itemize}
+Составим EM-алгоритм для двух случаев:
+\begin{itemize}
+\item
+Известный шум;
+\item
+Неизвестный шум.
+\end{itemize}
+\clearpage
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2 Известный шум}}
+\end{center}
+Воспользуемся EM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{\Gamma})$, пропущенные значения $X_m=\{X_{t, m_t}\}_{t=1}^\text{G}$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=1, 2, ..., \text{G}$ предполагаются независимыми и одинаково распределенными.
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
+\end{center}
+Оценим вектор угловых координат источников $\theta^{(0)}$ следующим образом:
+\begin{enumerate}
+\item
+Выберем число $\nu$, которое будет соответствовать первому компоненту вектора $\theta^{(0)}$:
+\begin{equation}
+\nu \sim \mathcal{U}([-\pi;\pi]);
+\end{equation}
+\item
+Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{\text{K}})\, \text{mod} \, 2\pi, i = 1, 2, ..., \text{K}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
+\end{enumerate}
+Диагональные элементы матрицы $\mathbf{\Gamma}$ задаем с помощью равномерного распределения:
+\begin{equation}
+p_{jj} \sim \mathcal{U}([0,2; 5]),
+\end{equation}
+где $j = 1, 2, ..., \text{K}$.
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+Требуется найти условное математическое ожидание с учетом  текущей оценки параметров и апостериорного совместного распределения ненаблюдаемых/пропущенных принятых сигналов $X_m$ и исходных сигналов $S$ 
+\begin{equation}
+ \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
+\end{equation}
+Сначала найдем апостериорное распределение $P(X_m|X_o=x_o,\Psi)$, воспользуемся формулой произведения плотностей:
+\begin{gather}
+P((X_m,S)|X_o=x_o,\Psi) = P(X_m|X_o = x_o, \Psi) \cdot P(S|X_o = x_o, X_m=\hat{x}_m, \Psi),
+\end{gather}
+где $\hat{x}_m$ -- оценка ненаблюдаемой части реализации набора наблюдений $x$, полученная на основе апостериорного распределения $P(X_m|X_o = x_o, \Psi)$.
+\begin{gather*}
+X_t = \text{A}S_t + N_t, \\
+S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1}, \mathbf{\Gamma}), \\
+X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda}),\\
+X_t|S_t \sim \NormComplex(AS_t,  \mathbf{\Lambda}),\\
+\end{gather*}
+\begin{gather}
+P(S|\Psi) = \prod_{t=1}^{\text{G}} \frac{1}{\pi^\text{K} \Det(\mathbf{\Lambda})}e^{-S_t^* (\mathbf{\Gamma})^{-1}S_t},
+\end{gather}
+\begin{gather}
+P(X|\Psi) = \prod_{t=1}^{\text{G}} \frac{1}{ \pi^L \Det(\text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda}) } e^{-X_t^* (\text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})^{-1}X_t},
+\end{gather}
+\begin{gather}
+P(X|S,\Psi) = \prod_{t=1}^{\text{G}} \frac{1}{\pi^L \Det(\mathbf{\Lambda}) }e^{-(X_t-\text{A}S_t)^* (\mathbf{\Lambda})^{-1}(X_t-\text{A}S_t)}.
+\end{gather}
+Параметры апостериорного распределения $P(X_{t, m_t}|X_{t, o_t}=X_{t, o_t},\Psi)$ на итерации $\tau$ можно найти следующим образом:
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{X_{t, m_t}|X_{o,t}=X_{t, o_t}}^{(\tau)} &= \hat{R}_{X_{t, m_t},X_{t, o_t}}^{(\tau-1)}(\hat{R}_{X_{t, o_t},X_{t, o_t}}^{(\tau-1)})^{-1}\cdot X_{t, o_t}, \\
+\Sigma_{X_{t, m_t}|X_{o,t}=X_{t, o_t}}^{(\tau)} &= \hat{R}_{X_{t, m_t},X_{t, m_t}}^{(\tau-1)}-\hat{R}_{X_{t, m_t},X_{t, o_t}}^{(\tau-1)}(\hat{R}_{X_{t, o_t},X_{t, o_t}}^{(\tau-1)})^{-1}\hat{R}_{X_{t, o_t},X_{t, m_t}}^{(\tau-1)}.
+\end{aligned} \right.
+\end{equation}
+Пропущенные (ненаблюдаемые) значения $X_{t, m_t}$ оценим через $\hat{x}_{t, m_t}=\mu_{X_{t, m_t}|X_{o,t}=X_{t, o_t}}^{(\tau)}$.
+Пусть $\hat{x}_t^{(\tau)}$ --- вектор $x_t$, в котором пропущенные значения $X_{t, m_t}$ оценены с помощью $\hat{x}_{t, m_t}^{(\tau)}$, $\hat{x}^{(\tau)}$ --- реализация матрицы наблюдений $x$, в которой пропущенные значения $X_{t, m_t}$ оценены с помощью $\hat{x}_{m_t}^{(\tau)}$ для всех $t \in \{1, 2, ..., \text{G}\}$. \\
+Параметры апостериорного распределения $P(S_t|X_{t, o_t} = X_{t, o_t}, X_{t, m_t} = \hat{x}_{t, m_t}, \Psi)$ можно найти исходя из следующих формул:
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|X_{t, o_t} = X_{t, o_t}, X_{t, m_t} = \hat{x}_{t, m_t}^{(\tau)}, \Psi}^{(\tau)} &= \mathbf{\Gamma}\text{A}^*\Big(\text{A}\mathbf{\Gamma}\text{A}^*+\mathbf{\Lambda}\Big)^{-1}\hat{x}_t^{(\tau)}, \\
+\Sigma_{S_t|X_{t, o_t} = X_{t, o_t}, X_{t, m_t} = \hat{x}_{t, m_t}^{(\tau)}, \Psi}^{(\tau)} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*\Big(\text{A}\mathbf{\Gamma}\text{A}^*+\mathbf{\Lambda}\Big)^{-1}\text{A}\mathbf{\Gamma},
+\end{aligned} \right.
+\end{equation}
+где $\text{A}=\text{A}^{(\tau-1)}, \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
+Оценим реализации сигналов через математическое ожидание апостериорного распределения: $\hat{s}_t^{(\tau)} = \mu_{S_t|X_{t, o_t} = X_{t, o_t}, X_{t, m_t}}, t \in \{1, 2, ..., \text{G} \}$. Тогда $\hat{s}^{(\tau)} = \Big\{\hat{s}_t^{(\tau)}\Big\}_{t=1}^{\text{G}}$.
+Заметим, что $\Sigma_{S_t|X_{t, o_t} = X_{t, o_t}, X_{t, m_t}=\hat{x}_{t, m_t}^{(\tau)}}$ не зависит от $t$.
+Вернемся к ранее рассмотренному условному математическому ожиданию:
+\begin{equation*}
+ \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
+\end{equation*}
+Его следует максимизировать, мы можем перейти от логарифма произведения к сумме логарифмов:
+\begin{equation*}
+\begin{gathered}
+\log P(X,S|\theta, \mathbf{\Gamma}) = \log P(X|S=s, \theta) + \log P(S|\mathbf{\Gamma}) = \\
+ = -\text{G} \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^\text{G} (X_t-\text{A}(\theta)S_t)^* \mathbf{\Lambda}^{-1}(X_t-\text{A}(\theta)S_t) - \text{G} \log(\Det(\pi \mathbf{\Gamma})) - \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t.
+\end{gathered}
+\end{equation*}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
+\end{center}
+Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
+\begin{equation*}
+\begin{gathered}
+\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)] = \\
+\argmax_{\Psi} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\bigg[-\text{G} \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^\text{G} (X_t-\text{A}(\theta)S_t)^* \mathbf{\Lambda}^{-1}(X_t-\text{A}(\theta)S_t) 
+\\ - \text{G} \log(\Det(\pi \mathbf{\Gamma})) - \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t\bigg].
+\end{gathered}
+\end{equation*}
+Оценим угловые координаты источников $\theta$:
+\begin{equation*}
+\begin{gathered}
+\theta^{(\tau)}= \argmax_{\theta} Q(\theta | \theta^{(\tau-1)}) = \\
+\argmax_{\theta} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\bigg[-\text{G} \log (\Det(\pi \mathbf{\Lambda})) - \sum_{t=1}^\text{G} (X_t-\text{A}(\theta)S_t)^* \mathbf{\Lambda}^{-1}(X_t-\text{A}(\theta)S_t) 
+\\ - \text{G} \log(\Det(\pi \mathbf{\Gamma})) - \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t\bigg].
+\end{gathered}
+\end{equation*}
+Тогда максимизируемая функция примет следующий вид:
+\begin{equation*}
+\begin{gathered}
+\mathcal{J}(\theta) = \sum_{t=1}^G \Expect \Big[- (X_t-\text{A}(\theta)S_t)^*\mathbf{\Lambda}^{-1}(X_t-\text{A}(\theta)S_t) \text{|}X_o = x_o\Big] = \\
+= - ||\mathbf{\Lambda}^{-1/2}(\hat{x}-\text{A}(\theta)\hat{s})||_F^2,
+\end{gathered}
+\end{equation*}
+где $\hat{x} = \hat{x}^{(\tau)}, \hat{s} = \hat{s}^{(\tau)}$.
+Оценка УМО, полученная выше, была выведена в документе для детерминированной модели сигналов.
+\begin{equation}
+\theta^{(\tau)}=\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2}(\hat{x}^{(\tau)}-\text{A}\hat{s})||_F^2.
+\end{equation}
+Оценим ковариацию сигналов $\mathbf{\Gamma}$:
+\begin{equation*}
+\begin{gathered}
+\mathbf{\Gamma}^{(\tau)}= \argmax_{\mathbf{\Gamma}} Q(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)}).
+\end{gathered}
+\end{equation*}
+Пользуемся тем фактом, что полное правдоподобие раскладывается на сумму $\log P(X|S=s) + \log P(S)$. Первый логарифм не зависит от $\mathbf{\Gamma}$. Поэтому максимизируем условное математическое ожидание  для $\log P(S| \Psi)$:
+\begin{equation*}
+\begin{gathered}
+\mathcal{K}(\mathbf{\Gamma}) = \Expect_{S|X_=\hat{x}, \Psi^{(\tau-1)}}\bigg[- \text{G} \log(\Det(\pi \mathbf{\Gamma})) - \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t\bigg] = \\
+- \text{G} \log(\Det(\pi \mathbf{\Gamma})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t \Big | X = \hat{x}^{(\tau)} \bigg ] = \\
+- \text{G} \log(\Det(\pi)) - \text{G} \log(\Det(\mathbf{\Gamma})) - \Expect_{\Psi^{(\tau-1)}}\bigg[ \sum_{t=1}^\text{G} S_t^* \mathbf{\Gamma}^{-1}S_t \Big | X = \hat{x}^{(\tau)} \bigg ] = \\
+ - \text{G} \log(\Det(\mathbf{\Gamma})) - \sum_{t=1}^\text{G} \Tr\Big(\mathbf{\Gamma}^{-1} \Expect[S_t S_t^* | X = \hat{x}^{(\tau)}]\Big)
+\end{gathered}
+\end{equation*}
+Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим максимум функции,  при этом обозначим через $M$ величину $\sum_{t=1}^G \Expect[S_t S_t^*  | X = \hat{x}^{(\tau)}]$:
+\begin{equation*}
+\begin{gathered}
+\frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
+\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}M)= -\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1}, \\
+\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = -\text{G}\mathbf{\Gamma}^{-1}+\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1}.
+\end{gathered}
+\end{equation*}
+Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
+\begin{equation*}
+O = -\text{G}\mathbf{\Gamma}^{-1}+\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1} \Rightarrow M =\text{G}\mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \frac{1}{\text{\text{G}}} \sum_{t=1}^\text{\text{G}} \Big( \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^* \Big),
+\end{equation*}
+и находим аналитическое решение данного уравнения:
+\begin{equation}
+\mathbf{\Gamma}^{(\tau)} = \frac{1}{\text{G}} \sum_{t=1}^\text{G} \Big[ \Sigma_{S_t|X_t} +  \mu_{S_t|X_t}  (\mu_{S_t|X_t})^* \Big].
+\end{equation}
+Учтем, что $\sum_{t=1}^\text{G} a_t a_t^* = \text{A}\text{A}^*$, если $\text{A}$ -- матрица, составленная из столбцов $a_t, t=1, 2,...,\text{G}$. Также учтем, что $\Sigma_{S_t|X_t}$ принимает одинаковое значение при любом $t$:
+\begin{equation}
+\mathbf{\Gamma}^{(\tau)} =  \frac{1}{\text{G}}  \hat{s}^{(\tau)} \cdot [\hat{s}^{(\tau)}]^*  + \Sigma_{S_t|X_t}.
+\end{equation}
+Предполагая, что сигналы некоррелированны, изменим оценку так, чтобы учесть лишь диагональные элементы:
+\begin{equation}
+\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \bigg[  \frac{1}{\text{G}}\hat{s}^{(\tau)} \cdot [\hat{s}^{(\tau)}]^*  + \Sigma_{S_t|X_t}\bigg].
+\end{equation}
+Обновляем оценку ковариации наблюдений:
+\begin{equation}
+\hat{R}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}[\text{A}(\theta^{(\tau)})]^* + \mathbf{\Lambda}.
+\end{equation}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
+\end{center}
+\begin{enumerate}
+\item
+Dempster, A.P.; Laird, N.M.; Rubin, D.B. Maximum likelihood from incomplete data via the EM algorithm. J. R. Stat. Soc. Ser. B
+(Methodol.) 1977, 39, 1–38.
+\end{enumerate}
+\end{document}

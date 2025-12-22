@@ -2,6 +2,7 @@ import numpy as np
 
 import sensors
 import optim_doa
+import diff_sensor_structures as dss
 
 
 def init_est(K: int,
@@ -93,7 +94,7 @@ def incomplete_lkhd(X: np.ndarray,
     res: np.float64
         Значение неполного правдоподобия.
     """
-    A = sensors.A_ULA(X.shape[1], theta)
+    A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
     R = 0.5* (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
@@ -172,14 +173,13 @@ def EM(theta: np.ndarray,
         print('Special estimate of K')
 
     Mu_Xm_cond = {}
-    K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
     Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = sensors.A_ULA(L, theta)
+        A = dss.A_ULA(L, theta)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -188,15 +188,12 @@ def EM(theta: np.ndarray,
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
-                R_MM = R[np.ix_(M_i, M_i)]
 
                 # Оцениваем параметры апостериорного распределения 
                 # ненаблюдаемых данных и пропущенные значения
                 Mu_Xm_cond[i] = R_MO @ np.linalg.inv(R_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
-                K_Xm_cond_accum[np.ix_(M_i, M_i)] += (R_MM - R_MO @ 
-                                                      np.linalg.inv(R_OO) @ 
-                                                      R_MO.conj().T)
+
         
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = A @ P @ A.conj().T + Q
@@ -210,18 +207,20 @@ def EM(theta: np.ndarray,
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
 
         # М-шаг
-        R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
-                                            Mu_S_cond, Q_inv_sqrt) 
+                                            Mu_S_cond, Q_inv_sqrt)
+        new_P = CM_step_P(Mu_S_cond, K_S_cond) 
         new_theta = sensors.angle_correcter(new_theta)
-        new_P = CM_step_P(Mu_S_cond, K_S_cond)
         idx = np.argsort(new_theta)
         new_theta[:] = new_theta[idx]
+        new_P = CM_step_P(Mu_S_cond, K_S_cond)
         new_P[:] = new_P[np.ix_(idx, idx)]
         if (np.linalg.norm(theta - new_theta) < rtol 
             and np.linalg.norm(P - new_P, ord = 2) < rtol):
             break
         theta, P = new_theta, new_P
+        A = dss.A_ULA(L, theta)
+        R = A @ P @ A.conj().T + Q
         #print(f'sorted? theta = {theta}')
         lkhd = incomplete_lkhd(X, theta, P, Q)
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')

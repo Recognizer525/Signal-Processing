@@ -45,9 +45,9 @@ def init_est(K: int,
     return np.sort(theta), np.diag(P_diag)
 
 
-def CM_step_P(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
+def Cov_signals(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
     """
-    Реализует шаг условной максимизации по ковариации исходных сигналов.
+    Реализует вычисление ковариационной матрицы сигналов.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ def incomplete_lkhd(X: np.ndarray,
     return res.real
 
 
-def EM(theta: np.ndarray,
+def EM(angles: np.ndarray,
         P: np.ndarray,
         X: np.ndarray,
         Q: np.ndarray,
@@ -132,7 +132,7 @@ def EM(theta: np.ndarray,
 
     Parameters
     ---------------------------------------------------------------------------
-    theta: np.ndarray
+    angles: np.ndarray
         Начальная оценка вектора углов, которые соответствуют DOA.
     P: np.ndarray
         Начальная оценка ковариационной матрицы исходных сигналов.
@@ -147,7 +147,7 @@ def EM(theta: np.ndarray,
 
     Returns
     ---------------------------------------------------------------------------
-    theta: np.ndarray
+    angles: np.ndarray
         Новая оценка DoA.
     P: np.ndarray
         Новая оценка ковариации исходных сигналов.
@@ -160,7 +160,7 @@ def EM(theta: np.ndarray,
     L = Q.shape[0]
     G = X.shape[0]
 
-    print(f'Initial theta = {theta}')
+    print(f'Initial angles = {angles}')
 
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1] + 1)
@@ -173,13 +173,14 @@ def EM(theta: np.ndarray,
         print('Special estimate of K')
 
     Mu_Xm_cond = {}
+    K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
     Mu_S_cond = np.zeros((L, G), dtype=np.complex128)
     K_S_cond = np.zeros(P.shape, dtype=np.complex128)
     X_modified = X.copy()
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = dss.A_ULA(L, theta)
+        A = dss.A_ULA(L, angles)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -188,15 +189,19 @@ def EM(theta: np.ndarray,
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
+                R_MM = R[np.ix_(M_i, M_i)]
 
                 # Оцениваем параметры апостериорного распределения 
                 # ненаблюдаемых данных и пропущенные значения
                 Mu_Xm_cond[i] = R_MO @ np.linalg.inv(R_OO) @ X_modified[i, O_i]
                 X_modified[i, M_i] = Mu_Xm_cond[i]
+                K_Xm_cond_accum[np.ix_(M_i, M_i)] += (R_MM - R_MO @ 
+                                                      np.linalg.inv(R_OO) @ 
+                                                      R_MO.conj().T)
 
         
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
-        K_XX = A @ P @ A.conj().T + Q
+        K_XX = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
         K_XX = 0.5 * (K_XX + K_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
@@ -205,28 +210,31 @@ def EM(theta: np.ndarray,
         # Е-шаг
         Mu_S_cond = K_SX @ np.linalg.inv(K_XX) @ X_modified.T
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
+        
+        Mu_XS = K_XX @ np.linalg.inv(R) @ A @ P
+
+        Mu_SS = Cov_signals(Mu_S_cond, K_S_cond)
+
 
         # М-шаг
-        new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
+        R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
+        new_angles = optim_doa.CM_step_angles(X_modified.T, angles, 
                                             Mu_S_cond, Q_inv_sqrt)
-        new_P = CM_step_P(Mu_S_cond, K_S_cond) 
-        new_theta = sensors.angle_correcter(new_theta)
-        idx = np.argsort(new_theta)
-        new_theta[:] = new_theta[idx]
-        new_P = CM_step_P(Mu_S_cond, K_S_cond)
+        new_angles = sensors.angle_correcter(new_angles)
+        idx = np.argsort(new_angles)
+        new_angles[:] = new_angles[idx]
+        new_P = Mu_SS
         new_P[:] = new_P[np.ix_(idx, idx)]
-        if (np.linalg.norm(theta - new_theta) < rtol 
+        if (np.linalg.norm(angles - new_angles) < rtol 
             and np.linalg.norm(P - new_P, ord = 2) < rtol):
             break
-        theta, P = new_theta, new_P
-        A = dss.A_ULA(L, theta)
-        R = A @ P @ A.conj().T + Q
-        #print(f'sorted? theta = {theta}')
-        lkhd = incomplete_lkhd(X, theta, P, Q)
+        angles, P = new_angles, new_P
+        #print(f'sorted? angles = {angles}')
+        lkhd = incomplete_lkhd(X, angles, P, Q)
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
 
         EM_Iteration += 1
-    return theta, P, lkhd
+    return angles, P, lkhd
 
 
 def multi_start_EM(X: np.ndarray,
@@ -257,23 +265,23 @@ def multi_start_EM(X: np.ndarray,
 
     Returns
     ---------------------------------------------------------------------------
-    best_theta: np.ndarray
+    best_angles: np.ndarray
         Оценка DoA.
     best_P: np.ndarray
         Оценка ковариационной матрицы исходных сигналов.
     best_lhd: np.float64
         Оценка неполного правдоподобия.
     """
-    best_lhd, best_theta, best_P, best_start = -np.inf, None, None, None
+    best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        theta, P = init_est(K, seed=i*100)
-        est_theta, est_P, est_lhd = EM(theta, P, X, Q, max_iter, rtol)
+        angles, P = init_est(K, seed=i*100)
+        est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
-            best_P, best_theta = est_P, est_theta
+            best_P, best_angles = est_P, est_angles
     print(f"best_start={best_start}")
-    return best_theta, best_P, best_lhd
+    return best_angles, best_P, best_lhd
 
 
 
