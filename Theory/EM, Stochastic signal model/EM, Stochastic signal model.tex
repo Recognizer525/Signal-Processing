@@ -160,7 +160,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 \Sigma_{S|X_{t, o_t}^{(\tau)} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}^{(\tau)} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*\Big(\widetilde{\Sigma}_X\Big)^{-1}\text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
-где $\text{A}=\text{A}^{(\tau-1)}, \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{x}_t$ -- реализация $x_t$ наблюдения $X_t$, в котором значения  $x_{t,m_t}$ оценены как $\hat{x}_{t,m_t}, t=1,\ldots,\text{G}$. \\
+где $\text{A}=\text{A}(\theta^{(\tau-1)}), \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{x}_t$ -- реализация $x_t$ наблюдения $X_t$, в котором значения  $x_{t,m_t}$ оценены как $\hat{x}_{t,m_t}, t=1,\ldots,\text{G}$. \\
 Оценим ковариационную матрицу сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[SS^*]$. \\
 \begin{equation}
 \widetilde{\Sigma}_S = \frac{1}{\text{\text{G}}} \hat{s} \hat{s}^*  + \frac{1}{\text{G}} \Big( \sum_{t=1}^G \Sigma_{S_t|X_{t, o_t} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}^{(\tau)} \Big),
@@ -208,7 +208,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 \begin{equation*}
 O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1} \Rightarrow M =\text{G}\mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \widetilde{\Sigma}_S.
 \end{equation*}
-Предполагая, что сигналы некоррелированны, изменим оценку так, чтобы учесть лишь диагональные элементы:
+Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицу, приравняв элементы вне главной диагонали к нулю:
 \begin{equation}
 \mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\widetilde{\Sigma}_S \Big].
 \end{equation}
