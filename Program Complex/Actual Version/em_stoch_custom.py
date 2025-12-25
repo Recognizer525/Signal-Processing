@@ -4,44 +4,11 @@ import sensors
 import optim_doa
 import diff_sensor_structures as dss
 
-
-def old_init_est(K: int,
-                 seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Создает первоначальную оценку DoA и ковариационной матрицы 
-    исходных сигналов.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    K: int
-        Число источников.
-    seed: int
-        Randomstate для генерации данных.
-
-    Returns
-    ---------------------------------------------------------------------------
-    theta: np.ndarray
-        Оценка DoA. Представляет собой одномерный массив размера (K,1).
-    R: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    """
-    if seed is None:
-        seed = 100
-    nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-    theta = np.array([(nu + i * 2 * np.pi/K)%(2 * np.pi) 
-                      for i in range(K)]) - np.pi
-    theta = np.sort(theta)
-
-    P_diag = np.random.RandomState(seed).uniform(0.2, 5, K)
-    print(f"theta={theta},P={P_diag}")
-    return np.sort(theta), np.diag(P_diag)
-
-
-def new_init_est(K: int,
-                 Q: np.ndarray,
-                 R: np.ndarray,
-                 L: int| None = None,
-                 seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
+def init_est(K: int,
+             Q: np.ndarray,
+             R: np.ndarray,
+             coords: np.ndarray,
+             seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Создает первоначальную оценку DoA и ковариационной матрицы 
     исходных сигналов. Улучшенная версия функции new_init_est, 
@@ -55,8 +22,8 @@ def new_init_est(K: int,
         Ковариация шума.
     R: np.ndarray
         Оценка ковариации наблюдений.
-    L: int
-        Количество сенсоров в антенной решетке.
+    coords: np.ndarray
+        Координаты сенсоров. Предоставляются, если решетка - не ULA.
     seed: int
         Randomstate для генерации данных.
 
@@ -70,17 +37,19 @@ def new_init_est(K: int,
     if seed is None: 
         seed = 100
         
-    start = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
-    theta = np.array([(start + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
-    theta = np.sort(theta)
-    A = dss.A_ULA(L, theta)
-
+    start_theta = np.random.RandomState(seed).uniform(-np.pi, np.pi)
+    theta = np.array([(start_theta + i * 2 * np.pi/K) % (2 * np.pi) 
+                      for i in range(K)]) - np.pi
+    start_phi = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
+    phi = np.array([(start_phi + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
+    angles = np.concatenate(theta, phi)
+    A = dss.A_custom(coords, angles)
     P = np.zeros(K)
     res = R - Q
     for i in range(P.shape[0]):
         P[i] = (A[:,i].conj().T @ res @ A[:,i]) / np.linalg.norm(A[:,i])**4
-    print(f"theta={theta},P={P}")
-    return np.sort(theta), np.diag(P)
+    #print(f"angles={angles}, P={P}")
+    return angles, np.diag(P)
 
     
 
@@ -137,7 +106,8 @@ def if_converged(angles:np.ndarray,
 
 
 def incomplete_lkhd(X: np.ndarray,
-                    theta: np.ndarray, 
+                    angles: np.ndarray, 
+                    coords: np.ndarray,
                     P: np.ndarray, 
                     Q: np.ndarray) -> np.float64:
     """
@@ -148,8 +118,10 @@ def incomplete_lkhd(X: np.ndarray,
     ---------------------------------------------------------------------------
     X: np.ndarray
         Двумерный массив, соответствующий наблюдениям.
-    theta: np.ndarray
-        Одномерный массив размера (K,1). Соответствует оценке DoA.
+    angles: np.ndarray
+        Одномерный массив размера (2K,1). Соответствует оценке DoA.
+    coords: np.ndarray
+        Координаты сенсоров, массив размера (L,3).
     P: np.ndarray
         Оценка ковариационной матрицы исходных сигналов.
     Q: np.ndarray
@@ -160,7 +132,7 @@ def incomplete_lkhd(X: np.ndarray,
     res: np.float64
         Значение неполного правдоподобия.
     """
-    A = dss.A_ULA(X.shape[1], theta)
+    A = dss.A_custom(coords, angles)
     R = A @ P @ A.conj().T + Q
     R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
@@ -186,11 +158,12 @@ def incomplete_lkhd(X: np.ndarray,
 
 
 def EM(angles: np.ndarray,
-        P: np.ndarray,
-        X: np.ndarray,
-        Q: np.ndarray,
-        max_iter: int = 50,
-        rtol: float = 1e-3) -> tuple[np.ndarray,
+       coords: np.ndarray,
+       P: np.ndarray,
+       X: np.ndarray,
+       Q: np.ndarray,
+       max_iter: int = 50,
+       rtol: float = 1e-3) -> tuple[np.ndarray,
                                      np.ndarray,
                                      np.float64]:
     """
@@ -200,6 +173,8 @@ def EM(angles: np.ndarray,
     ---------------------------------------------------------------------------
     angles: np.ndarray
         Начальная оценка вектора углов, которые соответствуют DOA.
+    coords: np.ndarray
+        Координаты сенсоров, массив размера (L,3).
     P: np.ndarray
         Начальная оценка ковариационной матрицы исходных сигналов.
     X: np.ndarray
@@ -242,7 +217,7 @@ def EM(angles: np.ndarray,
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
-        A = dss.A_ULA(L, angles)
+        A = dss.A_custom(coords, angles)
         for i in range(X.shape[0]):
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
@@ -290,7 +265,7 @@ def EM(angles: np.ndarray,
         if if_converged(angles, new_angles, P, new_P, rtol):
             break
         angles, P = new_angles, new_P
-        A = dss.A_ULA(L, angles)
+        A = dss.A_custom(coords, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
         EM_Iteration += 1
@@ -299,6 +274,7 @@ def EM(angles: np.ndarray,
 
 
 def multi_start_EM(X: np.ndarray,
+                   coords: np.ndarray,
                    K: int,
                    Q: np.ndarray,
                    num_of_starts: int = 10,
@@ -313,6 +289,8 @@ def multi_start_EM(X: np.ndarray,
     ---------------------------------------------------------------------------
     X: np.ndarray
         Двумерный массив, соответствующий наблюдениям.
+    coords: np.ndarray
+        Координаты сенсоров, массив размера (L,3).
     K: int
         Число источников.
     Q: np.ndarray
@@ -336,8 +314,8 @@ def multi_start_EM(X: np.ndarray,
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = old_init_est(K, seed=i*100)
-        est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
+        angles, P = init_est(K, seed=i*100)
+        est_angles, est_P, est_lhd = EM(angles, coords, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_angles = est_P, est_angles

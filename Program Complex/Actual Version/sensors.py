@@ -42,7 +42,6 @@ def MCAR(X: np.ndarray,
     n_rows = X.shape[0]
     for i, col in enumerate(mis_cols):
         rng = np.random.RandomState(rs + i)
-        # Выбираем уникальные строки для пропусков
         rows = rng.choice(n_rows, size=int(np.floor(share_mv[i]*n_rows)), replace=False)
         X1[:,mis_cols[i]][rows] = np.nan
     return X1

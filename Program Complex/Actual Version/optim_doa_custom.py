@@ -6,22 +6,25 @@ import diff_sensor_structures as dss
 
 DIST_RATIO = 0.5
 
-def cost_theta(theta: torch.Tensor,
-               Sigma_XS: torch.Tensor, 
-               P: torch.Tensor, 
-               Q_inv_sqrt: torch.Tensor) -> torch.Tensor:
+def cost_angles(angles: torch.Tensor,
+                Sigma_XS: torch.Tensor, 
+                P: torch.Tensor,
+                coords: torch.Tensor, 
+                Q_inv_sqrt: torch.Tensor) -> torch.Tensor:
     """
     Вычисляет значение фробениусовой нормы ||Q^{-1/2}(Sigma_XS-AP)||^2_F, 
     которая подлежит минимизации.
 
     Parameters
     ---------------------------------------------------------------------------
-    theta: torch.Tensor
+    angles: torch.Tensor
         Оценка DoA.
     Sigma_XS: torch.Tensor
-        Кросс-ковариация наблюдений и сигналов с текущего Е-шага.
+        Кросс-ковариация наблюдений и сигналов на текущем Е-шаге.
     P: torch.Tensor
         Оценка ковариации сигналов с предыдущей итерации.
+    coords: torch.Tensor
+        Координаты сенсоров, массив размера (L,3).
     Q_inv_sqrt: torch.Tensor
         Квадратный корень от матрицы, обратной к ковариационной матрице шума.
 
@@ -30,13 +33,14 @@ def cost_theta(theta: torch.Tensor,
     res: torch.Tensor
         Значение фробениусовой нормы ||Q^{-1/2}(Sigma_XS-AP)||^2_F.
     """
-    A = dss.A_ULA_torch(Q_inv_sqrt.shape[0], theta)
+    A = dss.A_custom_torch(coords, angles)
     E = torch.matmul(Q_inv_sqrt, Sigma_XS - torch.matmul(A, P))  
     return torch.norm(E, 'fro')**2  # скалярный тензор
 
 
 def find_angles_start(Sigma_XS_np: np.ndarray, 
-                      theta0_np: np.ndarray, 
+                      angles0_np: np.ndarray,
+                      coords_np: np.ndarray, 
                       P_np: np.ndarray, 
                       Q_inv_sqrt_np: np.ndarray,
                       bounds: object = None, 
@@ -48,11 +52,13 @@ def find_angles_start(Sigma_XS_np: np.ndarray,
     Parameters
     ---------------------------------------------------------------------------
     Sigma_XS_np: np.ndarray
-        Кросс-ковариация наблюдений и сигналов с текущего Е-шага.
-    theta0_np: np.ndarray
+        Кросс-ковариация наблюдений и сигналов на текущем Е-шаге.
+    angles0_np: np.ndarray
         Первое приближение для оценивания DoA. 
         Представляет собой одномерный массив.
-    P_np: torch.Tensor
+    coords_np: np.ndarray
+        Координаты сенсоров, массив размера (L,3).
+    P_np: np.ndarray
         Оценка ковариации сигналов с предыдущей итерации.
     Q_inv_sqrt_np: np.ndarray
         Квадратный корень от матрицы, обратной к ковариационной матрице шума. 
@@ -71,30 +77,32 @@ def find_angles_start(Sigma_XS_np: np.ndarray,
     res.fun: float
         Значение минимизируемой фробениусовой нормы для полученной оценки DoA.
     """
-    def fun(theta_np: np.ndarray) -> tuple[float, np.ndarray]:
+    def fun(angles_np: np.ndarray) -> tuple[float, np.ndarray]:
         """
         Возвращает значение функции потерь и значение градиента.
         """
-        theta_t = torch.tensor(theta_np, 
+        angles_t = torch.tensor(angles_np, 
                                dtype=torch.float32, 
                                requires_grad=True)
+        coords_t = torch.tensor(coords_np, dtype=torch.float32)
         Sigma_XS_t = torch.tensor(Sigma_XS_np, dtype=torch.cfloat)
         P_t = torch.tensor(P_np, dtype=torch.cfloat)
         Q_inv_sqrt_t = torch.tensor(Q_inv_sqrt_np, dtype=torch.cfloat)
         
-        loss = cost_theta(theta_t, Sigma_XS_t, P_t, Q_inv_sqrt_t)
+        loss = cost_angles(angles_t, Sigma_XS_t, P_t, coords_t, Q_inv_sqrt_t)
         loss.backward()
-        grad = theta_t.grad.detach().numpy().astype(np.float64)
+        grad = angles_t.grad.detach().numpy().astype(np.float64)
         return loss.item(), grad
 
-    res = minimize(lambda th: fun(th)[0], theta0_np, 
+    res = minimize(lambda th: fun(th)[0], angles0_np, 
                    jac=lambda th: fun(th)[1], bounds=bounds, method=method, tol=tol)
     #print(f"Optim.res={res.success}")
     return res.x, res.fun
 
 
 def find_angles(Sigma_XS_np: np.ndarray, 
-                theta0_np: np.ndarray, 
+                angles0_np: np.ndarray, 
+                coords_np: np.ndarray,
                 P_np: np.ndarray, 
                 Q_inv_sqrt_np: np.ndarray, 
                 num_of_starts: int = 7,
@@ -107,10 +115,12 @@ def find_angles(Sigma_XS_np: np.ndarray,
     Parameters
     ---------------------------------------------------------------------------
     Sigma_XS_np: np.ndarray
-        Кросс-ковариация наблюдений и сигналов с текущего Е-шага.
-    theta0_np: np.ndarray
+        Кросс-ковариация наблюдений и сигналов на текущем Е-шаге.
+    angles0_np: np.ndarray
         Оценка DoA, полученная на предыдущей итерации,
         либо же начальная оценка DoA.
+    coords_np: np.ndarray
+        Координаты сенсоров, массив размера (L,3).
     P_np: np.ndarray
         Оценка ковариации сигналов с предыдущей итерации.
     Q_inv_sqrt_np: np.ndarray
@@ -128,20 +138,20 @@ def find_angles(Sigma_XS_np: np.ndarray,
     best_theta: np.ndarray
         Полученная в ходе процесса оптимизации наилучшая оценка вектора DoA.
     """
-    best_theta, best_fun = None, np.inf
+    best_angles, best_fun = None, np.inf
     for i in range(num_of_starts):
         if i == 0:
-            est_theta, est_fun = find_angles_start(Sigma_XS_np, theta0_np, 
-                                                   P_np, Q_inv_sqrt_np,
-                                                   bounds=bounds)
+            est_angles, est_fun = find_angles_start(Sigma_XS_np, angles0_np,
+                                                    coords_np, P_np, Q_inv_sqrt_np,
+                                                    bounds=bounds)
         else:
-            K = len(theta0_np)
+            K = len(angles0_np)
             nu = np.random.RandomState(42+i).uniform(-np.pi, np.pi)
-            theta = np.array([(nu + j * 2 * np.pi/K) % (2 * np.pi) 
+            angles = np.array([(nu + j * 2 * np.pi/K) % (2 * np.pi) 
                               for j in range(K)]) - np.pi
-            est_theta, est_fun = find_angles_start(Sigma_XS_np, theta, 
-                                                   P_np, Q_inv_sqrt_np,
-                                                   bounds=bounds)
+            est_angles, est_fun = find_angles_start(Sigma_XS_np, angles, 
+                                                    coords_np, P_np, Q_inv_sqrt_np,
+                                                    bounds=bounds)
         if est_fun < best_fun:
-            best_fun, best_theta = est_fun, est_theta
-    return best_theta
+            best_fun, best_angles = est_fun, est_angles
+    return best_angles
