@@ -168,7 +168,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 где $\hat{s} = [ \mu_{S_1|X_{1, o_1}}^{(\tau)},\ldots,\mu_{S_\text{L}|X_{\text{L}, o_\text{L}}}^{(\tau)} ]$. Заметим, что $\Sigma_{S_t|X_{t, o_t} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}$ не зависит от $t$.
 Остается оценить кросс-ковариацию $\Sigma_{XS}=\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*]$:
 \begin{equation}
-\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*] = \Expect[XX^*|X_o] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} = \Sigma_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*] = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} = \Sigma_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
@@ -193,7 +193,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 \begin{equation*}
 \begin{gathered}
 \mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
- = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\text{G}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[SS^*])\bigg]
+ = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}\text{G}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[SS^*])\bigg].
 \end{gathered}
 \end{equation*}
 Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции,  при этом обозначим через $M$ величину $\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[S_t S_t^* ]$:
@@ -208,7 +208,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 \begin{equation*}
 O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1} \Rightarrow M =\text{G}\mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \widetilde{\Sigma}_S.
 \end{equation*}
-Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицу, приравняв элементы вне главной диагонали к нулю:
+Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
 \begin{equation}
 \mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\widetilde{\Sigma}_S \Big].
 \end{equation}

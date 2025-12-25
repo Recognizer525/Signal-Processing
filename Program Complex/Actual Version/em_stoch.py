@@ -5,10 +5,8 @@ import optim_doa
 import diff_sensor_structures as dss
 
 
-def init_est(K: int,
-             seed: int|None = None,
-             type_of_theta_init: str = "circular") -> tuple[np.ndarray,
-                                                            np.ndarray]:
+def old_init_est(K: int,
+             seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Создает первоначальную оценку DoA и ковариационной матрицы 
     исходных сигналов.
@@ -19,12 +17,6 @@ def init_est(K: int,
         Число источников.
     seed: int
         Randomstate для генерации данных.
-    type_of_theta_init: str
-        Способ инициализации начальной оценки DoA. Либо случайный вектор
-        из многомерного равномерного распределения ("unstructured"),
-        либо выбирается первый угол случайным образом, а затем относительно
-        него вычисляется арифметическая прогрессия по модулю 2pi, число
-        членов прогрессии равно K.
 
     Returns
     ---------------------------------------------------------------------------
@@ -35,14 +27,75 @@ def init_est(K: int,
     """
     if seed is None:
         seed = 100
-    if type_of_theta_init=="circular":
-        nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-        theta = np.array([(nu + i * 2 * np.pi/K)%(2 * np.pi) 
-                          for i in range(K)]) - np.pi
-    elif type_of_theta_init=="unstructured":
-        theta = np.random.RandomState(seed).uniform(-np.pi, np.pi, K) 
+    nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
+    theta = np.array([(nu + i * 2 * np.pi/K)%(2 * np.pi) 
+                      for i in range(K)]) - np.pi
+
     P_diag = np.random.RandomState(seed).uniform(0.2, 5, K)
+    print(f"theta={theta},P={P_diag}")
     return np.sort(theta), np.diag(P_diag)
+
+
+def new_init_est(K: int,
+                 Q: np.ndarray,
+                 R: np.ndarray,
+                 is_ula: bool,
+                 L: int| None = None,
+                 coords: np.ndarray|None = None,
+                 seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Создает первоначальную оценку DoA и ковариационной матрицы 
+    исходных сигналов. Улучшенная версия функции new_init_est, 
+    связывает начальные оценки мощности источников с их угловыми координатами.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    K: int
+        Число источников.
+    Q: np.ndarray
+        Ковариация шума.
+    R: np.ndarray
+        Оценка ковариации наблюдений.
+    is_ula: bool
+        Индикатор того, является ли решетка ULA.
+    L: int
+        Количество сенсоров в антенной решетке.
+    coords: np.ndarray
+        Координаты сенсоров. Предоставляются, если решетка - не ULA.
+    seed: int
+        Randomstate для генерации данных.
+
+    Returns
+    ---------------------------------------------------------------------------
+    theta: np.ndarray
+        Оценка DoA. Представляет собой одномерный массив размера (K,1).
+    R: np.ndarray
+        Оценка ковариационной матрицы исходных сигналов.
+    """
+    assert (is_ula and L is not None) or (not is_ula and coords is not None)
+    if seed is None: 
+        seed = 100
+        
+    if coords is None:
+        start = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
+        theta = np.array([(start + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
+        A = dss.A_ULA(L, theta)
+
+    else:
+        start_theta = np.random.RandomState(seed).uniform(-np.pi, np.pi)
+        theta = np.array([(start_theta + i * 2 * np.pi/K) % (2 * np.pi) 
+                      for i in range(K)]) - np.pi
+        start_phi = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
+        phi = np.array([(start_phi + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
+        A = dss.A_custom(coords, theta, phi)
+    P = np.zeros(K)
+    res = R - Q
+    for i in range(P.shape[0]):
+        P[i] = (A[:,i].conj().T @ res @ A[:,i]) / np.linalg.norm(A[:,i])**4
+    print(f"theta={theta},P={P}")
+    return np.sort(theta), np.diag(P)
+
+    
 
 
 def Cov_signals(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
@@ -64,10 +117,26 @@ def Cov_signals(mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
         Новая оценка ковариационной матрицы исходных сигналов.
     """
     G = mu.shape[1]
+    print(f"sigma={sigma}")
+    print(f"M[X]M[X]={(1/G) * mu @ mu.conj().T}")
     res = (1/G) * mu @ mu.conj().T + sigma
+    print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
     res = res * np.eye(res.shape[0], res.shape[1], dtype=np.complex128)
     return res.real
+
+
+def if_converged(angles, new_angles, P, new_P, rtol):
+    idx1 = np.argsort(angles)
+    idx2 = np.argsort(new_angles)
+    angles[:] = angles[idx1]
+    new_angles[:] = new_angles[idx2]
+    P = P[np.ix_(idx1, idx1)]
+    new_P[:] = new_P[np.ix_(idx2, idx2)]
+    if (np.linalg.norm(angles - new_angles) < rtol 
+        and np.linalg.norm(P - new_P, ord = 2) < rtol):
+        return True
+    return False
 
 
 def incomplete_lkhd(X: np.ndarray,
@@ -96,14 +165,14 @@ def incomplete_lkhd(X: np.ndarray,
     """
     A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
-    R = 0.5* (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
+    R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
     #print(f"is_spd(P)={sensors.is_spd(P)}")
     #print(f"is_spd(Q)={sensors.is_spd(Q)}")
     #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
     inv_R = np.linalg.inv(R)
     Indicator = np.isnan(X)
-    col_numbers = np.arange(1, X.shape[1] + 1)
+    col_numbers = np.arange(1, X.shape[1]+1)
     O = col_numbers * (Indicator == False) - 1
     res = 0
     for i in range(X.shape[0]):
@@ -163,14 +232,10 @@ def EM(angles: np.ndarray,
     print(f'Initial angles = {angles}')
 
     Indicator = np.isnan(X)
-    col_numbers = np.arange(1, X.shape[1] + 1)
+    col_numbers = np.arange(1, X.shape[1]+1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
-    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
 
-    R = sensors.robust_complex_cov(X[observed_rows, ])
-    if np.isnan(R).any():
-        R = np.diag(np.nanvar(X, axis = 0))
-        print('Special estimate of K')
+    R = sensors.initial_Cov(X)
 
     Mu_Xm_cond = {}
     K_Xm_cond_accum = np.zeros((L,L), dtype=np.complex128)
@@ -201,7 +266,8 @@ def EM(angles: np.ndarray,
 
         
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
-        K_XX = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
+        K_XX = sensors.complex_cov(X_modified) + K_Xm_cond_accum / G
+        print(f"Is SPD K_XX {sensors.is_spd(K_XX)}")
         K_XX = 0.5 * (K_XX + K_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
@@ -212,28 +278,26 @@ def EM(angles: np.ndarray,
         K_S_cond = K_SS - K_SX @ np.linalg.inv(K_XX) @ K_XS
         
         Mu_XS = K_XX @ np.linalg.inv(R) @ A @ P
-
         Mu_SS = Cov_signals(Mu_S_cond, K_S_cond)
 
-
         # М-шаг
-        R = sensors.robust_complex_cov(X_modified) + K_Xm_cond_accum / G
-        new_angles = optim_doa.CM_step_angles(X_modified.T, angles, 
-                                            Mu_S_cond, Q_inv_sqrt)
+        new_angles = optim_doa.CM_step_angles(Mu_XS, angles, 
+                                            Mu_SS, Q_inv_sqrt)
         new_angles = sensors.angle_correcter(new_angles)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         new_P = Mu_SS
+        #print(f"new_P={new_P}")
         new_P[:] = new_P[np.ix_(idx, idx)]
-        if (np.linalg.norm(angles - new_angles) < rtol 
-            and np.linalg.norm(P - new_P, ord = 2) < rtol):
+        lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
+        if if_converged(angles, new_angles, P, new_P, rtol):
             break
         angles, P = new_angles, new_P
-        #print(f'sorted? angles = {angles}')
-        lkhd = incomplete_lkhd(X, angles, P, Q)
+        A = dss.A_ULA(L, angles)
+        R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
-
         EM_Iteration += 1
+        
     return angles, P, lkhd
 
 
@@ -275,7 +339,7 @@ def multi_start_EM(X: np.ndarray,
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = init_est(K, seed=i*100)
+        angles, P = old_init_est(K, seed=i*100)
         est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i

@@ -36,10 +36,11 @@ def cost_theta_torch(theta: torch.Tensor,
     return torch.norm(E, 'fro')**2  # скалярный тензор
 
 
-def CM_step_theta_start(X_np: np.ndarray, 
+def CM_step_angles_start(X_np: np.ndarray, 
                         theta0_np: np.ndarray, 
                         S_np: np.ndarray, 
-                        Q_inv_sqrt_np: np.ndarray, 
+                        Q_inv_sqrt_np: np.ndarray,
+                        bounds: object = None, 
                         method: str = 'SLSQP', 
                         tol: int = 1e-6) -> tuple[np.ndarray, float]:
     """
@@ -57,6 +58,8 @@ def CM_step_theta_start(X_np: np.ndarray,
         Текущая оценка детерминированных исходных сигналов.
     Q_inv_sqrt_np: np.ndarray
         Квадратный корень от матрицы, обратной к ковариационной матрице шума. 
+    bounds: object
+        Границы, в пределах которых надо искать минимум.
     method: str = 'SLSQP'
         Метод оптимизации функции потерь для DoA.
     tol: int
@@ -92,15 +95,16 @@ def CM_step_theta_start(X_np: np.ndarray,
     return res.x, res.fun
 
 
-def CM_step_theta(X_np: np.ndarray, 
+def CM_step_angles(X_np: np.ndarray, 
                   theta0_np: np.ndarray, 
                   S_np: np.ndarray, 
                   Q_inv_sqrt_np: np.ndarray, 
                   num_of_starts: int = 7,
+                  bounds: object = None,
                   method: str = 'SLSQP') -> np.ndarray:
     """
     Функция предназначена для поиска оценки DoA, которая минимизирует норму
-    ||Q^{-1/2}(X-AS)||^2_F.
+    ||Q^{-1/2}(A-BC)||^2_F, где A, B, C - матричные функции.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -117,6 +121,8 @@ def CM_step_theta(X_np: np.ndarray,
     num_of_starts: int
         Число начальных приближений относительно которых нужно проводить
         оптимизационный процесс.
+    bounds: object
+        Границы, в пределах которых надо искать минимум.
     method: str
         Метод оптимизации функции потерь для DoA.
 
@@ -128,14 +134,14 @@ def CM_step_theta(X_np: np.ndarray,
     best_theta, best_fun = None, np.inf
     for i in range(num_of_starts):
         if i == 0:
-            est_theta, est_fun = CM_step_theta_start(X_np, theta0_np, 
+            est_theta, est_fun = CM_step_angles_start(X_np, theta0_np, 
                                                      S_np, Q_inv_sqrt_np)
         else:
             M = len(theta0_np)
             nu = np.random.RandomState(42+i).uniform(-np.pi, np.pi)
             theta = np.array([(nu + j * 2 * np.pi/M) % (2 * np.pi) 
                               for j in range(M)]) - np.pi
-            est_theta, est_fun = CM_step_theta_start(X_np, theta, 
+            est_theta, est_fun = CM_step_angles_start(X_np, theta, 
                                                      S_np, Q_inv_sqrt_np)
         if est_fun < best_fun:
             best_fun, best_theta = est_fun, est_theta

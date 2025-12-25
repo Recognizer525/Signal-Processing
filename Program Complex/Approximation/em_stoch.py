@@ -208,8 +208,7 @@ def EM(theta: np.ndarray,
 
         # М-шаг
         new_theta = optim_doa.CM_step_theta(X_modified.T, theta, 
-                                            Mu_S_cond, Q_inv_sqrt)
-        new_P = CM_step_P(Mu_S_cond, K_S_cond) 
+                                            Mu_S_cond, Q_inv_sqrt) 
         new_theta = sensors.angle_correcter(new_theta)
         idx = np.argsort(new_theta)
         new_theta[:] = new_theta[idx]

@@ -5,8 +5,8 @@ from scipy.signal import find_peaks
 DIST_RATIO = 0.5
 
 def MCAR(X: np.ndarray,
-         mis_cols: int|list,
-         num_mv: int|list,
+         mis_cols: int|list, 
+         share_mv: int|list,
          rs: int = 42) -> np.ndarray:
     '''
     Реализует создание абсолютно случайных пропусков.
@@ -14,18 +14,18 @@ def MCAR(X: np.ndarray,
     Parameters
     ---------------------------------------------------------------------------
     X: np.ndarray
-        Двумерный массив, представляет из себя набор наблюдений, 
-        каждому из них соответствует своя строка.
+        Двумерный массив, представляет из себя выборку, 
+        состоящую из наблюдений, каждому из них соответствует своя строка.
     mis_cols: int|list
         Целое число (int), либо список (list[int]). 
         Указывает на индексы столбцов, в которые следует добавить пропуски.
-    num_mv: int|list
+    share_mv: int|list
         Целое число (int), либо список (list[int]). 
-        Указывает на количество пропусков, которые следует добавить 
+        Указывает на долю пропусков, которые следует добавить 
         в каждый столбец из числа указанных в mis_cols.
     rs: int
-        Randomstate для выбора конкретных позиций, 
-        где будут размещены пропуски.
+        Randomstate для выбора 
+        конкретных позиций, где будут размещены пропуски.
 
     Returns
     ---------------------------------------------------------------------------
@@ -33,91 +33,19 @@ def MCAR(X: np.ndarray,
         Двумерный массив, представляет собой выборку, 
         в которую добавлены абсолютно случайные пропуски.
     '''
-    
     if type(mis_cols)==int:
-        mis_cols = [mis_cols]
-    if type(num_mv)==int:
-        num_mv = [num_mv]
-
-    # Проверяем длины
-    assert len(mis_cols) == len(num_mv), \
-    "mis_cols и num_mv должны быть одной длины"
-
-    # Проверяем X
-    assert isinstance(X, np.ndarray) and X.ndim == 2, \
-    "X должен быть двумерным numpy-массивом"
-
-    # Проверяем индексы столбцов
-    n_cols = X.shape[1]
-    assert all(isinstance(c, int) for c in mis_cols), \
-    "mis_cols должен содержать целые индексы"
-    assert all(0 <= c < n_cols for c in mis_cols), \
-    "Индекс столбца вне диапазона"
-
-    # Проверяем число пропусков
-    n_rows = X.shape[0]
-    assert all(isinstance(n, int) for n in num_mv), \
-        "num_mv должен содержать целые числа"
-    assert all(0 <= n <= n_rows for n in num_mv), \
-        "num_mv не может превышать число строк"
-
+        mis_cols=[mis_cols]
+    if type(share_mv)==int:
+        share_mv=[share_mv]
+    assert len(mis_cols)==len(share_mv)
     X1 = X.copy()
-    for i in range(len(mis_cols)):
-        h = np.array([1]*num_mv[i]+[0]*(len(X)-num_mv[i]))
-        np.random.RandomState(rs+i).shuffle(h)
-        rows = np.where(h==1)[0]
-        X1[rows, mis_cols[i]] = np.nan
+    n_rows = X.shape[0]
+    for i, col in enumerate(mis_cols):
+        rng = np.random.RandomState(rs + i)
+        # Выбираем уникальные строки для пропусков
+        rows = rng.choice(n_rows, size=int(np.floor(share_mv[i]*n_rows)), replace=False)
+        X1[:,mis_cols[i]][rows] = np.nan
     return X1
-
-
-def gds(K: int, G: int,
-        A: np.ndarray = None, f: np.ndarray = None, phi: np.ndarray = None, 
-        seed: int = None) -> np.ndarray:
-    """
-    Генерирует детерминированные сигналы, 
-    представляющие из себя комплексные нормальные вектора 
-    с круговой симметрией.
-    
-    Parameters
-    ---------------------------------------------------------------------------
-    K: int
-        Число источников.
-    G: int
-        Число наблюдений.
-    A: np.ndarray
-        Одномерный массив размера K, 
-        в котором указаны амплитуды сигналов от источников.
-    f: np.ndarray
-        Одномерный массив размера K, 
-        в котором указаны частоты сигналов от источников.
-    phi: np.ndarray
-        Одномерный массив размера K, 
-        в котором указаны фазы сигналов от источников.
-    seed: int
-        Randomstate для генерации амплитуд, частот и фаз, 
-        если таковые не указаны пользователем.
-
-    Returns
-    ---------------------------------------------------------------------------
-    signals: np.ndarray
-        Сгенерированные сигналы в формате двумерного массива размера (G,K).
-    """ 
-    if seed is None:
-        seed = 10
-    # G - размер выборки, K - число источников
-    if A is None:
-        A = np.random.RandomState(seed + 40).uniform(0.5, 1.5, K)         
-    if f is None:
-        f = np.random.RandomState(seed + 10).uniform(0.01, 0.1, K)        
-    if phi is None:
-        phi = np.random.RandomState(seed + 1).uniform(0, 2*np.pi, K)
-    
-    g = np.arange(G)
-    signals = np.zeros((K, G), dtype=complex)
-    for k in range(K):
-        signals[k] = A[k] * np.exp(1j * (2 * np.pi * f[k] * g + phi[k]))
-    signals = signals.T
-    return signals
 
 
 def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
@@ -154,28 +82,7 @@ def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
     return signals
 
 
-def complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
-    """
-    Вычисляет оценку пространственной ковариационной матрицы.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    X: np.ndarray
-        Выборка, состоящая из реализаций комплексных случайных векторов.
-        Предполагается, что математическое ожидание равно нулю, 
-        расположенных построчно.
-    ddof: int
-        Поправка на число степеней свободы.
-   
-    Returns
-    ---------------------------------------------------------------------------
-    cov: np.ndarray
-        Оценка ковариационной матрицы.
-    """
-    return np.einsum('ni,nj->ij', X, X.conj()) / (X.shape[0] - ddof)
-
-
-def robust_complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
+def complex_cov(X: np.ndarray, ddof: int = 0, reg=True) -> np.ndarray:
     """
     Вычисляет оценку пространственной ковариационной матрицы, таким образом, 
     чтобы обнулить мнимую часть диагональных элементов, которая возникает из-за
@@ -189,6 +96,8 @@ def robust_complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
         расположенных построчно.
     ddof: int
         Поправка на число степеней свободы.
+    reg: bool
+        Проводить ли преобразование (X+X^H)/2 для коррекции численных ошибок.
 
     Returns
     ---------------------------------------------------------------------------
@@ -196,56 +105,48 @@ def robust_complex_cov(X: np.ndarray, ddof: int = 0) -> np.ndarray:
         Оценка ковариационной матрицы.
     """
     Cov = np.einsum('ni,nj->ij', X, X.conj()) / (X.shape[0] - ddof)
-    Cov = (Cov + Cov.conj().T)/2
+    if reg:
+        Cov = (Cov + Cov.conj().T)/2
     return Cov
 
 
-def angle_correcter(theta: np.ndarray) -> np.ndarray:
+def initial_Cov(X: np.ndarray):
+    """
+    Начальная оценка матрицы ковариации для набора наблюдений с пропусками.
+    """
+    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
+    R = complex_cov(X[observed_rows, ])
+    if np.isnan(R).any():
+        R = np.diag(np.nanvar(X, axis=0))
+    return R
+
+
+def angle_correcter(theta: np.ndarray, is_ULA: bool = True) -> np.ndarray:
     """
     Приводит углы к диапазону [-pi/2, pi/2], сохраняя то же значение синуса.
-    """
-    # Приведение к диапазону [-pi, pi]
-    theta = (theta + np.pi) % (2 * np.pi) - np.pi
-    # Отражение значений, выходящих за пределы [-pi/2, pi/2]
-    mask = theta > np.pi/2
-    theta[mask] = np.pi - theta[mask]
-    mask = theta < -np.pi/2
-    theta[mask] = -np.pi - theta[mask]
-    return np.sort(theta)
 
-
-def random_complex_cov(n: int, max_real: float, seed: int|None = None):
-    """
-    Создаёт случайную эрмитову неотрицательно определённую матрицу размера n×n.
-    
     Parameters
     ---------------------------------------------------
-    n: int
-        Размер матрицы.
-    max_real: float
-        Определяет максимальное значение действительной части
-        элементов создаваемой матрицы.
-    seed: int|None
-        Фиксирует генератор случайных чисел.
+    theta: int
+        Исходный вектор углов.
+    is_ULA: bool
+        Является ли антенная решетка равномерной линейной, если да,
+        требуется приведение углов к [-pi/2; pi/2].
     
     Returns
     ---------------------------------------------------
-    C: np.ndarray
-        Эрмитова, неотрицательно определенная матрица.
+    new_theta: np.ndarray
+        Скорректированный вектор углов.
     """
-    if seed is not None:
-        np.random.seed(seed)
-    else:
-        seed = 42
-
-    A = (np.random.RandomState(seed).randn(n, n) 
-         + 1j * np.random.RandomState(seed+1).randn(n, n))
-    C = A @ A.conj().T
-    C /= np.trace(C).real
-
-    if max_real is not None:
-        C *= max_real
-    return C
+    # Приведение к диапазону [-pi, pi]
+    theta = (theta + np.pi) % (2 * np.pi) - np.pi
+    if is_ULA:
+        # Отражение значений, выходящих за пределы [-pi/2, pi/2]
+        mask = theta > np.pi/2
+        theta[mask] = np.pi - theta[mask]
+        mask = theta < -np.pi/2
+        theta[mask] = -np.pi - theta[mask]
+    return theta
 
 
 def MUSIC_DoA(R: np.ndarray, 
