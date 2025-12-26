@@ -41,6 +41,7 @@ def new_init_est(K: int,
                  Q: np.ndarray,
                  R: np.ndarray,
                  L: int| None = None,
+                 eps: float = 1e-3,
                  seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Создает первоначальную оценку DoA и ковариационной матрицы 
@@ -57,6 +58,8 @@ def new_init_est(K: int,
         Оценка ковариации наблюдений.
     L: int
         Количество сенсоров в антенной решетке.
+    eps: float
+        Минимальное значение мощности источника.
     seed: int
         Randomstate для генерации данных.
 
@@ -78,7 +81,7 @@ def new_init_est(K: int,
     P = np.zeros(K)
     res = R - Q
     for i in range(P.shape[0]):
-        P[i] = (A[:,i].conj().T @ res @ A[:,i]) / np.linalg.norm(A[:,i])**4
+        P[i] = max((10 * A[:,i].conj().T @ res @ A[:,i]).real / np.linalg.norm(A[:,i])**4, eps)
     print(f"theta={theta},P={P}")
     return np.sort(theta), np.diag(P)
 
@@ -105,10 +108,10 @@ def Cov_signals(mu: np.ndarray,
         Новая оценка ковариационной матрицы исходных сигналов.
     """
     G = mu.shape[1]
-    print(f"sigma={sigma}")
-    print(f"M[X]M[X]={(1/G) * mu @ mu.conj().T}")
+    #print(f"sigma={sigma}")
+    #print(f"M[X]M[X]={(1/G) * mu @ mu.conj().T}")
     res = (1/G) * mu @ mu.conj().T + sigma
-    print(f'Cov_signals ={res}')
+    #print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
     res = res * np.eye(res.shape[0], res.shape[1], dtype=np.complex128)
     return res.real
@@ -226,7 +229,7 @@ def EM(angles: np.ndarray,
     L = Q.shape[0]
     G = X.shape[0]
 
-    print(f'Initial angles = {angles}')
+    #print(f'Initial angles = {angles}')
 
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1]+1)
@@ -264,7 +267,7 @@ def EM(angles: np.ndarray,
         
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = sensors.complex_cov(X_modified) + K_Xm_cond_accum / G
-        print(f"Is SPD K_XX {sensors.is_spd(K_XX)}")
+        #print(f"Is SPD K_XX {sensors.is_spd(K_XX)}")
         K_XX = 0.5 * (K_XX + K_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
@@ -334,9 +337,11 @@ def multi_start_EM(X: np.ndarray,
         Оценка неполного правдоподобия.
     """
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
+    L = X.shape[1]
+    R = sensors.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = old_init_est(K, seed=i*100)
+        angles, P = new_init_est(K, Q, R, L, seed=i*100)
         est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
