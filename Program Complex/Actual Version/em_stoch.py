@@ -77,15 +77,16 @@ def new_init_est(K: int,
     theta = np.array([(start + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
     theta = np.sort(theta)
     A = dss.A_ULA(L, theta)
-
-    P = np.zeros(K)
+    the_norm = np.linalg.norm(A, axis=0)
+    A = A / the_norm
+    pA = np.linalg.pinv(A)
     res = R - Q
-    for i in range(P.shape[0]):
-        P[i] = max((10 * A[:,i].conj().T @ res @ A[:,i]).real / np.linalg.norm(A[:,i])**4, eps)
+    P_normed = np.diag(pA @ res @ pA.conj().T).copy()
+    for i in range(P_normed.shape[0]):
+        P_normed[i] = max(P_normed[i], eps)
+    P = P_normed / the_norm
     print(f"theta={theta},P={P}")
     return np.sort(theta), np.diag(P)
-
-    
 
 
 def Cov_signals(mu: np.ndarray, 
@@ -113,8 +114,10 @@ def Cov_signals(mu: np.ndarray,
     res = (1/G) * mu @ mu.conj().T + sigma
     #print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
-    res = res * np.eye(res.shape[0], res.shape[1], dtype=np.complex128)
-    return res.real
+    res_masked = res.copy()
+    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
+    print(f'res={res_masked}')
+    return res_masked.real
 
 
 def if_converged(angles:np.ndarray, 
@@ -267,7 +270,10 @@ def EM(angles: np.ndarray,
         
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         K_XX = sensors.complex_cov(X_modified) + K_Xm_cond_accum / G
-        #print(f"Is SPD K_XX {sensors.is_spd(K_XX)}")
+
+        if not sensors.is_psd(K_XX):
+            print(f"K_XX is unusual")
+        #print(f"Is PSD K_XX {sensors.is_psd(K_XX)}")
         K_XX = 0.5 * (K_XX + K_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
         K_XS = A @ P
@@ -280,14 +286,17 @@ def EM(angles: np.ndarray,
         Sigma_XS = K_XX @ np.linalg.inv(R) @ A @ P
         Sigma_SS = Cov_signals(Mu_S_cond, K_S_cond)
 
+        if not sensors.is_psd(Sigma_SS):
+            print(f"Sigma_SS is unusual")
+
         # М-шаг
         new_angles = optim_doa.find_angles(Sigma_XS, angles, 
                                             Sigma_SS, Q_inv_sqrt)
+        print(f"new_angles={new_angles}")
         new_angles = sensors.angle_correcter(new_angles)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         new_P = Sigma_SS
-        #print(f"new_P={new_P}")
         new_P[:] = new_P[np.ix_(idx, idx)]
         lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
         if if_converged(angles, new_angles, P, new_P, rtol):
@@ -296,6 +305,8 @@ def EM(angles: np.ndarray,
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
+        if lkhd > 0:
+            print(f"Parameters of interest are angles={angles}, P={P}")
         EM_Iteration += 1
         
     return angles, P, lkhd

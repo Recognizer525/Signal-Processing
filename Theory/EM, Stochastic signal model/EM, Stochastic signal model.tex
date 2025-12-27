@@ -99,11 +99,10 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \item
 Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{\text{K}})\, \text{mod} \, 2\pi, i = 1,\ldots,\text{K}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
 \end{enumerate}
-Диагональные элементы матрицы $\mathbf{\Gamma}$ задаем с помощью равномерного распределения:
+Диагональные элементы матрицы $\mathbf{\Gamma}$ задаем с помощью наименьших квадратов:
 \begin{equation}
-p_{jj} \sim \mathcal{U}([0,2; 5]),
+\Gamma = A^+(\hat{R}_0-Q)(A^+)^*.
 \end{equation}
-где $j = 1,\ldots,\text{K}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
 \end{center}

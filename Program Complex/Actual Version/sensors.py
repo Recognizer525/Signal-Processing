@@ -109,14 +109,34 @@ def complex_cov(X: np.ndarray, ddof: int = 0, reg=True) -> np.ndarray:
     return Cov
 
 
-def initial_Cov(X: np.ndarray):
+def initial_Cov(X: np.ndarray, min_complete: int = 8):
     """
     Начальная оценка матрицы ковариации для набора наблюдений с пропусками.
+    
+    X: shape (n_samples, n_features)
+        Выборка.
+    min_complete: int
+        Минимальное число полных наблюдений, чтобы исключительно по ним оценить ковариацию.
     """
-    observed_rows = np.where(np.isnan(sum(X.T)) == False)[0]
-    R = complex_cov(X[observed_rows, ])
-    if np.isnan(R).any():
+    # Строки без пропусков
+    observed_rows = np.where(~np.isnan(X).any(axis=1))[0]
+
+    # если достаточно полных наблюдений
+    if len(observed_rows) >= min_complete:
+        R = complex_cov(X[observed_rows, :])
+    else:
+        # Заполнение средним (mean imputation) по столбцам
+        X_filled = X.copy()
+        col_means = np.nanmean(X_filled, axis=0)
+        inds = np.where(np.isnan(X_filled))
+        X_filled[inds] = np.take(col_means, inds[1])
+        R = complex_cov(X_filled)
+
+    # На крайний случай
+    if np.isnan(R).any() or not np.all(np.isfinite(R)):
         R = np.diag(np.nanvar(X, axis=0))
+
+    R += 1e-6 * np.eye(R.shape[0])
     return R
 
 
@@ -198,7 +218,7 @@ def is_diagonal(A: np.ndarray) -> bool:
     return np.all(A == np.diag(np.diagonal(A)))
 
 
-def is_spd(A: np.ndarray, tol: float = 1e-6) -> bool:
+def is_psd(A: np.ndarray, tol: float = 1e-6) -> bool:
     """
     Проверяет, что матрица A симметрична и положительно определена.
     """

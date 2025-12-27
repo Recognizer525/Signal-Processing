@@ -1,7 +1,7 @@
 import numpy as np
 
 import sensors
-import optim_doa
+import optim_doa_custom
 import diff_sensor_structures as dss
 
 def init_est(K: int,
@@ -79,8 +79,10 @@ def Cov_signals(mu: np.ndarray,
     res = (1/G) * mu @ mu.conj().T + sigma
     print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
-    res = res * np.eye(res.shape[0], res.shape[1], dtype=np.complex128)
-    return res.real
+    res_masked = res.copy()
+    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
+    print(f'res={res_masked}')
+    return res_masked.real
 
 
 def if_converged(angles:np.ndarray, 
@@ -253,7 +255,7 @@ def EM(angles: np.ndarray,
         Sigma_SS = Cov_signals(Mu_S_cond, K_S_cond)
 
         # М-шаг
-        new_angles = optim_doa.find_angles(Sigma_XS, angles, 
+        new_angles = optim_doa_custom.find_angles(Sigma_XS, angles, 
                                             Sigma_SS, Q_inv_sqrt)
         new_angles = sensors.angle_correcter(new_angles)
         idx = np.argsort(new_angles)

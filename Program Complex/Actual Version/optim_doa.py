@@ -71,6 +71,8 @@ def find_angles_start(Sigma_XS_np: np.ndarray,
     res.fun: float
         Значение минимизируемой фробениусовой нормы для полученной оценки DoA.
     """
+    if bounds is None:
+        bounds = [(-np.pi/2, np.pi/2)] * len(theta0_np)
     def fun(theta_np: np.ndarray) -> tuple[float, np.ndarray]:
         """
         Возвращает значение функции потерь и значение градиента.
@@ -98,8 +100,7 @@ def find_angles(Sigma_XS_np: np.ndarray,
                 P_np: np.ndarray, 
                 Q_inv_sqrt_np: np.ndarray, 
                 num_of_starts: int = 7,
-                bounds: object = None,
-                method: str = 'SLSQP') -> np.ndarray:
+                bounds: object = None) -> np.ndarray:
     """
     Функция предназначена для поиска оценки DoA, которая минимизирует норму
     ||Q^{-1/2}(Sigma_XS-AP)||^2_F.
@@ -120,8 +121,6 @@ def find_angles(Sigma_XS_np: np.ndarray,
         оптимизационный процесс.
     bounds: object
         Границы, в пределах которых надо искать оптимальное значение вектора DoA.
-    method: str
-        Метод оптимизации функции потерь для DoA.
 
     Returns
     ---------------------------------------------------------------------------
