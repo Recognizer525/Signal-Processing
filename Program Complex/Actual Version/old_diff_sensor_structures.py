@@ -60,7 +60,7 @@ def A_custom(coords: np.ndarray,
 
 
 def A_ULA_torch(L: int, 
-                u: torch.Tensor, 
+                theta: torch.Tensor, 
                 dist: float = DIST_RATIO) -> torch.Tensor:
     """
     Создает матрицу векторов направленности для линейной равномерной антенной
@@ -70,8 +70,8 @@ def A_ULA_torch(L: int,
     ---------------------------------------------------------------------------
     L: int
         Число сенсоров.
-    u: torch.Tensor
-        Направляющие косинусы, shape (K,) или (K,1), u ∈ [-1, 1].
+    theta: torch.Tensor
+        Оценка DoA, размер (K,1) или (K,).
     
     Returns
     ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ def A_ULA_torch(L: int,
     """
     sensor_indices = torch.arange(L).reshape(-1, 1).float() 
     return torch.exp(-2j * torch.pi * dist * 
-                     sensor_indices * u)
+                     sensor_indices * torch.sin(theta))
 
 
 def A_custom_torch(coords: torch.Tensor, 

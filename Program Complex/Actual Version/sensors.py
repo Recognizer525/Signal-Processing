@@ -37,7 +37,30 @@ def MCAR(X: np.ndarray,
         mis_cols=[mis_cols]
     if type(share_mv)==int:
         share_mv=[share_mv]
-    assert len(mis_cols)==len(share_mv)
+
+  
+    # Проверяем длины списков
+    assert len(mis_cols) == len(share_mv), \
+    "mis_cols и num_mv должны быть одной длины"
+
+    # Проверяем X
+    assert isinstance(X, np.ndarray) and X.ndim == 2, \
+    "X должен быть двумерным numpy-массивом"
+
+    # Проверяем индексы столбцов
+    n_cols = X.shape[1]
+    assert all(isinstance(c, int) for c in mis_cols), \
+    "mis_cols должен содержать целые индексы"
+    assert all(0 <= c < n_cols for c in mis_cols), \
+    "Индекс столбца вне диапазона"
+
+    # Проверяем число пропусков
+    n_rows = X.shape[0]
+    assert all(isinstance(n, float) for n in share_mv), \
+        "num_mv должен содержать целые числа"
+    assert all(0 <= n <= 1 for n in share_mv), \
+        "num_mv не может превышать число строк"
+
     X1 = X.copy()
     n_rows = X.shape[0]
     for i, col in enumerate(mis_cols):
