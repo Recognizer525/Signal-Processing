@@ -167,7 +167,10 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$. \\
 где $\hat{s} = [ \mu_{S_1|X_{1, o_1}}^{(\tau)},\ldots,\mu_{S_\text{L}|X_{\text{L}, o_\text{L}}}^{(\tau)} ]$. Заметим, что $\Sigma_{S_t|X_{t, o_t} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}$ не зависит от $t$.
 Остается оценить кросс-ковариацию $\Sigma_{XS}=\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*]$:
 \begin{equation}
-\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*] = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} = \Sigma_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\begin{gathered}
+\Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[X S^*] = \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \\
+= \Sigma_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\end{gathered}
 \end{equation}
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
