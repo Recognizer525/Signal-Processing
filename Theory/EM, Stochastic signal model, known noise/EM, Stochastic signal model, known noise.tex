@@ -127,7 +127,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \end{equation*}
 Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. Воспользуемся формулой произведения плотностей:
 \begin{gather}
-P(X_m,S|\mathcal{I}) = P(X_m|\mathcal{I}) \cdot P(S|\mathcal{I}, X_m).
+P(X_m,S|\mathcal{I}) = P(X_m|\mathcal{I}) \cdot P(S|X_m, \mathcal{I}).
 \end{gather}
 Сначала найдем апостериорное распределение $P(X_m|\mathcal{I})$, причем ввиду того, что индексы, соответствующие пропущенным значениям в наблюдениях, могут отличаться в зависимости от t, будем находить апостериорное распределение для каждого $X_{t, m_t}$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
 \begin{equation}
@@ -168,30 +168,28 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{pmatrix},
 \end{gathered}
 \end{equation*}
-где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$.
-Оценим ковариационную матрицу наблюдений с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$ (действуем по аналогии с М-шагом для стандартного ЕМ-алгоритма оценки параметров гауссовского распределения по выборке из одинаково распределенных наблюдений, содержащих пропуски). \\
+где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
+Оценим условную ковариационную матрицу наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$:
 \begin{equation}
-\widetilde{\Sigma}_X = \frac{1}{\text{T}} \hat{x} \hat{x}^*  + \frac{1}{\text{T}} \Big( \sum_{t=1}^G \widetilde{R}_t \Big),
+\widetilde{\Sigma}_X = \frac{1}{\text{T}}\sum_{t=1}^T \widetilde{\Sigma}_{X_t}.
 \end{equation}
-где $\widetilde{R}_t$ -- матрица, в которой элементы $(\widetilde{R}_t)_{ij}$, такие что $i,j \in m_t$ образуют $\Sigma_{X_{t, m_t}|X_{t, o_t}=x_{t, o_t}, \Psi^{(\tau-1)}}^{(\tau)}$, а остальные элементы равны нулю, $\hat{x}$ -- реализация $x$ матрицы наблюдений $X$, в которой значения $x_{t, m_t}$ оценены как $\hat{x}_{t, m_t}=\mu_{X_{t, m_t}|X_{t, o_t}=x_{t, o_t}, \Psi^{(\tau-1)}}^{(\tau)}$ для всех $t \in \{1,\ldots,\text{T}\}$.
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t, X_{t, m_t}), t = 1,\ldots, \text{L}$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^*\Big(\widetilde{\Sigma}_X\Big)^{-1}\Expect[X_t|\mathcal{I}_t], \\
-\Sigma_{S|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*\Big(\widetilde{\Sigma}_X\Big)^{-1}\text{A}\mathbf{\Gamma},
+\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\Expect[X_t|\mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
-где $\text{A}=\text{A}(\theta^{(\tau-1)}), \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{x}_t$ -- реализация $x_t$ наблюдения $X_t$, в котором значения  $x_{t,m_t}$ оценены как $\hat{x}_{t,m_t}, t=1,\ldots,\text{T}$. \\
+где $\text{A}=\text{A}(\theta^{(\tau-1)}), \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
 Оценим ковариационную матрицу сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|\mathcal{I}}[SS^*]$. \\
 \begin{equation}
-\widetilde{\Sigma}_S = \frac{1}{\text{\text{T}}} \hat{s} \hat{s}^*  + \frac{1}{\text{T}} \Big( \sum_{t=1}^T \Sigma_{S_t|X_{t, o_t} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}^{(\tau)} \Big),
+\widetilde{\Sigma}_S =  \frac{1}{\text{T}} \Big[ \sum_{t=1}^T \big( \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} + \mu_{S_t|\mathcal{I}_t, X_{t, m_t}} \cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^H \big) \Big].
 \end{equation}
-где $\hat{s} = [ \mu_{S_1|X_{1, o_1}}^{(\tau)},\ldots,\mu_{S_\text{L}|X_{\text{L}, o_\text{L}}}^{(\tau)} ]$. Заметим, что $\Sigma_{S_t|X_{t, o_t} = x_{t, o_t}, X_{t, m_t}, \Psi^{(\tau-1)}}$ не зависит от $t$.
 Остается оценить кросс-ковариацию $\Sigma_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
 \begin{equation}
 \begin{gathered}
 \Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \Expect_{(X_m,S)|\mathcal{I}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \\
-= \Sigma_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+= \widetilde{\Sigma}_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
 \end{gathered}
 \end{equation}
 \begin{center}
