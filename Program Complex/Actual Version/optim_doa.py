@@ -93,7 +93,7 @@ def find_angles(Sigma_XS_np: np.ndarray,
                 theta0_np: np.ndarray, 
                 P_np: np.ndarray, 
                 Q_inv_sqrt_np: np.ndarray, 
-                num_of_starts: int = 7) -> np.ndarray:
+                num_of_starts: int = 15) -> np.ndarray:
     """
     Функция предназначена для поиска оценки DoA, которая минимизирует норму
     ||Q^{-1/2}(Sigma_XS-AP)||^2_F.
