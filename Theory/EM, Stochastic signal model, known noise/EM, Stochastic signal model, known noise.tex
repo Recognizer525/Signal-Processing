@@ -60,7 +60,7 @@
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{ \S1 Постановка проблемы}}
 \end{center}
-Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{L}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: |o_t|=0$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. \\ Набор наблюдений $X$ является результатом следующей модели наблюдений:
+Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: |o_t|=0$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. \\ Набор наблюдений $X$ является результатом следующей модели наблюдений:
 \begin{equation}
 X = \text{A} S + N,
 \end{equation}
@@ -68,7 +68,7 @@ X = \text{A} S + N,
 \begin{equation}
 X=[X_1,\ldots, X_\text{T}], S=[S_1,\ldots, S_\text{T}], N=[N_1,\ldots, N_\text{T}],
 \end{equation}
-и $X_t \in \Complex^{L \times \text{T}}, S_t \in \Complex^{K \times \text{T}}, N_t \in \Complex^{L \times \text{T}}$ -- векторы-столбцы, соответствующие наблюдениям, источникам и шумам в момент времени  $t = 1, \ldots, \text{T}$, $\text{A}$ -- матрица векторов направленности для равномерного линейного массива:
+и $X_t \in \Complex^{\text{L} \times \text{T}}, S_t \in \Complex^{\text{K} \times \text{T}}, N_t \in \Complex^{\text{L} \times \text{T}}$ -- векторы-столбцы, соответствующие наблюдениям, источникам и шумам в момент времени  $t = 1, \ldots, \text{T}$, $\text{A}$ -- матрица векторов направленности для равномерного линейного массива:
 \begin{equation}
 \text{A}(\theta) = \begin{bmatrix}
 1&1&\dots&1\\
@@ -121,8 +121,8 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
  \Expect_{(X_m,S)|\mathcal{I}}[\log( P(X|S) P(S))] = \\
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
--\text{T} \Big[ \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
-+ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
+-\Big[ \text{T} \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \text{T}  \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
 Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. Воспользуемся формулой произведения плотностей:
@@ -185,11 +185,17 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation}
 \widetilde{\Sigma}_S =  \frac{1}{\text{T}} \Big[ \sum_{t=1}^T \big( \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} + \mu_{S_t|\mathcal{I}_t, X_{t, m_t}} \cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^H \big) \Big].
 \end{equation}
-Остается оценить кросс-ковариацию $\Sigma_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
+Остается оценить кросс-ковариацию $\widetilde{\Sigma}_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
 \begin{equation}
 \begin{gathered}
-\Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \Expect_{(X_m,S)|\mathcal{I}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \\
-= \widetilde{\Sigma}_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_tX_t^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \\
+= \widetilde{\Sigma}_{X_t} (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\end{gathered}
+\end{equation}
+\begin{equation}
+\begin{gathered}
+\widetilde{\Sigma}_{XS}= \Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \frac{1}{\text{T}} \sum_{t=1}^T \Big( \widetilde{\Sigma}_{X_t} (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \Big) = \\
+= \widetilde{\Sigma}_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}
 \end{gathered}
 \end{equation}
 \begin{center}
@@ -235,7 +241,7 @@ O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1} \Rightarrow M
 \begin{equation}
 \mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\widetilde{\Sigma}_S \Big].
 \end{equation}
-Обновляем оценку ковариации наблюдений с учетом поулченных оценок параметров:
+Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
 \begin{equation}
 \hat{\text{R}}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}\text{A}^*(\theta^{(\tau)}) + \mathbf{\Lambda}.
 \end{equation}

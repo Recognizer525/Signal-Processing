@@ -1,0 +1,195 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Е-шаг}}
+\end{center}
+Требуется найти математическое ожидание полного правдоподобия с учетом  текущей оценки параметров и апостериорного совместного распределения пропущенных значений в наблюдениях $X_m$ и сигналов $S$ 
+\begin{equation}
+ \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
+\end{equation}
+Преобразуем выражение, обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Psi^{(\tau-1)}$:
+\begin{equation*}
+\begin{gathered}
+ \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
+ \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
+-\text{T} \Big[ \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
+\end{gathered}
+\end{equation*}
+Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. Воспользуемся формулой произведения плотностей:
+\begin{gather}
+P(X_m,S|\mathcal{I}) = P(X_m|\mathcal{I}) \cdot P(S|X_m, \mathcal{I}).
+\end{gather}
+Сначала найдем апостериорное распределение $P(X_m|\mathcal{I})$, причем ввиду того, что индексы, соответствующие пропущенным значениям в наблюдениях, могут отличаться в зависимости от t, будем находить апостериорное распределение для каждого $X_{t, m_t}$. Создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
+\begin{equation}
+\hat{\text{R}} =
+\begin{pmatrix}
+\hat{\text{R}}_{o_t, o_t} & \hat{\text{R}}_{o_t, m_t}\\
+\hat{\text{R}}_{m_t, o_t} & \hat{\text{R}}_{m_t, m_t}
+\end{pmatrix},
+\end{equation}
+где каждый блок определяется как
+\begin{equation*}
+\hat{\text{R}}_{a,b} = (\hat{\text{R}}_{ij})_{i \in a, j \in b}.
+\end{equation*}
+Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $P(X_{t, m_t}|X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}), t=1,\ldots,\text{T}, |m_t|>0$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}$.
+Параметры апостериорного распределения $P(X_{t, m_t}|\mathcal{I}_t), t=1,\ldots,\text{T}$ на итерации $\tau$ можно найти следующим образом:
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{X_{t, m_t}|\mathcal{I}_t} &= \hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\cdot x_{t, o_t}, \\
+\Sigma_{X_{t, m_t}|\mathcal{I}_t} &= \hat{\text{R}}_{m_t, m_t}-\hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\hat{\text{R}}_{o_t, m_t},
+\end{aligned} \right.
+\end{equation}
+где $\hat{\text{R}}_{o_t, o_t}= \hat{\text{R}}_{o_t, o_t}^{(\tau-1)}$, 
+$\hat{\text{R}}_{o_t, m_t}= \hat{\text{R}}_{o_t, m_t}^{(\tau-1)}$, 
+$\hat{\text{R}}_{m_t, o_t}= \hat{\text{R}}_{m_t, o_t}^{(\tau-1)}$,
+$\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
+Для каждого наблюдения $X_t$ оценим условную ковариационную матрицу $\widetilde{\Sigma}_{X_t} =\Expect_{X_{m_t}|\mathcal{I}_t}[X_t X_t^*]$:
+\begin{equation*}
+\begin{gathered}
+\widetilde{\Sigma}_{X_t} = 
+\begin{pmatrix}
+\mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}\\
+\mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}+ \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
+\end{pmatrix} = \\
+\Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t | \mathcal{I}_t]^* +
+\begin{pmatrix}
+\mathbf{O}_{o_t, o_t} & \mathbf{O}_{o_t, m_t} \\
+\mathbf{O}_{m_t, o_t} & \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
+\end{pmatrix},
+\end{gathered}
+\end{equation*}
+где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
+Оценим условную ковариационную матрицу наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$:
+\begin{equation}
+\widetilde{\Sigma}_X = \frac{1}{\text{T}}\sum_{t=1}^T \widetilde{\Sigma}_{X_t}.
+\end{equation}
+Параметры апостериорного распределения $P(S_t|\mathcal{I}_t, X_{t, m_t}), t = 1,\ldots, \text{L}$ можно найти исходя из следующих формул:
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\Expect[X_t|\mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\text{A}\mathbf{\Gamma},
+\end{aligned} \right.
+\end{equation}
+где $\text{A}=\text{A}(\theta^{(\tau-1)}), \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
+Оценим ковариационную матрицу сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|\mathcal{I}}[SS^*]$. \\
+\begin{equation}
+\widetilde{\Sigma}_S =  \frac{1}{\text{T}} \Big[ \sum_{t=1}^T \big( \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} + \mu_{S_t|\mathcal{I}_t, X_{t, m_t}} \cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^H \big) \Big].
+\end{equation}
+Остается оценить кросс-ковариацию $\Sigma_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
+\begin{equation}
+\begin{gathered}
+\Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \Expect_{(X_m,S)|\mathcal{I}}[XX^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} \\
+= \widetilde{\Sigma}_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}.
+\end{gathered}
+\end{equation}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{Тест}}
+\end{center}
+Параметры апостериорного распределения $P(S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}), t = 1,\ldots, \text{T}$ можно найти исходя из следующих формул:
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W\text{A}^H R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\Expect[X_t|X_{t,o_t}=x_{t,o_t}, k^{(j-1)}, W^{(j-1)}], \\
+\Sigma_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W - W\text{A}^H R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\text{A}W,
+\end{aligned} \right.
+\end{equation}
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W\text{A}^H\widetilde{\Sigma}_{X_t}^{-1}\Expect[X_t|X_{t,o_t}=x_{t,o_t}, k^{(j-1)}, W^{(j-1)}], \\
+\Sigma_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W - W\text{A}^H\widetilde{\Sigma}_{X_t}^{-1}\text{A}W,
+\end{aligned} \right.
+\end{equation}
+\begin{equation}
+\left\{ \begin{aligned} 
+\mu_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W\text{A}^HR^{-1}\Expect[X_t|X_{t,o_t}=x_{t,o_t}, k^{(j-1)}, W^{(j-1)}], \\
+\Sigma_{S_t|X_{t,o_t}=x_{t,o_t}, X_{t, m_t}, k^{(j-1)}, W^{(j-1)}} &= W - W\text{A}^HR^{-1}\text{A}W,
+\end{aligned} \right.
+\end{equation}
+где 
+\begin{equation*}
+\begin{gathered}
+\widetilde{\Sigma}_{X_t} = 
+\begin{pmatrix}
+\mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}\\
+\mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}+ \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
+\end{pmatrix} = \\
+\Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t | \mathcal{I}_t]^* +
+\begin{pmatrix}
+\mathbf{O}_{o_t, o_t} & \mathbf{O}_{o_t, m_t} \\
+\mathbf{O}_{m_t, o_t} & \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
+\end{pmatrix},
+\end{gathered}
+\end{equation*}
+где $\mathcal{I}_t=X_{t, o_t}=x_{t, o_t},k^{(j-1)}, W^{(j-1)}$.
+\clearpage
+Пусть $\mathcal{I}$  --- комплекс условий $X_{o}=x_{o},k^{(j-1)}, W^{(j-1)}$.
+Пусть $\mathcal{I}_t$  --- комплекс условий $X_{t, o_t}=x_{t, o_t},k^{(j-1)}, W^{(j-1)}$.
+\begin{equation*}
+\begin{gathered}
+ \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
+ \Expect_{(X_m,S)|\mathcal{I}}[\log( P(X|S) P(S))] = \\
+ \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
+-\Big[ \text{T} \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^H] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^H]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^H] \text{A}^*(\theta)) + \text{T}  \log |W| + \Tr(W^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^H]) \Big].
+\end{gathered}
+\end{equation*}
+Могу ли я рассчитать $\Expect_{(X_m,S)|\mathcal{I}}[SS^H], \Expect_{(X_m,S)|\mathcal{I}}[XS^H], \Expect_{(X_m,S)|\mathcal{I}}[XX^H]$ как усредненные величины по $t$. Ну то есть: вот есть величины $\Expect_{(X_m,S)|\mathcal{I}_t}[S_tS_t^H], t=1,\ldots,T$. Я могу посчитать так:
+\begin{equation}
+\Expect_{(X_m,S)|\mathcal{I}}[SS^H] = \frac{1}{T} \sum_{t=1}^T \Expect_{(X_m,S)|\mathcal{I}_t}[S_tS_t^H]
+\end{equation}
+\end{document}
+
