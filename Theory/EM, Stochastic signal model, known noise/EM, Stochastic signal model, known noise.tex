@@ -176,8 +176,8 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t, X_{t, m_t}), t = 1,\ldots, \text{L}$ можно найти исходя из следующих формул:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\Expect[X_t|\mathcal{I}_t], \\
-\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^* R^{-1}\widetilde{\Sigma}_{X_t} R^{-1}\text{A}\mathbf{\Gamma},
+\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* \widetilde{\Sigma}_{X_t}^{-1}\Expect[X_t|\mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \widetilde{\Sigma}_{X_t}^{-1}\text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)}), \mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
@@ -198,6 +198,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 = \widetilde{\Sigma}_X (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)}
 \end{gathered}
 \end{equation}
+\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
