@@ -233,23 +233,63 @@ def EM(angles: np.ndarray,
                 Cov_aposterior_Xm[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                             np.linalg.inv(R_OO) @ 
                                                             R_MO.conj().T)
-
+        
+        if np.isnan(X_modified).any() or np.isinf(X_modified).any():
+            print('Terrible X_modified')
         print(f"X_modified.shape={X_modified.shape}")
+
+        if np.isnan(Cov_aposterior_Xm).any() or np.isinf(Cov_aposterior_Xm).any():
+            print('Terrible Cov_aposterior_Xm')
+        print(f"Cov_aposterior_Xm.shape={Cov_aposterior_Xm.shape}")
+        for i in range(Cov_aposterior_Xm.shape[0]):
+            if not sensors.is_psd(Cov_aposterior_Xm[i]):
+                print(f"is_psd Cov_aposterior_Xm[{i}] = {sensors.is_psd(Cov_aposterior_Xm[i])}")
+
+
         Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
+
+        if np.isnan(Mu_X_Mu_X_H).any() or np.isinf(Mu_X_Mu_X_H).any():
+            print('Terrible Mu_X_Mu_X_H')
         print(f"Mu_X_Mu_X_H.shape={Mu_X_Mu_X_H.shape}")
+        for i in range(Mu_X_Mu_X_H.shape[0]):
+            if not sensors.is_psd(Mu_X_Mu_X_H[i]):
+                print(f"is_psd Mu_X_Mu_X_H[{i}] = {sensors.is_psd(Mu_X_Mu_X_H[i])}")
+
+
         Cov_aposterior_X_arr = Mu_X_Mu_X_H + Cov_aposterior_Xm + 1e-4 * np.eye(Q.shape[0])
+
+        if np.isnan(Cov_aposterior_X_arr).any() or np.isinf(Cov_aposterior_X_arr).any():
+            print('Terrible Cov_aposterior_X_arr')
+        print(f"Cov_aposterior_X_arr.shape={Cov_aposterior_X_arr.shape}")
         for i in range(Cov_aposterior_X_arr.shape[0]):
-            print(f"{i}-th matrix, det is {np.linalg.det(Cov_aposterior_X_arr[i])}")
-            if i == 11:
-                print(Cov_aposterior_X_arr[i])
-        #print(f"Cov_aposterior_X_arr={Cov_aposterior_X_arr}")
+            if not sensors.is_psd(Cov_aposterior_X_arr[i]):
+                print(f"is_psd Cov_aposterior_X_arr[{i}] = {sensors.is_psd(Cov_aposterior_X_arr[i])}")
+        
+
+        #for i in range(Cov_aposterior_X_arr.shape[0]):
+            #print(f"Iteration = {i}, Cov = {Cov_aposterior_X_arr[i]}")
+        
         Cov_aposterior_X_arr_inv = np.linalg.inv(Cov_aposterior_X_arr)
+
+        if np.isnan(Cov_aposterior_X_arr_inv).any() or np.isinf(Cov_aposterior_X_arr_inv).any():
+            print('Terrible Cov_aposterior_X_arr_inv')
+        print(f"Cov_aposterior_X_arr_inv.shape={Cov_aposterior_X_arr_inv.shape}")
+        for i in range(Cov_aposterior_X_arr_inv.shape[0]):
+            if not sensors.is_psd(Cov_aposterior_X_arr_inv[i]):
+                print(f"is_psd Cov_aposterior_X_arr_inv[{i}] = {sensors.is_psd(Cov_aposterior_X_arr_inv[i])}")
+
+
+
+
 
         Sigma_XX = np.mean(Cov_aposterior_X_arr, axis=0)
 
+        if np.isnan(Sigma_XX).any() or np.isinf(Sigma_XX).any():
+            print('Terrible Sigma_XX')
+        print(f"Sigma_XX.shape={Sigma_XX.shape}")
         if not sensors.is_psd(Sigma_XX):
             print(f"Sigma_XX is unusual")
-        #print(f"Is PSD K_XX {sensors.is_psd(K_XX)}")
+
         # Вычисляем блоки совместной ковариации исходных и принятых сигналов
         Sigma_XX = 0.5 * (Sigma_XX + Sigma_XX.conj().T) + 1e-6 * np.eye(Q.shape[0])
         K_SS = P
@@ -259,9 +299,16 @@ def EM(angles: np.ndarray,
         C = K_SX @ Cov_aposterior_X_arr_inv
         Mu_S_cond = np.einsum('gml,lg->mg', C, X_modified.T)
         K_S_cond = K_SS - C @ K_XS
+
+        if np.isnan(K_S_cond).any() or np.isinf(K_S_cond).any():
+            print('Terrible K_S_cond')
+        print(f"K_S_cond.shape={K_S_cond.shape}")
+        print(f"mean of K_cond={np.mean(K_S_cond, axis=0)}")
+
         
         Sigma_XS = Sigma_XX @ np.linalg.inv(R) @ A @ P
         Sigma_SS = np.mean(np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T), axis=0) + np.mean(K_S_cond, axis=0)
+
 
         print(f"Sigma_SS.shape={Sigma_SS.shape}")
         print(f"Sigma_SS={Sigma_SS}")

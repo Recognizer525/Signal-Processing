@@ -118,6 +118,8 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
  \Expect_{(X_m,S)|\mathcal{I}}[\log( P(X|S) P(S))] = \\
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
+\Expect_{(X_m,S)|\mathcal{I}}\Big[\sum_{t=1}^T \log   P(X_t|S_t) + \sum_{t=1}^T \log P(S_t)\Big] = \\
+\Big[\sum_{t=1}^T  \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t} \log [P(X_t|S_t)] + \sum_{t=1}^T \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\log P(S_t)]\Big] = \\
 -\Big[ \text{T} \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \text{T}  \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
