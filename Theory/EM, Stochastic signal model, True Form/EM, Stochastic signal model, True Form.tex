@@ -194,15 +194,16 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Остается оценить кросс-ковариацию $\widetilde{\Sigma}_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
 \begin{equation}
 \begin{gathered}
-\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_tX_t^*] (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^*\\
-= \widetilde{\Sigma}_{X_t} (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^*.
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_tX_t^*] \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^*\\
+= \widetilde{\Sigma}_{X_t} \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^*,
 \end{gathered}
 \end{equation}
 \begin{equation}
 \begin{gathered}
-\widetilde{\Sigma}_{XS}= \Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \frac{1}{\text{T}} \sum_{t=1}^T \Big( \widetilde{\Sigma}_{X_t} (\hat{\text{R}}^{(\tau-1)})^{-1}\text{A}(\theta^{(\tau-1)})\mathbf{\Gamma}^{(\tau-1)} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^* \Big)
+\widetilde{\Sigma}_{XS}= \Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \frac{1}{\text{T}} \sum_{t=1}^T \Big( \widetilde{\Sigma}_{X_t} \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^* \Big),
 \end{gathered}
 \end{equation}
+где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$.
 \clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
