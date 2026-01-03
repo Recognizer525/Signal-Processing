@@ -60,7 +60,7 @@
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{ \S1 Постановка проблемы}}
 \end{center}
-Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: |o_t|=0$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. \\ Набор наблюдений $X$ является результатом следующей модели наблюдений:
+Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: o_t = \varnothing$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. \\ Набор наблюдений $X$ является результатом следующей модели наблюдений:
 \begin{equation}
 X = \text{A} S + N,
 \end{equation}
@@ -112,7 +112,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \begin{equation}
  \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
 \end{equation}
-Преобразуем выражение, обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Psi^{(\tau-1)}$, учитывая тот факт, что наблюдения являются независимыми:
+Преобразуем выражение, учитывая тот факт, что наблюдения являются независимыми, и обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Psi^{(\tau-1)}$ и через $\mathcal{I}_t$ условную информацию $X_{t,o_t}=x_{t,o_t}, \Psi^{(\tau-1)}$:
 \begin{equation*}
 \begin{gathered}
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
@@ -120,15 +120,16 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
 \Expect_{(X_m,S)|\mathcal{I}}\Big[\sum_{t=1}^T \log   P(X_t|S_t) + \sum_{t=1}^T \log P(S_t)\Big] = \\
 \Big[\sum_{t=1}^T  \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t} \log [P(X_t|S_t)] + \sum_{t=1}^T \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\log P(S_t)]\Big] = \\
--\Big[ \text{T} \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
-+ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \text{T}  \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
 Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. Воспользуемся формулой произведения плотностей:
 \begin{gather}
-P(X_m,S|\mathcal{I}) = P(X_m|\mathcal{I}) \cdot P(S|X_m, \mathcal{I}).
+P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t}, \mathcal{I}_t).
 \end{gather}
-Сначала найдем апостериорное распределение $P(X_m|\mathcal{I})$, причем ввиду того, что индексы, соответствующие пропущенным значениям в наблюдениях, могут отличаться в зависимости от t, будем находить апостериорное распределение для каждого $X_{t, m_t}$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
+Для наблюдений, не содержащих пропуски, апостериорное распределение упрощается следующим образом: $P(X_{t,m_t},S_t|\mathcal{I}_t)=P(S_t|\mathcal{I}_t)$.
+Сначала найдем апостериорное распределение $P(X_m|\mathcal{I})$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
 \begin{equation}
 \hat{\text{R}} =
 \begin{pmatrix}
@@ -152,7 +153,7 @@ P(X_m,S|\mathcal{I}) = P(X_m|\mathcal{I}) \cdot P(S|X_m, \mathcal{I}).
 $\hat{\text{R}}_{o_t, m_t}= \hat{\text{R}}_{o_t, m_t}^{(\tau-1)}$, 
 $\hat{\text{R}}_{m_t, o_t}= \hat{\text{R}}_{m_t, o_t}^{(\tau-1)}$,
 $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
-Для каждого наблюдения $X_t$ оценим условную ковариационную матрицу $\widetilde{\Sigma}_{X_t} =\Expect_{X_{m_t}|\mathcal{I}_t}[X_t X_t^*]$:
+Для каждого наблюдения $X_t$, содержащего пропуски, оценим условный второй начальный момент $\widetilde{\Sigma}_{X_t} =\Expect_{X_{m_t}|\mathcal{I}_t}[X_t X_t^*]$:
 \begin{equation*}
 \begin{gathered}
 \widetilde{\Sigma}_{X_t} = 
@@ -168,7 +169,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
-Оценим условную ковариационную матрицу наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$:
+Оценим условный второй начальный момент для набора наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$:
 \begin{equation}
 \widetilde{\Sigma}_X = \frac{1}{\text{T}}\sum_{t=1}^T \widetilde{\Sigma}_{X_t}.
 \end{equation}
@@ -187,11 +188,11 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
 \end{aligned} \right.
 \end{equation}
-Оценим ковариационную матрицу сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|\mathcal{I}}[SS^*]$. \\
+Оценим условный второй начальный момент для  набора сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|\mathcal{I}}[SS^*]$. \\
 \begin{equation}
 \widetilde{\Sigma}_S =  \frac{1}{\text{T}} \Big[ \sum_{t=1}^T \big( \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} + \mu_{S_t|\mathcal{I}_t, X_{t, m_t}} \cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^H \big) \Big].
 \end{equation}
-Остается оценить кросс-ковариацию $\widetilde{\Sigma}_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
+Остается величину $\widetilde{\Sigma}_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
 \begin{equation}
 \begin{gathered}
 \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_tX_t^*] \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^*\\
@@ -204,7 +205,6 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$.
-\clearpage
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
@@ -212,8 +212,8 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \begin{gathered}
 \Psi^{(\tau)}=\argmax_{\Psi} \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
-\argmin_{\Psi}  \Big[\text{T} \log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
-+ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \text{T} \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
+\argmin_{\Psi}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
 Оценим угловые координаты источников $\theta$:
@@ -229,20 +229,20 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \begin{gathered}
 \mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
- = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*])\bigg].
+ = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S)\bigg].
 \end{gathered}
 \end{equation*}
-Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции,  при этом обозначим через $M$ величину $\Expect_{(X_m,S)|\mathcal{I}}[S_t S_t^* ]$:
+Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
 \begin{equation*}
 \begin{gathered}
 \frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
-\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}M)= -\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1}, \\
-\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1}.
+\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S)= -\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1}, \\
+\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1}.
 \end{gathered}
 \end{equation*}
 Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
 \begin{equation*}
-O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}M\mathbf{\Gamma}^{-1} \Rightarrow M =\text{T}\mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \widetilde{\Sigma}_S.
+O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1} \Rightarrow \widetilde{\Sigma}_S = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \widetilde{\Sigma}_S.
 \end{equation*}
 Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
 \begin{equation}
