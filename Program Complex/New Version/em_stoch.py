@@ -248,15 +248,13 @@ def EM(angles: np.ndarray,
     A = dss.A_ULA(L, angles)
 
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
-    Mu_S_cond = np.zeros((L, T), dtype=np.complex128)
-    K_S_cond = np.zeros((K, K), dtype=np.complex128)
 
     Gap_based_Cov = np.zeros((T, K, K), dtype=np.complex128)
     Gap_based_Cross_cov = np.zeros((T, L, K), dtype=np.complex128)
 
-    Mu_X_Mu_X_H = np.zeros((T, L, L), dtype=np.complex128)
-    Mu_X_Mu_S_H = np.zeros((T, L, K), dtype=np.complex128)
-    Mu_S_Mu_S_H = np.zeros((T, K, K), dtype=np.complex128)
+    #Mu_X_Mu_X_H = np.zeros((T, L, L), dtype=np.complex128)
+    #Mu_X_Mu_S_H = np.zeros((T, L, K), dtype=np.complex128)
+    #Mu_S_Mu_S_H = np.zeros((T, K, K), dtype=np.complex128)
 
 
 
@@ -284,23 +282,27 @@ def EM(angles: np.ndarray,
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
                                                       R_MO.conj().T)
+                Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond @ R_inv_A_P
+                Gap_based_Cross_cov[i] = K_Xm_cond @ R_inv_A_P
+
+        Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
+        Sigma_XX = np.mean(Mu_X_Mu_X_H + K_Xm_cond, axis=0)
 
         
-        # Вычисляем блоки совместной ковариации исходных и принятых сигналов
-        Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
 
-        K_XX = sensors.complex_cov(X_modified) + K_Xm_cond_accum / T
-
-        if not sensors.is_psd(K_XX):
-            print(f"K_XX is unusual")
-        #print(f"Is PSD K_XX {sensors.is_psd(K_XX)}")
+        if not sensors.is_psd(Sigma_XX):
+            print(f"Sigma_XX is unusual")
+        #print(f"Is PSD Sigma_XX {sensors.is_psd(Sigma_XX)}")
 
 
         Mu_S_cond = R_inv_A_P_H @ X_modified.T
         K_S_cond = Common_Cov_S + Gap_based_Cov
+
+        Mu_X_Mu_S_H = np.einsum('li,lj -> lij', X_modified, Mu_S_cond.conj().T)
+        Mu_S_Mu_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
         
-        Sigma_XS = K_XX @ R_inv_A_P + Mu_X_Mu_S_H
-        Sigma_SS = Cov_signals(Mu_S_cond, K_S_cond)
+        Sigma_XS = np.mean(Sigma_XX @ R_inv_A_P + Mu_X_Mu_S_H, axis=0)
+        Sigma_SS = np.mean(Mu_S_Mu_S_H + K_S_cond, axis=0)
 
         if not sensors.is_psd(Sigma_SS):
             print(f"Sigma_SS is unusual")
