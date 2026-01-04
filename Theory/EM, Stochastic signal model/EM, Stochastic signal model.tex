@@ -19,7 +19,7 @@
 \usepackage{tikz}
 \usepackage{comment}
 \usepackage{colortbl}
-\usepackage{xcolor}
+%\usepackage{xcolor}
 \usepackage[normalem]{ulem}
 \usepackage{float}
 \usepackage{wrapfig}
@@ -28,6 +28,8 @@
 \usepackage[most]{tcolorbox}
 \usepackage[mathscr]{euscript}
 
+\usepackage[dvipsnames]{xcolor}
+
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
  
 \newcommand{\Expect}{\mathbb{E}}
@@ -35,6 +37,7 @@
 \newcommand{\Cov}{\mathsf{cov}}
 \newcommand{\Norm}{\mathcal{N}}
 \newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Natural}{\mathbb{N}}
 \newcommand{\Real}{\mathbb{R}}
 \newcommand{\Complex}{\mathbb{C}}
 \newcommand{\Int}{\mathbb{Z}}
@@ -116,19 +119,21 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \begin{equation*}
 \begin{gathered}
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
- \Expect_{(X_m,S)|\mathcal{I}}[\log( P(X|S) P(S))] = \\
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X|S) + \log P(S)] = \\
-\Expect_{(X_m,S)|\mathcal{I}}\Big[\sum_{t=1}^T \log   P(X_t|S_t) + \sum_{t=1}^T \log P(S_t)\Big] = \\
 \Big[\sum_{t=1}^T  \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t} \log [P(X_t|S_t)] + \sum_{t=1}^T \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\log P(S_t)]\Big] = \\
 - \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
-Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. Воспользуемся формулой произведения плотностей:
+Выражение $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\cdot]$  соответствуют случаю максимально полного набора латентных переменных: некоторые наблюдения в наборе могут не содержать пропусков, и тогда это выражение упрощается до $\Expect_{S_t|\mathcal{I}_t}[\cdot]$.
+Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. 
+\begin{center}
+\fontsize{12}{16}\selectfont \color{Purple}{\textbf{Случай неполных наблюдений}}
+\end{center}
+Воспользуемся формулой произведения плотностей:
 \begin{gather}
-P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t}, \mathcal{I}_t).
+P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t}, \mathcal{I}_t). 
 \end{gather}
-Для наблюдений, не содержащих пропуски, апостериорное распределение упрощается следующим образом: $P(X_{t,m_t},S_t|\mathcal{I}_t)=P(S_t|\mathcal{I}_t)$.
 Сначала найдем апостериорное распределение $P(X_m|\mathcal{I})$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
 \begin{equation}
 \hat{\text{R}} =
@@ -141,11 +146,11 @@ P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t
 \begin{equation*}
 \hat{\text{R}}_{a,b} = (\hat{\text{R}}_{ij})_{i \in a, j \in b}.
 \end{equation*}
-Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $P(X_{t, m_t}|X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}), t=1,\ldots,\text{T}, |m_t|>0$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}$.
+Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $P(X_{t, m_t}|X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}), t=1,\ldots,\text{T}, m_t \ne \varnothing$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}$.
 Параметры апостериорного распределения $P(X_{t, m_t}|\mathcal{I}_t), t=1,\ldots,\text{T}$ на итерации $\tau$ можно найти следующим образом:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{X_{t, m_t}|\mathcal{I}_t} &= \hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\cdot x_{t, o_t}, \\
+\Expect[X_{t, m_t}|\mathcal{I}_t] &= \hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\cdot x_{t, o_t}, \\
 \Sigma_{X_{t, m_t}|\mathcal{I}_t} &= \hat{\text{R}}_{m_t, m_t}-\hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\hat{\text{R}}_{o_t, m_t},
 \end{aligned} \right.
 \end{equation}
@@ -153,15 +158,10 @@ P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t
 $\hat{\text{R}}_{o_t, m_t}= \hat{\text{R}}_{o_t, m_t}^{(\tau-1)}$, 
 $\hat{\text{R}}_{m_t, o_t}= \hat{\text{R}}_{m_t, o_t}^{(\tau-1)}$,
 $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
-Для каждого наблюдения $X_t$, содержащего пропуски, оценим условный второй начальный момент $\widetilde{\Sigma}_{X_t} =\Expect_{X_{m_t}|\mathcal{I}_t}[X_t X_t^*]$:
+Для каждого наблюдения $X_t$, содержащего пропуски, оценим условный второй начальный момент $\Expect[X_t X_t^*|\mathcal{I}_t]$:
 \begin{equation*}
 \begin{gathered}
-\widetilde{\Sigma}_{X_t} = 
-\begin{pmatrix}
-\mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, o_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}\\
-\mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu_{X_{t, o_t}|\mathcal{I}_t}^* & \mu_{X_{t, m_t}|\mathcal{I}_t} \cdot \mu^*_{X_{t, m_t}|\mathcal{I}_t}+ \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
-\end{pmatrix} = \\
-\Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t | \mathcal{I}_t]^* +
+\Expect[X_t X_t^*|\mathcal{I}_t] = \Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t | \mathcal{I}_t]^* +
 \begin{pmatrix}
 \mathbf{O}_{o_t, o_t} & \mathbf{O}_{o_t, m_t} \\
 \mathbf{O}_{m_t, o_t} & \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
@@ -169,42 +169,60 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
-Оценим условный второй начальный момент для набора наблюдений $\widetilde{\Sigma}_X = \Expect_{(X_m,S)|\mathcal{I}}[XX^*]$:
-\begin{equation}
-\widetilde{\Sigma}_X = \frac{1}{\text{T}}\sum_{t=1}^T \widetilde{\Sigma}_{X_t}.
-\end{equation}
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t, X_{t, m_t}), t = 1,\ldots, \text{T}$ можно найти исходя из следующих формул, если $m_t \ne \varnothing$:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\mu_{X_t|\mathcal{I}_t}, \\
-\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\widetilde{\Sigma}_{X_t}\hat{\text{R}}^{-1} A\mathbf{\Gamma},
+\Expect[S_t|\mathcal{I}_t, X_{t,m_t}] &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1} A\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. \\
-Если же $m_t = \varnothing$, то:
+Оценим $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*]$:
+\begin{equation}
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t, X_{t,m_t}] \cdot \Expect[S_t|\mathcal{I}_t, X_{t,m_t}]^* + \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}},
+\end{equation}
+Оценим $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*]$:
+\begin{equation}
+\begin{gathered}
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t, X_{t,m_t}]^*,
+\end{gathered}
+\end{equation}
+где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
+\begin{center}
+\fontsize{12}{16}\selectfont \color{Purple}{\textbf{Случай полных наблюдений}}
+\end{center}
+Если $m_t = \varnothing$, то апостериорное распределение упрощается следующим образом: $P(X_{t,m_t},S_t|\mathcal{I}_t)=P(S_t|\mathcal{I}_t)$.
+Параметры апостериорного распределения $P(S_t|\mathcal{I}_t), t = 1,\ldots, \text{T}$:
 \begin{equation}
 \left\{ \begin{aligned} 
-\mu_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\mu_{X_t|\mathcal{I}_t}, \\
-\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
+\Expect[S_t|\mathcal{I}_t] &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
 \end{aligned} \right.
 \end{equation}
-Оценим условный второй начальный момент для  набора сигналов с учетом текущей оценки параметров и доступных наблюдений $\widetilde{\Sigma}_S = \Expect_{(X_m,S)|\mathcal{I}}[SS^*]$. \\
+При этом:
 \begin{equation}
-\widetilde{\Sigma}_S =  \frac{1}{\text{T}} \Big[ \sum_{t=1}^T \big( \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} + \mu_{S_t|\mathcal{I}_t, X_{t, m_t}} \cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^H \big) \Big].
-\end{equation}
-Остается величину $\widetilde{\Sigma}_{XS}=\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
-\begin{equation}
-\begin{gathered}
-\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_tX_t^*] \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^*\\
-= \widetilde{\Sigma}_{X_t} \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^*,
-\end{gathered}
+\Expect_{S_t|\mathcal{I}_t}[X_t X_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[X_t|\mathcal{I}_t]^*,
 \end{equation}
 \begin{equation}
-\begin{gathered}
-\widetilde{\Sigma}_{XS}= \Expect_{(X_m,S)|\mathcal{I}}[X S^*] = \frac{1}{\text{T}} \sum_{t=1}^T \Big( \widetilde{\Sigma}_{X_t} \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} +  \mu_{X_t|\mathcal{I}_t}\cdot \mu_{S_t|\mathcal{I}_t, X_{t, m_t}}^* \Big),
-\end{gathered}
+\Expect_{S_t|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^* = x_t \cdot \Expect[S_t|\mathcal{I}_t]^* ,
 \end{equation}
-где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$.
+\begin{equation}
+\Expect_{S_t|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^* + \Sigma_{S_t|\mathcal{I}_t}.
+\end{equation}
+\begin{center}
+\fontsize{12}{16}\selectfont \color{Purple}{\textbf{Агрегация}}
+\end{center}
+Теперь оценим вторые начальные моменты  $\Expect_{(X_m,S)|\mathcal{I}}[X X^*]$,  $\Expect_{(X_m,S)|\mathcal{I}}[S S^*]$, $\Expect_{(X_m,S)|\mathcal{I}}[X S^*]$:
+\begin{equation}
+\Expect_{(X_m,S)|\mathcal{I}}[XX^*] = \frac{1}{\text{T}}\sum_{t=1}^T \Expect[X_t X_t^*|\mathcal{I}_t],
+\end{equation}
+\begin{equation}
+\Expect_{(X_m,S)|\mathcal{I}}[X S^*] =  \frac{1}{\text{T}} \Big[ \sum_{t \in T_1} \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*] + \sum_{t \in T_2} \Expect_{S_t|\mathcal{I}_t}[S_t S_t^*] \Big],
+\end{equation}
+\begin{equation}
+\Expect_{(X_m,S)|\mathcal{I}}[X S^*] =  \frac{1}{\text{T}} \Big[ \sum_{t \in T_1} \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] + \sum_{t \in T_2} \Expect_{S_t|\mathcal{I}_t}[X_t S_t^*] \Big],
+\end{equation}
+где $T_1 = \{y \in \Natural: m_y \ne \varnothing, 1 \le y \le T\}$, $T_2 = \{y \in \Natural: m_y = \varnothing, 1 \le y \le T\}$.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
 \end{center}
@@ -219,9 +237,9 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Оценим угловые координаты источников $\theta$:
 \begin{equation*}
 \begin{gathered}
-\theta^{(\tau)}= \argmin_{\theta}\mathcal{J}(\theta)  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Sigma_{XS}\big) \\
-+ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Sigma_S \text{A}^*(\theta)) \Big] = \\
-\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Sigma_{XS}-\text{A}(\theta)\Sigma_S) ||_F^2.
+\theta^{(\tau)}= \argmin_{\theta}\mathcal{J}(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[S S^*] \text{A}^*(\theta)) \Big] = \\
+\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{(X_m,S)|\mathcal{I}}[X S^*]-\text{A}(\theta)\Expect_{(X_m,S)|\mathcal{I}}[S S^*]) ||_F^2.
 \end{gathered}
 \end{equation*}
 Для решения этой оптимизационной задачи можно использовать сочетание метода последовательного квадратичного программирования и линейного поиска. \\
@@ -229,24 +247,24 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \begin{gathered}
 \mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
- = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S)\bigg].
+ = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
 \end{gathered}
 \end{equation*}
 Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
 \begin{equation*}
 \begin{gathered}
 \frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
-\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S)= -\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1}, \\
-\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1}.
+\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
+\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
 \end{gathered}
 \end{equation*}
 Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
 \begin{equation*}
-O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\widetilde{\Sigma}_S\mathbf{\Gamma}^{-1} \Rightarrow \widetilde{\Sigma}_S = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \widetilde{\Sigma}_S.
+O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
 \end{equation*}
 Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
 \begin{equation}
-\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\widetilde{\Sigma}_S \Big].
+\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{(X_m,S)|\mathcal{I}}[S S^*] \Big].
 \end{equation}
 Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
 \begin{equation}
