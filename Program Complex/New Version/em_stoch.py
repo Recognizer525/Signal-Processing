@@ -283,8 +283,10 @@ def EM(angles: np.ndarray,
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
                                                       R_MO.conj().T)
-                Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
-                Gap_based_Cross_cov[i] = K_Xm_cond[i] @ R_inv_A_P
+                #Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
+                #Gap_based_Cross_cov[i] = K_Xm_cond[i] @ R_inv_A_P
+        Gap_based_Cov = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
+        Gap_based_Cross_cov = K_Xm_cond[i] @ R_inv_A_P
 
         Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
         Sigma_XX = np.mean(Mu_X_Mu_X_H + K_Xm_cond, axis=0)
@@ -301,7 +303,7 @@ def EM(angles: np.ndarray,
         Mu_X_Mu_S_H = np.einsum('li,lj -> lij', X_modified, Mu_S_cond.conj().T)
         Mu_S_Mu_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
         
-        Sigma_XS = np.mean(Sigma_XX @ R_inv_A_P + Mu_X_Mu_S_H, axis=0)
+        Sigma_XS = np.mean(Gap_based_Cross_cov + Mu_X_Mu_S_H, axis=0)
         Sigma_SS = np.mean(Mu_S_Mu_S_H + K_S_cond, axis=0)
 
         if not sensors.is_psd(Sigma_SS):
