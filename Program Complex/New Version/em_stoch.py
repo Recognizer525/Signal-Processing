@@ -233,8 +233,8 @@ def EM(angles: np.ndarray,
     Q_inv = np.linalg.inv(Q)
     Q_inv_sqrt = np.sqrt(Q_inv)
     
-    L = Q.shape[0]
     T = X.shape[0]
+    L = Q.shape[0]
     K = P.shape[0]
 
     #print(f'Initial angles = {angles}')
@@ -265,6 +265,7 @@ def EM(angles: np.ndarray,
         R_inv_A_P = np.linalg.inv(R) @ A @ P
         R_inv_A_P_H = R_inv_A_P.conj().T
         Common_Cov_S = P - R_inv_A_P_H @ A @ P
+        print(f"Common_Cov_S.shape={Common_Cov_S.shape}")
 
         for i in range(T):
             if set(O[i, ]) != set(col_numbers - 1):
@@ -282,17 +283,16 @@ def EM(angles: np.ndarray,
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
                                                       R_MO.conj().T)
-                Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond @ R_inv_A_P
-                Gap_based_Cross_cov[i] = K_Xm_cond @ R_inv_A_P
+                Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
+                Gap_based_Cross_cov[i] = K_Xm_cond[i] @ R_inv_A_P
 
         Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
         Sigma_XX = np.mean(Mu_X_Mu_X_H + K_Xm_cond, axis=0)
+        print(f"Sigma_XX.shape={Sigma_XX.shape}")
 
-        
 
         if not sensors.is_psd(Sigma_XX):
             print(f"Sigma_XX is unusual")
-        #print(f"Is PSD Sigma_XX {sensors.is_psd(Sigma_XX)}")
 
 
         Mu_S_cond = R_inv_A_P_H @ X_modified.T
