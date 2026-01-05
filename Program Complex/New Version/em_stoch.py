@@ -265,7 +265,7 @@ def EM(angles: np.ndarray,
         R_inv_A_P = np.linalg.inv(R) @ A @ P
         R_inv_A_P_H = R_inv_A_P.conj().T
         Common_Cov_S = P - R_inv_A_P_H @ A @ P
-        print(f"Common_Cov_S.shape={Common_Cov_S.shape}")
+        #print(f"Common_Cov_S.shape={Common_Cov_S.shape}")
 
         for i in range(T):
             if set(O[i, ]) != set(col_numbers - 1):
@@ -283,19 +283,25 @@ def EM(angles: np.ndarray,
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
                                                       R_MO.conj().T)
-                #Gap_based_Cov[i] = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
-                #Gap_based_Cross_cov[i] = K_Xm_cond[i] @ R_inv_A_P
-        Gap_based_Cov = R_inv_A_P_H @ K_Xm_cond[i] @ R_inv_A_P
-        Gap_based_Cross_cov = K_Xm_cond[i] @ R_inv_A_P
+
+        Gap_based_Cov = R_inv_A_P_H @ K_Xm_cond @ R_inv_A_P
+        Gap_based_Cross_cov = K_Xm_cond @ R_inv_A_P
+
+
+        #if np.isnan(Gap_based_Cov).any() or np.isinf(Gap_based_Cov).any():
+            #print('Terrible Gap_based_Cov')
+        #print(f"Gap_based_Cov.shape={Gap_based_Cov.shape}")
+        #for i in range(Gap_based_Cov.shape[0]):
+            #if not sensors.is_psd(Gap_based_Cov[i]):
+                #print(f"is_psd Gap_based_Cov[{i}] = {sensors.is_psd(Gap_based_Cov[i])}")
+
+        #if np.isnan(Gap_based_Cross_cov).any() or np.isinf(Gap_based_Cross_cov).any():
+            #print('Terrible Gap_based_Cross_cov')
+        #print(f"Gap_based_Cross_cov.shape={Gap_based_Cross_cov.shape}")
+
 
         Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
         Sigma_XX = np.mean(Mu_X_Mu_X_H + K_Xm_cond, axis=0)
-        print(f"Sigma_XX.shape={Sigma_XX.shape}")
-
-
-        if not sensors.is_psd(Sigma_XX):
-            print(f"Sigma_XX is unusual")
-
 
         Mu_S_cond = R_inv_A_P_H @ X_modified.T
         K_S_cond = Common_Cov_S + Gap_based_Cov
@@ -305,9 +311,6 @@ def EM(angles: np.ndarray,
         
         Sigma_XS = np.mean(Gap_based_Cross_cov + Mu_X_Mu_S_H, axis=0)
         Sigma_SS = np.mean(Mu_S_Mu_S_H + K_S_cond, axis=0)
-
-        if not sensors.is_psd(Sigma_SS):
-            print(f"Sigma_SS is unusual")
 
         # М-шаг
         new_angles = optim_doa.find_angles(Sigma_XS, angles, 
