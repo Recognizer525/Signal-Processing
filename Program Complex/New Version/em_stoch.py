@@ -1,48 +1,16 @@
 import numpy as np
 
 import sensors
-import optim_doa
+import optim_doa as od
 import diff_sensor_structures as dss
+import debug_funcs as dg
 
-
-def old_init_est(K: int,
-                 seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Создает первоначальную оценку DoA и ковариационной матрицы 
-    исходных сигналов.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    K: int
-        Число источников.
-    seed: int
-        Randomstate для генерации данных.
-
-    Returns
-    ---------------------------------------------------------------------------
-    theta: np.ndarray
-        Оценка DoA. Представляет собой одномерный массив размера (K,1).
-    R: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    """
-    if seed is None:
-        seed = 100
-    nu = np.random.RandomState(seed).uniform(-np.pi, np.pi)
-    theta = np.array([(nu + i * 2 * np.pi/K)%(2 * np.pi) 
-                      for i in range(K)]) - np.pi
-    theta = np.sort(theta)
-
-    P_diag = np.random.RandomState(seed).uniform(0.2, 5, K)
-    print(f"theta={theta},P={P_diag}")
-    return np.sort(theta), np.diag(P_diag)
-
-
-def new_init_est(K: int,
-                 Q: np.ndarray,
-                 R: np.ndarray,
-                 L: int| None = None,
-                 eps: float = 1e-3,
-                 seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
+def init_est(K: int,
+             Q: np.ndarray,
+             R: np.ndarray,
+             L: int| None = None,
+             eps: float = 1e-3,
+             seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Создает первоначальную оценку DoA и ковариационной матрицы 
     исходных сигналов. Улучшенная версия функции new_init_est, 
@@ -118,10 +86,6 @@ def Cov_signals(mu: np.ndarray,
     res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
     print(f'res={res_masked}')
     return res_masked.real
-
-
-def Aggregator(A: np.array, B: np.array) -> np.array:
-    return np.mean(A, axis=0) + np.mean(B, axis=0)
 
 
 def if_converged(angles:np.ndarray, 
@@ -236,6 +200,8 @@ def EM(angles: np.ndarray,
     T = X.shape[0]
     L = Q.shape[0]
     K = P.shape[0]
+    
+    mask = ~np.isnan(X).any(axis=1)
 
     #print(f'Initial angles = {angles}')
 
@@ -244,28 +210,20 @@ def EM(angles: np.ndarray,
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
 
     R = sensors.initial_Cov(X)
-
     A = dss.A_ULA(L, angles)
 
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
+    K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
 
     Gap_based_Cov = np.zeros((T, K, K), dtype=np.complex128)
     Gap_based_Cross_cov = np.zeros((T, L, K), dtype=np.complex128)
-
-    #Mu_X_Mu_X_H = np.zeros((T, L, L), dtype=np.complex128)
-    #Mu_X_Mu_S_H = np.zeros((T, L, K), dtype=np.complex128)
-    #Mu_S_Mu_S_H = np.zeros((T, K, K), dtype=np.complex128)
-
-
-
-    X_modified = X.copy()
+    E_X_cond = X.copy()
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
         R_inv_A_P = np.linalg.inv(R) @ A @ P
         R_inv_A_P_H = R_inv_A_P.conj().T
         Common_Cov_S = P - R_inv_A_P_H @ A @ P
-        #print(f"Common_Cov_S.shape={Common_Cov_S.shape}")
 
         for i in range(T):
             if set(O[i, ]) != set(col_numbers - 1):
@@ -279,44 +237,43 @@ def EM(angles: np.ndarray,
 
                 # Оцениваем параметры апостериорного распределения 
                 # ненаблюдаемых данных и пропущенные значения
-                X_modified[i, M_i] = R_MO @ np.linalg.inv(R_OO) @ X_modified[i, O_i]
+                E_X_cond[i, M_i] = R_MO @ np.linalg.inv(R_OO) @ E_X_cond[i, O_i]
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
                                                       R_MO.conj().T)
 
-        Gap_based_Cov = R_inv_A_P_H @ K_Xm_cond @ R_inv_A_P
-        Gap_based_Cross_cov = K_Xm_cond @ R_inv_A_P
+
+        E_X_E_X_H = np.einsum('li,lj -> lij', E_X_cond, E_X_cond.conj())
+        Sigma_XX_arr = E_X_E_X_H + K_Xm_cond
 
 
-        #if np.isnan(Gap_based_Cov).any() or np.isinf(Gap_based_Cov).any():
-            #print('Terrible Gap_based_Cov')
-        #print(f"Gap_based_Cov.shape={Gap_based_Cov.shape}")
-        #for i in range(Gap_based_Cov.shape[0]):
-            #if not sensors.is_psd(Gap_based_Cov[i]):
-                #print(f"is_psd Gap_based_Cov[{i}] = {sensors.is_psd(Gap_based_Cov[i])}")
+        Gap_based_Cov[~mask] = R_inv_A_P_H @ Sigma_XX_arr[~mask] @ R_inv_A_P
+        Gap_based_Cross_cov[~mask] = Sigma_XX_arr[~mask] @ R_inv_A_P
 
-        #if np.isnan(Gap_based_Cross_cov).any() or np.isinf(Gap_based_Cross_cov).any():
-            #print('Terrible Gap_based_Cross_cov')
-        #print(f"Gap_based_Cross_cov.shape={Gap_based_Cross_cov.shape}")
-
-
-        Mu_X_Mu_X_H = np.einsum('li,lj -> lij', X_modified, X_modified.conj())
-        Sigma_XX = np.mean(Mu_X_Mu_X_H + K_Xm_cond, axis=0)
-
-        Mu_S_cond = R_inv_A_P_H @ X_modified.T
+        Mu_S_cond = R_inv_A_P_H @ E_X_cond.T
         K_S_cond = Common_Cov_S + Gap_based_Cov
 
-        Mu_X_Mu_S_H = np.einsum('li,lj -> lij', X_modified, Mu_S_cond.conj().T)
-        Mu_S_Mu_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
+        E_X_E_S_H = np.einsum('li,lj -> lij', E_X_cond, Mu_S_cond.conj().T)
+        E_S_E_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
         
-        Sigma_XS = np.mean(Gap_based_Cross_cov + Mu_X_Mu_S_H, axis=0)
-        Sigma_SS = np.mean(Mu_S_Mu_S_H + K_S_cond, axis=0)
+        #Sigma_XX = np.mean(Sigma_XX_arr, axis=0)
+        Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)
+        Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
+
+        dg.is_valid_result(E_X_E_X_H,'E_X_E_X_H')
+        dg.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', check_psd=True)
+        dg.is_valid_result(Mu_S_cond,'Mu_S_cond')
+        dg.is_valid_result(K_S_cond,'K_S_cond', check_psd=True)
+        dg.is_valid_result(E_X_E_S_H,'E_X_E_S_H')
+        dg.is_valid_result(E_S_E_S_H,'E_S_E_S_H', check_psd=True)
+        dg.is_valid_result(Sigma_XS,'Sigma_XS')
+        dg.is_valid_result(Sigma_SS,'Sigma_SS', check_psd=True)
 
         # М-шаг
-        new_angles = optim_doa.find_angles(Sigma_XS, angles, 
+        new_angles = od.find_angles(Sigma_XS, angles, 
                                             Sigma_SS, Q_inv_sqrt)
         print(f"new_angles={new_angles}")
-        new_angles = sensors.angle_correcter(new_angles)
+        #new_angles = sensors.angle_correcter(new_angles)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         new_P = Sigma_SS
@@ -375,7 +332,7 @@ def multi_start_EM(X: np.ndarray,
     R = sensors.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = new_init_est(K, Q, R, L, seed=i*100)
+        angles, P = init_est(K, Q, R, L, seed=i*100)
         est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i

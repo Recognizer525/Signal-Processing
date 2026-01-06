@@ -5,8 +5,8 @@ from scipy.signal import find_peaks
 DIST_RATIO = 0.5
 
 def MCAR(X: np.ndarray,
-         mis_cols: int|list, 
-         share_mv: int|list,
+         mis_cols: int|np.ndarray, 
+         share_mv: int|np.ndarray,
          rs: int = 42) -> np.ndarray:
     '''
     Реализует создание абсолютно случайных пропусков.
@@ -16,11 +16,11 @@ def MCAR(X: np.ndarray,
     X: np.ndarray
         Двумерный массив, представляет из себя выборку, 
         состоящую из наблюдений, каждому из них соответствует своя строка.
-    mis_cols: int|list
-        Целое число (int), либо список (list[int]). 
+    mis_cols: int|np.ndarray
+        Целое число (int), либо np.ndarray. 
         Указывает на индексы столбцов, в которые следует добавить пропуски.
-    share_mv: int|list
-        Целое число (int), либо список (list[int]). 
+    share_mv: int|np.ndarray
+        Целое число (int), либо np.ndarray. 
         Указывает на долю пропусков, которые следует добавить 
         в каждый столбец из числа указанных в mis_cols.
     rs: int
@@ -34,9 +34,11 @@ def MCAR(X: np.ndarray,
         в которую добавлены абсолютно случайные пропуски.
     '''
     if type(mis_cols)==int:
-        mis_cols=[mis_cols]
+        mis_cols=np.ndarray([mis_cols], dtype=np.int16)
     if type(share_mv)==int:
-        share_mv=[share_mv]
+        share_mv=np.ndarray([share_mv], dtype=np.float32)
+    print(f"share_mv={share_mv}")
+    print(f"mis_cols={mis_cols}")
 
   
     # Проверяем длины списков
@@ -49,17 +51,17 @@ def MCAR(X: np.ndarray,
 
     # Проверяем индексы столбцов
     n_cols = X.shape[1]
-    assert all(isinstance(c, int) for c in mis_cols), \
+    assert all(isinstance(c, np.int16) for c in mis_cols), \
     "mis_cols должен содержать целые индексы"
     assert all(0 <= c < n_cols for c in mis_cols), \
     "Индекс столбца вне диапазона"
 
     # Проверяем число пропусков
     n_rows = X.shape[0]
-    assert all(isinstance(n, float) for n in share_mv), \
-        "num_mv должен содержать целые числа"
+    assert all(isinstance(n, np.float32) for n in share_mv), \
+        "share_mv должен содержать вещественные числа"
     assert all(0 <= n <= 1 for n in share_mv), \
-        "num_mv не может превышать число строк"
+        "share_mv не может превышать 1"
 
     X1 = X.copy()
     n_rows = X.shape[0]
