@@ -255,3 +255,15 @@ def is_psd(A: np.ndarray, tol: float = 1e-6) -> bool:
     is_psd = evals.min() >= -1e-8
     #print(f'min={evals.min()}')
     return is_psd
+
+
+def cov_correcter(A: np.ndarray, reg_coef=1e-3) -> np.ndarray:
+    """
+    Реализует операцию (A+A^H)/2 + lambda*E 
+    для повышения численной стабильности результатов.
+    """
+    if A.ndim == 2:
+        return 0.5 * (A + A.conj().T) + reg_coef * np.eye(A.shape[0])
+    if A.ndim == 3:
+        return 0.5 * (A + np.conj(np.transpose(A, axes=(0,2,1)))) \
+            + reg_coef * np.eye(A.shape[1])

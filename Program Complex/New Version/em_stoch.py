@@ -260,14 +260,14 @@ def EM(angles: np.ndarray,
         Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)
         Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
 
-        dg.is_valid_result(E_X_E_X_H,'E_X_E_X_H')
-        dg.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', check_psd=True)
-        dg.is_valid_result(Mu_S_cond,'Mu_S_cond')
-        dg.is_valid_result(K_S_cond,'K_S_cond', check_psd=True)
-        dg.is_valid_result(E_X_E_S_H,'E_X_E_S_H')
-        dg.is_valid_result(E_S_E_S_H,'E_S_E_S_H', check_psd=True)
-        dg.is_valid_result(Sigma_XS,'Sigma_XS')
-        dg.is_valid_result(Sigma_SS,'Sigma_SS', check_psd=True)
+        dg.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
+        dg.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
+        dg.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
+        dg.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
+        dg.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
+        dg.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
+        dg.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
+        dg.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
         # М-шаг
         new_angles = od.find_angles(Sigma_XS, angles, 
