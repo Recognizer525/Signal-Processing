@@ -3,7 +3,8 @@ import numpy as np
 import sensors
 import optim_doa as od
 import diff_sensor_structures as dss
-import debug_funcs as dg
+import debug_funcs as df
+import angle_finding
 
 def init_est(K: int,
              Q: np.ndarray,
@@ -88,11 +89,11 @@ def Cov_signals(mu: np.ndarray,
     return res_masked.real
 
 
-def if_converged(angles:np.ndarray, 
-                 new_angles: np.ndarray, 
-                 P: np.ndarray, 
-                 new_P: np.ndarray, 
-                 rtol: float) -> bool:
+def if_params_converged(angles:np.ndarray, 
+                        new_angles: np.ndarray, 
+                        P: np.ndarray, 
+                        new_P: np.ndarray, 
+                        rtol: float) -> bool:
     """
     Проверка достижения сходимости алгоритма на текущей итерации, 
     сравниваются отсортированные вектора/матрицы параметров 
@@ -108,6 +109,19 @@ def if_converged(angles:np.ndarray,
         and np.linalg.norm(P - new_P, ord = 2) < rtol):
         return True
     return False
+
+
+def if_lkhd_converged(old_lkhd: float,
+                      lkhd: float,
+                      rtol: float = 1e-6) -> bool:
+    """
+    Проверяет степень близости старого и нового значения 
+    неполного правдоподобия.
+    """
+    if lkhd == 0:
+        return np.abs(lkhd - old_lkhd) < rtol
+    return np.abs(lkhd-old_lkhd)/np.abs(lkhd) < rtol
+
 
 
 def incomplete_lkhd(X: np.ndarray,
@@ -212,6 +226,8 @@ def EM(angles: np.ndarray,
     R = sensors.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
+    print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
+
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
     K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
 
@@ -260,26 +276,25 @@ def EM(angles: np.ndarray,
         Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)
         Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
 
-        dg.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
-        dg.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
-        dg.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
-        dg.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
-        dg.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
-        dg.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
-        dg.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
-        dg.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
+        df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
+        df.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
+        df.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
+        df.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
+        df.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
+        df.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
+        df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
+        df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
         # М-шаг
-        new_angles = od.find_angles(Sigma_XS, angles, 
+        new_angles = angle_finding.find_angles(Sigma_XS, angles, 
                                             Sigma_SS, Q_inv_sqrt)
         print(f"new_angles={new_angles}")
-        #new_angles = sensors.angle_correcter(new_angles)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         new_P = Sigma_SS
         new_P[:] = new_P[np.ix_(idx, idx)]
         lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
-        if if_converged(angles, new_angles, P, new_P, rtol):
+        if if_params_converged(angles, new_angles, P, new_P, rtol):
             break
         angles, P = new_angles, new_P
         A = dss.A_ULA(L, angles)

@@ -93,7 +93,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2 Известный шум}}
 \end{center}
-Воспользуемся EM-алгоритмом для того, чтобы определить значения параметров $\Psi = (\theta, \mathbf{\Gamma})$, пропущенные значения $X_m=\{X_{t, m_t}\}_{t=1}^\text{T}$ и сигналы $S$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=1,\ldots,\text{T}$ предполагаются независимыми и одинаково распределенными.
+Воспользуемся EM-алгоритмом для того, чтобы определить значения параметров $\Upsilon = (\theta, \mathbf{\Gamma})$, пропущенные значения $X_m=\{X_{t, m_t}\}_{t=1}^\text{T}$ и сигналы $S$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=1,\ldots,\text{T}$ предполагаются независимыми и одинаково распределенными.
 \begin{center}
 \fontsize{14}{18}\selectfont \color{red}{\textbf{Инициализация параметров}}
 \end{center}
@@ -113,9 +113,9 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \end{center}
 Требуется найти математическое ожидание полного правдоподобия с учетом  текущей оценки параметров и апостериорного совместного распределения пропущенных значений в наблюдениях $X_m$ и сигналов $S$ 
 \begin{equation}
- \Expect_{(X_m,S)|X_o=x_o, \Psi^{(\tau-1)}}[\log P(X, S)].
+ \Expect_{(X_m,S)|X_o=x_o, \Upsilon^{(\tau-1)}}[\log P(X, S)].
 \end{equation}
-Преобразуем выражение, учитывая тот факт, что наблюдения являются независимыми, и обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Psi^{(\tau-1)}$ и через $\mathcal{I}_t$ условную информацию $X_{t,o_t}=x_{t,o_t}, \Psi^{(\tau-1)}$:
+Преобразуем выражение, учитывая тот факт, что наблюдения являются независимыми, и обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Upsilon^{(\tau-1)}$ и через $\mathcal{I}_t$ условную информацию $X_{t,o_t}=x_{t,o_t}, \Upsilon^{(\tau-1)}$:
 \begin{equation*}
 \begin{gathered}
  \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
@@ -146,7 +146,7 @@ P(X_{t,m_t},S_t|\mathcal{I}_t) = P(X_{t,m_t}|\mathcal{I}_t) \cdot P(S_t|X_{t,m_t
 \begin{equation*}
 \hat{\text{R}}_{a,b} = (\hat{\text{R}}_{ij})_{i \in a, j \in b}.
 \end{equation*}
-Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $P(X_{t, m_t}|X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}), t=1,\ldots,\text{T}, m_t \ne \varnothing$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Psi^{(\tau-1)}$.
+Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $P(X_{t, m_t}|X_{t, o_t}=x_{t, o_t},\Upsilon^{(\tau-1)}), t=1,\ldots,\text{T}, m_t \ne \varnothing$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Upsilon^{(\tau-1)}$.
 Параметры апостериорного распределения $P(X_{t, m_t}|\mathcal{I}_t), t=1,\ldots,\text{T}$ на итерации $\tau$ можно найти следующим образом:
 \begin{equation}
 \left\{ \begin{aligned} 
@@ -229,8 +229,8 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
 \begin{gathered}
-\Psi^{(\tau)}=\argmax_{\Psi} \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
-\argmin_{\Psi}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
+\Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
+\argmin_{\Upsilon}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
@@ -275,8 +275,9 @@ O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*
 \end{center}
 \begin{enumerate}
 \item
-Dempster, A.P.; Laird, N.M.; Rubin, D.B. Maximum likelihood from incomplete data via the EM algorithm. J. R. Stat. Soc. Ser. B
-(Methodol.) 1977, 39, 1–38.
+Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // J. R. Stat. Soc., Ser. B (Methodol.). -- 1977. -- Vol. 39. -- P. 1–38.
+\item
+Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. -- 1983. -- Vol. 11, № 1. -- P. 95–103.
 \end{enumerate}
 \end{document}
 

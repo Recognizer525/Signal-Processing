@@ -134,21 +134,20 @@ def complex_cov(X: np.ndarray, ddof: int = 0, reg=True) -> np.ndarray:
     return Cov
 
 
-def initial_Cov(X: np.ndarray, min_complete: int = 8):
+def initial_Cov(X: np.ndarray):
     """
     Начальная оценка матрицы ковариации для набора наблюдений с пропусками.
     
     X: shape (n_samples, n_features)
         Выборка.
-    min_complete: int
-        Минимальное число полных наблюдений, чтобы исключительно по ним оценить ковариацию.
     """
     # Строки без пропусков
     observed_rows = np.where(~np.isnan(X).any(axis=1))[0]
 
     # если достаточно полных наблюдений
-    if len(observed_rows) >= min_complete:
+    if len(observed_rows) >= X.shape[1]:
         R = complex_cov(X[observed_rows, :])
+        print('Way First')
     else:
         # Заполнение средним (mean imputation) по столбцам
         X_filled = X.copy()
@@ -156,10 +155,12 @@ def initial_Cov(X: np.ndarray, min_complete: int = 8):
         inds = np.where(np.isnan(X_filled))
         X_filled[inds] = np.take(col_means, inds[1])
         R = complex_cov(X_filled)
+        print('Way Second')
 
     # На крайний случай
     if np.isnan(R).any() or not np.all(np.isfinite(R)):
         R = np.diag(np.nanvar(X, axis=0))
+        print('Way Third')
 
     R += 1e-6 * np.eye(R.shape[0])
     return R
@@ -191,49 +192,6 @@ def angle_correcter(theta: np.ndarray, is_ULA: bool = True) -> np.ndarray:
         mask = theta < -np.pi/2
         theta[mask] = -np.pi - theta[mask]
     return theta
-
-
-def MUSIC_DoA(R: np.ndarray, 
-              num_sources: int, 
-              scan_angles=np.arange(-90, 90.5, 0.5)) -> np.ndarray:
-    """
-    Вычисляет оценку DoA через использование алгоритма MUSIC.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    R: np.ndarray
-        Пространственная ковариационная матрица.
-    num_sources: int
-        Число источников.
-    scan_angles: np.ndarray
-        Сетка углов, представлена одномерным массивом.
-
-    Returns
-    ---------------------------------------------------------------------------
-    doa_estimates: np.ndarray
-        Оценка DoA, представлена одномерным массивом.
-    """
-    L = R.shape[0]
-    eigvals, eigvecs = eig(R)
-    idx = np.argsort(eigvals)
-    eigvals = eigvals[idx]
-    eigvecs = eigvecs[:, idx]
-    En = eigvecs[:, :-num_sources] 
-    P_music = []
-    for theta in scan_angles:
-        a = (np.exp(-1j * 2 * np.pi * DIST_RATIO * 
-                    np.arange(L) * np.sin(np.deg2rad(theta))))
-        a = a.reshape(-1, 1)
-        denom = np.conjugate(a.T) @ En @ np.conjugate(En.T) @ a
-        P_music.append(1 / np.abs(denom)[0, 0])
-
-    P_music = np.array(P_music)
-    P_music_db = 10 * np.log10(P_music / np.max(P_music))
-    peaks, _ = find_peaks(P_music_db, distance=5)
-    peak_vals = P_music_db[peaks]
-    top_peaks = peaks[np.argsort(peak_vals)[-num_sources:]]
-    doa_estimates = np.sort(scan_angles[top_peaks])
-    return np.deg2rad(doa_estimates)
 
 
 def is_diagonal(A: np.ndarray) -> bool:
