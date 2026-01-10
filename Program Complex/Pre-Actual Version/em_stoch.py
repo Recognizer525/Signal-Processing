@@ -46,15 +46,23 @@ def init_est(K: int,
     theta = np.sort(theta)
     A = dss.A_ULA(L, theta)
     the_norm = np.linalg.norm(A, axis=0)
-    A = A / the_norm
-    pA = np.linalg.pinv(A)
+    A1 = A / the_norm
+    pA = np.linalg.pinv(A1)
     res = R - Q
     P_normed = np.diag(pA @ res @ pA.conj().T).copy()
     for i in range(P_normed.shape[0]):
         P_normed[i] = max(P_normed[i], eps)
-    P = P_normed / the_norm
+    P = np.diag(P_normed / the_norm)
+    W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+    while True:
+        if sensors.is_psd(W):
+            break
+        else:
+            P = 0.5 * P
+            W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+
     print(f"theta={theta},P={P}")
-    return np.sort(theta), np.diag(P)
+    return theta, P
 
 
 def Cov_signals(mu: np.ndarray, 
