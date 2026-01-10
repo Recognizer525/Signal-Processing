@@ -37,8 +37,8 @@ def MCAR(X: np.ndarray,
         mis_cols=np.ndarray([mis_cols], dtype=np.int16)
     if type(share_mv)==int:
         share_mv=np.ndarray([share_mv], dtype=np.float32)
-    print(f"share_mv={share_mv}")
-    print(f"mis_cols={mis_cols}")
+    #print(f"share_mv={share_mv}")
+    #print(f"mis_cols={mis_cols}")
 
   
     # Проверяем длины списков

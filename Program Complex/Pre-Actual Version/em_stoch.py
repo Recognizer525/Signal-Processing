@@ -234,7 +234,7 @@ def EM(angles: np.ndarray,
     R = sensors.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
-    print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
+    #print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
 
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
     K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
@@ -296,11 +296,12 @@ def EM(angles: np.ndarray,
         # М-шаг
         new_angles = od.find_angles(Sigma_XS, angles, 
                                             Sigma_SS, Q_inv_sqrt)
-        print(f"new_angles={new_angles}")
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
+        print(f"new_angles={new_angles}")
         new_P = Sigma_SS
         new_P[:] = new_P[np.ix_(idx, idx)]
+        print(f"new_P:\n{new_P}")
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
         if (if_params_converged(angles, new_angles, P, new_P, rtol) or
             if_lkhd_converged(lkhd, new_lkhd)):
