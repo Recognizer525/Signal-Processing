@@ -147,7 +147,7 @@ def initial_Cov(X: np.ndarray):
     # если достаточно полных наблюдений
     if len(observed_rows) >= X.shape[1]:
         R = complex_cov(X[observed_rows, :])
-        print('Way First')
+        #print('Way First')
     else:
         # Заполнение средним (mean imputation) по столбцам
         X_filled = X.copy()
@@ -155,12 +155,12 @@ def initial_Cov(X: np.ndarray):
         inds = np.where(np.isnan(X_filled))
         X_filled[inds] = np.take(col_means, inds[1])
         R = complex_cov(X_filled)
-        print('Way Second')
+        #print('Way Second')
 
     # На крайний случай
     if np.isnan(R).any() or not np.all(np.isfinite(R)):
         R = np.diag(np.nanvar(X, axis=0))
-        print('Way Third')
+        #print('Way Third')
 
     R += 1e-6 * np.eye(R.shape[0])
     return R
