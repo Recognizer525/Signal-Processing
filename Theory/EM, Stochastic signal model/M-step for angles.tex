@@ -1,0 +1,115 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+%\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\usepackage[dvipsnames]{xcolor}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Natural}{\mathbb{N}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм, стохастическая модель сигнала}}
+\end{center}
+\begin{center}
+\fontsize{14}{18}\selectfont \color{red}{\textbf{M-шаг}}
+\end{center}
+Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
+\begin{equation*}
+\begin{gathered}
+\Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{(X_m,S)|\mathcal{I}}[\log P(X, S)] = \\
+\argmin_{\Upsilon}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
+\end{gathered}
+\end{equation*}
+Оценим угловые координаты источников $\theta$:
+\begin{equation*}
+\begin{gathered}
+\theta^{(\tau)}= \argmin_{\theta}\mathcal{Q}_1(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[S S^*] \text{A}^*(\theta)) \Big] = \\
+\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{(X_m,S)|\mathcal{I}}[X S^*]-\text{A}(\theta)\Expect_{(X_m,S)|\mathcal{I}}[S S^*]) ||_F^2.
+\end{gathered}
+\end{equation*}
+На практике, если $\text{A}$ соответствует антенной решетки типа ULA, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. Для удобства введем новые обозначения: $C=\Expect_{(X_m,S)|\mathcal{I}}[X S^*], D=\Expect_{(X_m,S)|\mathcal{I}}[S S^*]$. Соответственно минимизации подлежит функция
+\begin{equation}
+\mathcal{Q}_1 = ||\mathbf{\Lambda}^{-1/2} (C-\text{A}(\theta)D) ||_F^2.
+\end{equation}
+\clearpage
+Оценим ковариацию сигналов $\mathbf{\Gamma}$:
+\begin{equation*}
+\begin{gathered}
+\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
+ = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
+\end{gathered}
+\end{equation*}
+Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
+\begin{equation*}
+\begin{gathered}
+\frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
+\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
+\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
+\end{gathered}
+\end{equation*}
+Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
+\begin{equation*}
+\mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
+\end{equation*}
+Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
+\begin{equation}
+\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{(X_m,S)|\mathcal{I}}[S S^*] \Big].
+\end{equation}
+Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
+\begin{equation}
+\hat{\text{R}}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}\text{A}^*(\theta^{(\tau)}) + \mathbf{\Lambda}.
+\end{equation}
+\end{document}
+

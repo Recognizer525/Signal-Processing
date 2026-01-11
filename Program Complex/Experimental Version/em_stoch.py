@@ -300,7 +300,7 @@ def EM(angles: np.ndarray,
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         print(f"new_angles={new_angles}")
-        new_P = Sigma_SS
+        new_P = sensors.cov_correcter(Sigma_SS)
         new_P[:] = new_P[np.ix_(idx, idx)]
         print(f"new_P:\n{new_P}")
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)

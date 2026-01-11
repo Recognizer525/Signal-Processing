@@ -237,7 +237,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Оценим угловые координаты источников $\theta$:
 \begin{equation*}
 \begin{gathered}
-\theta^{(\tau)}= \argmin_{\theta}\mathcal{J}(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
+\theta^{(\tau)}= \argmin_{\theta}\mathcal{Q}_1(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[S S^*] \text{A}^*(\theta)) \Big] = \\
 \argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{(X_m,S)|\mathcal{I}}[X S^*]-\text{A}(\theta)\Expect_{(X_m,S)|\mathcal{I}}[S S^*]) ||_F^2.
 \end{gathered}
@@ -246,7 +246,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
 \begin{gathered}
-\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
+\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
  = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
 \end{gathered}
 \end{equation*}
@@ -255,12 +255,12 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{gathered}
 \frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
 \frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
-\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
+\frac{\partial \mathcal{Q}_2(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
 \end{gathered}
 \end{equation*}
 Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
 \begin{equation*}
-O = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
+\mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
 \end{equation*}
 Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
 \begin{equation}

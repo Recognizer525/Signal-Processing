@@ -86,8 +86,8 @@ def find_angles(Sigma_XS_np: np.ndarray,
     P = torch.tensor(P_np, dtype=torch.complex128)
     Q_inv_sqrt = torch.tensor(Q_inv_sqrt_np, dtype=torch.complex128)
 
-    best_u, best_val = None, torch.inf
     u0 = torch.tensor(np.sin(theta0_np), dtype=torch.float64)
+    best_u, best_val = u0, cost_u(u0, Sigma_XS, P, Q_inv_sqrt)
 
     for i in range(num_of_starts):
         if i == 0:
