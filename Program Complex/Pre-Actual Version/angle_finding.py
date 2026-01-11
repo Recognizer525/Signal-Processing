@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from scipy.optimize import minimize
 
 import diff_sensor_structures as dss
 
@@ -39,54 +38,83 @@ def find_u_start(Sigma_XS: torch.Tensor,
                  u0_np: np.ndarray, 
                  P: torch.Tensor, 
                  Q_inv_sqrt: torch.Tensor,
-                 method: str = 'SLSQP', 
-                 tol: int = 1e-6) -> tuple[np.ndarray, float]:
+                 tol: float = 1e-6,
+                 max_iter: int = 500,
+                 alpha0: float = 1.0,
+                 beta: float = 0.5,
+                 c: float = 1e-4) -> tuple[np.ndarray, float]:
     """
-    Запускает оптимизацию нормы ||Q^{-1/2}(Sigma_XS - AP)||^2_F по вектору DoA.
+    Запускает оптимизацию нормы ||Q^{-1/2}(Sigma_XS - AP)||^2_F по вектору DoA
+    с использованием градиентного спуска с backtracking line search.
+
+    Гарантируется невозрастание минимизируемой функции.
+    Ограничение u ∈ [-1, 1]^K обеспечивается проекцией.
 
     Parameters
     ---------------------------------------------------------------------------
     Sigma_XS: torch.Tensor
         Кросс-ковариация наблюдений и сигналов с текущего Е-шага.
     u0_np: np.ndarray
-        Первое приближение для оценивания sin(DoA). 
-        Представляет собой одномерный массив.
+        Начальное приближение для sin(DoA).
     P: torch.Tensor
-        Оценка ковариации сигналов с предыдущей итерации.
+        Оценка ковариации сигналов.
     Q_inv_sqrt: torch.Tensor
-        Квадратный корень от матрицы, обратной к ковариационной матрице шума. 
-    method: str = 'SLSQP'
-        Метод оптимизации функции потерь для DoA.
-    tol: int
-        Порог для остановки оптимизационного процесса.
+        Квадратный корень от обратной ковариации шума.
+    tol: float
+        Порог остановки по норме градиента.
+    max_iter: int
+        Максимальное число итераций.
+    alpha0: float
+        Начальный шаг градиентного спуска.
+    beta: float
+        Коэффициент уменьшения шага (0 < beta < 1).
+    c: float
+        Параметр условия Армихо.
 
     Returns
     ---------------------------------------------------------------------------
-    res.x: np.ndarray
-        Оценка DoA, полученная в ходе оптимизационного процесса для
-        заданного начального приближения.
-    res.fun: float
-        Значение минимизируемой фробениусовой нормы для полученной оценки DoA.
+    u_np: np.ndarray
+        Оценка sin(DoA).
+    loss_val: float
+        Значение минимизируемой функции.
     """
-    K = len(u0_np)
-    bounds = [(-1.0, 1.0)] * K
 
-    def fun_and_grad(u_np: np.ndarray) -> tuple[float, np.ndarray]:
-        """
-        Возвращает значение функции потерь и значение градиента.
-        """
-        u_t = torch.tensor(u_np, dtype=torch.float64, requires_grad=True)
-        
-        loss = cost_u(u_t, Sigma_XS, P, Q_inv_sqrt)
+    u = torch.tensor(u0_np, dtype=torch.float64, requires_grad=True)
+
+    for _ in range(max_iter):
+        # Вычисление функции и градиента
+        loss = cost_u(u, Sigma_XS, P, Q_inv_sqrt)
         loss.backward()
-        grad = u_t.grad.detach().numpy()
-        return loss.item(), grad
 
-    res = minimize(fun_and_grad, u0_np, 
-                   jac=True, bounds=bounds, 
-                   method=method, tol=tol)
-    #print(f"Optim.res={res.success}")
-    return res.x, res.fun
+        grad = u.grad
+        grad_norm_sq = torch.sum(grad**2)
+
+        # Критерий остановки
+        if torch.sqrt(grad_norm_sq) < tol:
+            break
+
+        alpha = alpha0
+
+        # Backtracking line search (Armijo)
+        with torch.no_grad():
+            while True:
+                u_new = u - alpha * grad
+                u_new = torch.clamp(u_new, -1.0, 1.0)
+
+                new_loss = cost_u(u_new, Sigma_XS, P, Q_inv_sqrt)
+
+                if new_loss <= loss - c * alpha * grad_norm_sq:
+                    break
+
+                alpha *= beta
+
+        # Обновление
+        with torch.no_grad():
+            u[:] = u_new
+
+        u.grad.zero_()
+
+    return u.detach().numpy(), loss.item()
 
 
 def find_angles(Sigma_XS_np: np.ndarray, 
@@ -141,10 +169,6 @@ def find_angles(Sigma_XS_np: np.ndarray,
         
         
         est_u, fun_val = find_u_start(Sigma_XS_t, u_start, P_t, Q_inv_sqrt_t)
-        
-        if cost_u(u_start, Sigma_XS_t, P_t, Q_inv_sqrt_t) > fun_val:
-            print('Result became worse')
-
         if fun_val < best_fun_val:
             best_fun_val, best_u = fun_val, est_u
     

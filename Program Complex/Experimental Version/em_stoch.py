@@ -2,9 +2,9 @@ import numpy as np
 
 import sensors
 import optim_doa as od
+import angle_finding as af
 import diff_sensor_structures as dss
 import debug_funcs as df
-import angle_finding
 
 def init_est(K: int,
              Q: np.ndarray,
@@ -47,15 +47,23 @@ def init_est(K: int,
     theta = np.sort(theta)
     A = dss.A_ULA(L, theta)
     the_norm = np.linalg.norm(A, axis=0)
-    A = A / the_norm
-    pA = np.linalg.pinv(A)
+    A1 = A / the_norm
+    pA = np.linalg.pinv(A1)
     res = R - Q
     P_normed = np.diag(pA @ res @ pA.conj().T).copy()
     for i in range(P_normed.shape[0]):
         P_normed[i] = max(P_normed[i], eps)
-    P = P_normed / the_norm
+    P = np.diag(P_normed / the_norm)
+    W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+    while True:
+        if sensors.is_psd(W):
+            break
+        else:
+            P = 0.5 * P
+            W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+
     print(f"theta={theta},P={P}")
-    return np.sort(theta), np.diag(P)
+    return theta, P
 
 
 def Cov_signals(mu: np.ndarray, 
@@ -121,7 +129,6 @@ def if_lkhd_converged(old_lkhd: float,
     if lkhd == 0:
         return np.abs(lkhd - old_lkhd) < rtol
     return np.abs(lkhd-old_lkhd)/np.abs(lkhd) < rtol
-
 
 
 def incomplete_lkhd(X: np.ndarray,
@@ -210,6 +217,8 @@ def EM(angles: np.ndarray,
     """
     Q_inv = np.linalg.inv(Q)
     Q_inv_sqrt = np.sqrt(Q_inv)
+
+    lkhd = -1e100
     
     T = X.shape[0]
     L = Q.shape[0]
@@ -226,7 +235,7 @@ def EM(angles: np.ndarray,
     R = sensors.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
-    print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
+    #print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
 
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
     K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
@@ -286,17 +295,19 @@ def EM(angles: np.ndarray,
         df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
         # М-шаг
-        new_angles = angle_finding.find_angles(Sigma_XS, angles, 
-                                            Sigma_SS, Q_inv_sqrt)
-        print(f"new_angles={new_angles}")
+        new_angles = af.find_angles(Sigma_XS, angles, 
+                                    Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
+        print(f"new_angles={new_angles}")
         new_P = Sigma_SS
         new_P[:] = new_P[np.ix_(idx, idx)]
-        lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
-        if if_params_converged(angles, new_angles, P, new_P, rtol):
+        print(f"new_P:\n{new_P}")
+        new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
+        if (if_params_converged(angles, new_angles, P, new_P, rtol) or
+            if_lkhd_converged(lkhd, new_lkhd)):
             break
-        angles, P = new_angles, new_P
+        angles, P, lkhd = new_angles, new_P, new_lkhd
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
