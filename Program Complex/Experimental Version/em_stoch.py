@@ -86,8 +86,6 @@ def Cov_signals(mu: np.ndarray,
         Новая оценка ковариационной матрицы исходных сигналов.
     """
     T = mu.shape[1]
-    #print(f"sigma={sigma}")
-    #print(f"M[X]M[X]={(1/G) * mu @ mu.conj().T}")
     res = (1/T) * mu @ mu.conj().T + sigma
     #print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
@@ -101,7 +99,7 @@ def if_params_converged(angles:np.ndarray,
                         new_angles: np.ndarray, 
                         P: np.ndarray, 
                         new_P: np.ndarray, 
-                        rtol: float) -> bool:
+                        rtol: float = 1e-3) -> bool:
     """
     Проверка достижения сходимости алгоритма на текущей итерации, 
     сравниваются отсортированные вектора/матрицы параметров 
@@ -114,7 +112,7 @@ def if_params_converged(angles:np.ndarray,
     P = P[np.ix_(idx1, idx1)]
     new_P[:] = new_P[np.ix_(idx2, idx2)]
     if (np.linalg.norm(angles - new_angles) < rtol 
-        and np.linalg.norm(P - new_P, ord = 2) < rtol):
+        or np.linalg.norm(P - new_P, ord = 2) < rtol):
         return True
     return False
 
@@ -157,7 +155,7 @@ def incomplete_lkhd(X: np.ndarray,
     """
     A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
-    R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
+    #R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
     #print(f"is_spd(P)={sensors.is_spd(P)}")
     #print(f"is_spd(Q)={sensors.is_spd(Q)}")
@@ -171,7 +169,7 @@ def incomplete_lkhd(X: np.ndarray,
         if set(O[i, ]) != set(col_numbers - 1):
             O_i = O[i, ][O[i, ] > -1]
             R_o = R[np.ix_(O_i, O_i)]
-            R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
+            #R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
             res += (- np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ 
                       np.linalg.inv(R_o) @ (X[i, O_i].T))
         else:
@@ -235,8 +233,6 @@ def EM(angles: np.ndarray,
     R = sensors.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
-    #print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
-
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
     K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
 
@@ -256,7 +252,7 @@ def EM(angles: np.ndarray,
 
                 # Вычисляем блоки ковариации наблюдений
                 R_OO = R[np.ix_(O_i, O_i)]
-                R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
+                #R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 

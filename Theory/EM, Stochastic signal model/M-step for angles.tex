@@ -81,13 +81,58 @@
 \end{equation*}
 На практике, если $\text{A}$ соответствует антенной решетки типа ULA, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. Для удобства введем новые обозначения: $C=\Expect_{(X_m,S)|\mathcal{I}}[X S^*], D=\Expect_{(X_m,S)|\mathcal{I}}[S S^*]$. Соответственно минимизации подлежит функция
 \begin{equation}
-\mathcal{Q}_1 = ||\mathbf{\Lambda}^{-1/2} (C-\text{A}(\theta)D) ||_F^2.
+\mathcal{Q}_1(u|u^{\tau-1)}) = ||\mathbf{\Lambda}^{-1/2} (C-\widetilde{A}(u)D) ||_F^2,
+\end{equation}
+где
+\begin{equation}
+\widetilde{A}(u) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi \frac{\text{d}}{\lambda}u_\text{K}}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_\text{K}}\\
+\end{bmatrix}.
+\nonumber
+\end{equation}
+Для ускорения оптимизации можно оптимизировать не $\mathcal{Q}_1(u|u^{(\tau-1)})$, а суррогатную функцию $\mathcal{G}(u|u^{(\tau-1)})$, построенную так:
+\begin{equation}
+\mathcal{G}(u|u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)}) + \grad \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})^T (u-u^{(\tau-1)}) + \frac{1}{2} (u-u^{(\tau-1)})^T \mathbf{H} (u-u^{(\tau-1)}),
+\end{equation}
+где
+\begin{equation}
+\mathbf{H} = \begin{bmatrix}
+\max(|\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&0&\dots&0\\
+0& \max(|\grad_2 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&\dots&0\\
+\dots&\dots&\ddots&\vdots\\
+0& 0&\dots& \max(|\grad_\text{K} \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)\\
+\end{bmatrix}.
+\nonumber
+\end{equation}
+Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $d^{(\tau)}=u-u^{(\tau-1)}$):
+\begin{equation}
+\min_u \mathcal{G}(u|u^{(\tau-1)}).
+\end{equation}
+Подставим $u = u^{(\tau-1)}+d$:
+\begin{equation}
+\mathcal{G}(u^{(\tau-1)} + d| u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}) + \grad \mathcal{Q}_1 (u^{(\tau-1)}| u^{(\tau-1)})^Td + \frac{1}{2}d^T\mathbf{H}d.
 \end{equation}
 \clearpage
+Для нахождения минимума берем градиент по $d$:
+\begin{equation}
+\grad_d \mathcal{G}(u^{(\tau-1)} + d| u^{(\tau-1)}) =  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})   + \mathbf{H}d,
+\end{equation}
+при $\grad_d \mathcal{G}=0$ будет выполняться:
+\begin{equation}
+0 =  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})   + \mathbf{H}d,
+\end{equation}
+решаем относительно $d^{(\tau)}$:
+\begin{equation}
+d^{(\tau)} = -\mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}).
+\end{equation}
+Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$. \\
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
 \begin{gathered}
-\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{K}(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
+\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
  = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
 \end{gathered}
 \end{equation*}
@@ -96,7 +141,7 @@
 \begin{gathered}
 \frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
 \frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
-\frac{\partial \mathcal{K}(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
+\frac{\partial \mathcal{Q}_2(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
 \end{gathered}
 \end{equation*}
 Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
