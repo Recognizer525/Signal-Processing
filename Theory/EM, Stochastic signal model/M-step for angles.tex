@@ -104,9 +104,10 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 0& \max(|\grad_2 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&\dots&0\\
 \dots&\dots&\ddots&\vdots\\
 0& 0&\dots& \max(|\grad_\text{K} \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)\\
-\end{bmatrix}.
+\end{bmatrix},
 \nonumber
 \end{equation}
+где $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$.
 Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $d^{(\tau)}=u-u^{(\tau-1)}$):
 \begin{equation}
 \min_u \mathcal{G}(u|u^{(\tau-1)}).
@@ -128,7 +129,17 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 \begin{equation}
 d^{(\tau)} = -\mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}).
 \end{equation}
-Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$. \\
+Важно заметить, что производная по направлению $\grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T d^{(\tau)}$ принимает вид:
+\begin{equation}
+\grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T d^{(\tau)} = - \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T \mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}),
+\end{equation} 
+и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $d^{(\tau)}$ соответствует невозрастанию функции.
+Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$:
+\begin{equation}
+u^{(\tau)}=u^{(\tau-1)} + \alpha_m d^{(\tau)},
+\end{equation}
+где $\alpha_m$ -- первое $\alpha=\alpha_0 \beta^m, m \in \Natural$, такое что $\mathcal{Q}_1(u^{(\tau)}| u^{(\tau-1)}) \le \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})$ для фиксированных $\alpha_0 > 0, \beta \in (0;1)$.
+\\
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
 \begin{gathered}

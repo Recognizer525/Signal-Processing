@@ -82,13 +82,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \nonumber
 \end{equation}
 Сигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, корреляция между сигналами и шумами также отсутствует.
-Составим EM-алгоритм для двух случаев:
-\begin{itemize}
-\item
-Известный шум;
-\item
-Неизвестный шум.
-\end{itemize}
+Составим EM-алгоритм для случая известного шума.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2 Известный шум}}
@@ -242,7 +236,65 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{(X_m,S)|\mathcal{I}}[X S^*]-\text{A}(\theta)\Expect_{(X_m,S)|\mathcal{I}}[S S^*]) ||_F^2.
 \end{gathered}
 \end{equation*}
-Для решения этой оптимизационной задачи можно использовать generalized MM-алгоритм. \\
+На практике, если $\text{A}$ соответствует антенной решетки типа ULA, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. Для удобства введем новые обозначения: $C=\Expect_{(X_m,S)|\mathcal{I}}[X S^*], D=\Expect_{(X_m,S)|\mathcal{I}}[S S^*]$. Соответственно минимизации подлежит функция
+\begin{equation}
+\mathcal{Q}_1(u|u^{\tau-1)}) = ||\mathbf{\Lambda}^{-1/2} (C-\widetilde{A}(u)D) ||_F^2,
+\end{equation}
+где
+\begin{equation}
+\widetilde{A}(u) = \begin{bmatrix}
+1&1&\dots&1\\
+e^{-2j\pi \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi \frac{\text{d}}{\lambda}u_\text{K}}\\
+\dots&\dots&\ddots&\vdots\\
+e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_\text{K}}\\
+\end{bmatrix}.
+\nonumber
+\end{equation}
+Для ускорения оптимизации можно оптимизировать не $\mathcal{Q}_1(u|u^{(\tau-1)})$, а суррогатную функцию $\mathcal{G}(u|u^{(\tau-1)})$, построенную так:
+\begin{equation}
+\mathcal{G}(u|u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)}) + \grad \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})^T (u-u^{(\tau-1)}) + \frac{1}{2} (u-u^{(\tau-1)})^T \mathbf{H} (u-u^{(\tau-1)}),
+\end{equation}
+где
+\begin{equation}
+\mathbf{H} = \begin{bmatrix}
+\max(|\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&0&\dots&0\\
+0& \max(|\grad_2 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&\dots&0\\
+\dots&\dots&\ddots&\vdots\\
+0& 0&\dots& \max(|\grad_\text{K} \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)\\
+\end{bmatrix},
+\nonumber
+\end{equation}
+где $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$.
+Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $\rho^{(\tau)}=u-u^{(\tau-1)}$):
+\begin{equation}
+\min_u \mathcal{G}(u|u^{(\tau-1)}).
+\end{equation}
+Подставим $u = u^{(\tau-1)}+\rho$:
+\begin{equation}
+\mathcal{G}(u^{(\tau-1)} + \rho| u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}) + \grad \mathcal{Q}_1 (u^{(\tau-1)}| u^{(\tau-1)})^T\rho + \frac{1}{2}\rho^T\mathbf{H}\rho.
+\end{equation}
+Для нахождения минимума берем градиент по $\rho$:
+\begin{equation}
+\grad_\rho \mathcal{G}(u^{(\tau-1)} + \rho| u^{(\tau-1)}) =  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})   + \mathbf{H}\rho,
+\end{equation}
+при $\grad_\rho \mathcal{G}=0$ будет выполняться:
+\begin{equation}
+0 =  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})   + \mathbf{H}\rho,
+\end{equation}
+решаем относительно $\rho^{(\tau)}$:
+\begin{equation}
+\rho^{(\tau)} = -\mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}).
+\end{equation}
+Важно заметить, что производная по направлению $\grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T \rho^{(\tau)}$ принимает вид:
+\begin{equation}
+\grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T \rho^{(\tau)} = - \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})^T \mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)}),
+\end{equation} 
+и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $\rho^{(\tau)}$ соответствует невозрастанию функции.
+Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$:
+\begin{equation}
+u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
+\end{equation}
+где $\alpha_m$ -- первое $\alpha=\alpha_0 \beta^m, m \in \Natural$, такое что $\mathcal{Q}_1(u^{(\tau)}| u^{(\tau-1)}) \le \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})$ для фиксированных $\alpha_0 > 0, \beta \in (0;1)$.\\
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
 \begin{gathered}
