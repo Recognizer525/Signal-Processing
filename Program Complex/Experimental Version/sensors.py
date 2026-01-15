@@ -225,3 +225,46 @@ def cov_correcter(A: np.ndarray, reg_coef=1e-3) -> np.ndarray:
     if A.ndim == 3:
         return 0.5 * (A + np.conj(np.transpose(A, axes=(0,2,1)))) \
             + reg_coef * np.eye(A.shape[1])
+    
+
+def SNR(A: np.ndarray, P: np.ndarray, Q: np.ndarray, metrics='avg', scale='linear') -> np.float64:
+    """
+    Вычисляет отношение сигнал-шум для всей антенной решетки.
+
+    Parameters
+    ---------------------------------------------------
+    A: np.ndarray
+        Матрица векторов направленности.
+    P: np.ndarray
+        Ковариация сигналов.
+    Q: np.ndarray
+        Ковариация шума.
+    metrics: str
+        Метрика для агрегации SNR по сигналам (допускаются суммирование и усреднение).
+    scale: str
+        Тип шкалы для оценки SNR (допускаются линейная и логарифмическая).
+    
+    Returns
+    ---------------------------------------------------
+    ans: np.float64
+        Отношение сигнал-шум (в линейной или логарифмической шкале).
+    """
+    T = A @ P @ A.conj().T
+    ans = 0.0
+    for i in range(A.shape[1]):
+        a = A[:, i]
+        ans += np.vdot(a, T @ a) / np.vdot(a, Q @ a)
+    if metrics == 'avg':
+        ans = ans / P.shape[0]
+    elif metrics == 'total':
+        pass
+    else:
+        raise ValueError(f"Указан неизвестный тип метрики {metrics}")
+    
+    if scale == 'log':
+        return 10 * np.log10(ans)
+    elif scale == 'linear':
+        return ans
+    else:
+        raise ValueError(f"Указан неизвестный тип шкалы {scale}")
+

@@ -37,6 +37,7 @@ def mm_step_u(u: torch.Tensor,
     H_diag = torch.clamp(grad.abs(), min=1e-6)
     direction = -grad / H_diag
 
+    # Backtracking line search
     step = step_init
     with torch.no_grad():
         for _ in range(max_ls):

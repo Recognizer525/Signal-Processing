@@ -166,8 +166,8 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t, X_{t, m_t}), t = 1,\ldots, \text{T}$ можно найти исходя из следующих формул, если $m_t \ne \varnothing$:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Expect[S_t|\mathcal{I}_t, X_{t,m_t}] &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
-\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1} A\mathbf{\Gamma},
+\Expect[S_t|\mathcal{I}_t, X_{t,m_t}] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1} \text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. \\
@@ -189,8 +189,8 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t), t = 1,\ldots, \text{T}$:
 \begin{equation}
 \left\{ \begin{aligned} 
-\Expect[S_t|\mathcal{I}_t] &= \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
-\Sigma_{S_t|\mathcal{I}_t} &= \mathbf{\Gamma} - \mathbf{\Gamma}\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
+\Expect[S_t|\mathcal{I}_t] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
+\Sigma_{S_t|\mathcal{I}_t} &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
 \end{aligned} \right.
 \end{equation}
 При этом:
@@ -327,9 +327,14 @@ u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
 \end{center}
 \begin{enumerate}
 \item
-Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // J. R. Stat. Soc., Ser. B (Methodol.). -- 1977. -- Vol. 39. -- P. 1–38.
+Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // Journal of the Royal Statistical Society: Series B (Methodological). – 1977. – Vol. 39. – No. 1.  – P. 1–38.
 \item
-Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. -- 1983. -- Vol. 11, № 1. -- P. 95–103.
+Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. – 1983. – Vol. 11. –  No. 1. –  P. 95–103.
+\item
+Louis T. A. Finding the observed information matrix when using the EM algorithm // 
+Journal of the Royal Statistical Society: Series B (Methodological). – 1982. – Vol. 44. – No. 2. – P. 226–233.
+\item
+Ross S. M. A first course in probability. 8th ed. – Upper Saddle River: Prentice Hall, 2010. – 640p., p. 348.
 \end{enumerate}
 \end{document}
 

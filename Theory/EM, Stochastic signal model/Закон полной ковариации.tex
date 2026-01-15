@@ -87,18 +87,18 @@
 В рамках исходной задачи по оцениванию DoA и ковариации сигналов, $W$ соответствует величине $S_t$,  $Y$ соответствует величине $X_t$, $Z$ соответствует величине $X_{t, o_t}, t=1,\ldots,\text{T}$. \\
 Преобразуем первое слагаемое, учитывая тот факт, что ковариация не зависит от реализации $X_{t, o_t}$.
 \begin{equation}
-\Expect[\text{Cov}(S_t|X_t)|X_{t, o_t}] = \text{Cov}(S_t|X_t) = \mathbf{\Gamma} - \mathbf{\Gamma}^* \text{A}^H \text{R}^{-1} \text{A} \mathbf{\Gamma}.
+\Expect[\text{Cov}(S_t|X_t)|X_{t, o_t}] = \text{Cov}(S_t|X_t) = \mathbf{\Gamma} - \mathbf{\Gamma}^* \text{A}^H \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
 \end{equation}
 Теперь найдем $\Expect[S_t|X_{t,o_t}]$, $\Expect[S_t|X_{t}]$:
 \begin{equation}
-\Expect[S_t|X_{t,o_t}] = \mathbf{\Gamma}^* \text{A}^* \text{R}^{-1} \Expect[X_t|X_{t,o_t}],
+\Expect[S_t|X_{t,o_t}] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t|X_{t,o_t}],
 \end{equation}
 \begin{equation}
-\Expect[S_t|X_t] = \mathbf{\Gamma}^* \text{A}^* \text{R}^{-1} X_t.
+\Expect[S_t|X_t] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t.
 \end{equation}
 Теперь преобразуем второе слагаемое:
 \begin{equation}
-\text{Cov}(\Expect[S_t|X_t]|X_{t, o_t}) = \text{Cov}(\mathbf{\Gamma}^* \text{A}^* \text{R}^{-1} X_t |X_{t, o_t}) = \mathbf{\Gamma}^* \text{A}^* \text{R}^{-1} \Expect[X_t X_t | X_{t, o_t}] \text{R}^{-1} \text{A} \mathbf{\Gamma}.
+\text{Cov}(\Expect[S_t|X_t]|X_{t, o_t}) = \text{Cov}(\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t |X_{t, o_t}) = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t X_t | X_{t, o_t}] \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
 \end{equation}
 \end{document}
 
