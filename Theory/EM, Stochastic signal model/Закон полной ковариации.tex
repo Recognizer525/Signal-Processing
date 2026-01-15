@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+%\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+
+\usepackage[dvipsnames]{xcolor}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\mathsf{cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Natural}{\mathbb{N}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand\Fontvia{\fontsize{9}{8}\selectfont}
+\newcommand\Fontvib{\fontsize{10.8}{9.6}\selectfont}
+\newcommand\Fontvic{\fontsize{8.0}{7.0}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{Об апостериорном распределении сигналов}}
+\end{center}
+\begin{equation}
+\text{Cov}(U,V) = \Expect[\text{Cov}(U,V|Y)] + \text{Cov}(\Expect[U|Y], \Expect[V|Y]).
+\end{equation}
+Если $U=V$, то:
+\begin{equation}
+\text{Cov}(X) = \Expect[\text{Cov}(X|Y)] + \text{Cov}(\Expect[X|Y]).
+\end{equation}
+Применим это тождество для случая условной вероятности относительно $\sigma$-алгебры $\sigma(Z)$, причем $\sigma(Z) \subseteq \sigma(Y)$, предполагается, что $Z=CY$, где $C$ -- булев селектор:
+\begin{equation*}
+\begin{gathered}
+\text{Cov}(X|Z) = \Expect[\text{Cov}(X|Y,Z)|Z] + \text{Cov}(\Expect[X|Y,Z]|Z).
+\end{gathered}
+\end{equation*}
+Вектора $X$, $Y$, $Z$ предполагаются комплексными гауссовскими (случай круговой симметрии), зависимость между $Z$ и $Y$ линейная. Для линейной гауссовской модели знание $Z$ не уменьшает условную ковариацию $X|Y$ и не влияет на условное математическое ожидание $\Expect[X|Y,Z]$, поскольку $Z$ не содержит никакой новой информации, которой не было бы в $Y$:
+\begin{equation*}
+\begin{gathered}
+\text{Cov}(X|Y,Z)=\text{Cov}(X|Y), \\
+\Expect[X|Y,Z] = \Expect[X|Y].
+\end{gathered}
+\end{equation*}
+Получаем:
+\begin{equation}
+\text{Cov}(X|Z) = \Expect[\text{Cov}(X|Y)|Z] + \text{Cov}(\Expect[X|Y]|Z).
+\end{equation}
+\end{document}
+
