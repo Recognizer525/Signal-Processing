@@ -11,20 +11,20 @@ def is_valid_result(data: np.ndarray,
     бесконечных значений, PSD-свойство. печатает форму данных.
     """
     if np.isnan(data).any() or np.isinf(data).any():
-        print('Infs or/and NaNs in {data_name}')
+        raise ValueError(f'Infs or/and NaNs in {data_name}')
     #print(f"{data_name}.shape={data.shape}")
 
     if expected_shape is not None:
         if data.shape != expected_shape:
-            print(f"{data_name} has wrong shape!")
+            raise ValueError(f"{data_name} has wrong shape!")
         pass
 
     if check_psd and data.ndim == 2:
         if not sensors.is_psd(data):
-            print(f"{data_name} is not psd")
+            raise ValueError(f"{data_name} is not psd")
 
     if check_psd and data.ndim == 3:
         for i in range(data.shape[0]):
             if not sensors.is_psd(data[i]):
-                print(f"{data_name}[{i}] is not psd")
                 print(f"{data_name}[{i}]={data[i]}")
+                raise ValueError(f"{data_name}[{i}] is not psd")

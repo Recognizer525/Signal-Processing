@@ -103,11 +103,11 @@ def find_angles(Sigma_XS_np: np.ndarray,
         val = cost_u(u_hat, Sigma_XS, P, Q_inv_sqrt)
         old_val = cost_u(u_start, Sigma_XS, P, Q_inv_sqrt)
         if val > old_val:
-            print('Cost function increases!')
+            raise ValueError('Cost function increases!')
 
         if val < best_val:
             best_val, best_u = val, u_hat
     if best_val - old_val > 0:
-        print('Cost function increases!')
+        raise ValueError('Cost function increases!')
 
     return np.arcsin(best_u.numpy())
