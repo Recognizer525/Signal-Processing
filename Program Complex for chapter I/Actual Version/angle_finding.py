@@ -107,5 +107,7 @@ def find_angles(Sigma_XS_np: np.ndarray,
 
         if val < best_val:
             best_val, best_u = val, u_hat
+    if best_val - old_val > 0:
+        print('Cost function increases!')
 
     return np.arcsin(best_u.numpy())

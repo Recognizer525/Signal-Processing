@@ -61,9 +61,9 @@
 \fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм, стохастическая модель сигнала}}
 \end{center}
 \begin{center}
-\fontsize{16}{20}\selectfont \color{teal}{\textbf{ \S1 Постановка проблемы}}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Постановка проблемы}}
 \end{center}
-Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что $X$ состоит из наблюдаемой части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и ненаблюдаемой: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: o_t = \varnothing$, т.е. нет таких наблюдений, которые состоят лишь из ненаблюдаемой части. \\ Набор наблюдений $X$ является результатом следующей модели наблюдений:
+Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что набор наблюдений $X$ состоит из доступной части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и недоступной: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: o_t = \varnothing$, т.е. нет таких наблюдений, которые состоят лишь из недоступной части. \\ Набор $X$ является результатом следующей модели наблюдений:
 \begin{equation}
 X = \text{A} S + N,
 \end{equation}
@@ -81,11 +81,11 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \end{bmatrix}.
 \nonumber
 \end{equation}
-Сигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, корреляция между сигналами и шумами также отсутствует.
+Сигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, корреляция между сигналами и шумами также отсутствует. Сигналы предполагаются узкополосными.
 Составим EM-алгоритм для случая известного шума.
 \clearpage
 \begin{center}
-\fontsize{16}{20}\selectfont \color{teal}{\textbf{\S2 Известный шум}}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{ЕМ-алгоритм для известного шума}}
 \end{center}
 Воспользуемся EM-алгоритмом для того, чтобы определить значения параметров $\Upsilon = (\theta, \mathbf{\Gamma})$, пропущенные значения $X_m=\{X_{t, m_t}\}_{t=1}^\text{T}$ и сигналы $S$ рассматриваются как латентные переменные. Наблюдения $X_t$, $t=1,\ldots,\text{T}$ предполагаются независимыми и одинаково распределенными.
 \begin{center}
@@ -119,7 +119,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{(X_m,S)|\mathcal{I}}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{(X_m,S)|\mathcal{I}}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
-Выражение $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\cdot]$  соответствуют случаю максимально полного набора латентных переменных: некоторые наблюдения в наборе могут не содержать пропусков, и тогда это выражение упрощается до $\Expect_{S_t|\mathcal{I}_t}[\cdot]$.
+Выражение $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[\cdot]$  соответствуют случаю максимально полного набора латентных переменных: некоторые наблюдения в наборе могут не содержать пропуски, и тогда это выражение упрощается до $\Expect_{S_t|\mathcal{I}_t}[\cdot]$.
 Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. 
 \begin{center}
 \fontsize{12}{16}\selectfont \color{Purple}{\textbf{Случай неполных наблюдений}}
@@ -236,6 +236,67 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{(X_m,S)|\mathcal{I}}[X S^*]-\text{A}(\theta)\Expect_{(X_m,S)|\mathcal{I}}[S S^*]) ||_F^2.
 \end{gathered}
 \end{equation*}
+Эту задачу можно решить численно, подробности приведены в приложении 2. \\
+Оценим ковариацию сигналов $\mathbf{\Gamma}$:
+\begin{equation*}
+\begin{gathered}
+\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
+ = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
+\end{gathered}
+\end{equation*}
+Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
+\begin{equation*}
+\begin{gathered}
+\frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
+\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
+\frac{\partial \mathcal{Q}_2(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
+\end{gathered}
+\end{equation*}
+Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
+\begin{equation*}
+\mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
+\end{equation*}
+Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
+\begin{equation}
+\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{(X_m,S)|\mathcal{I}}[S S^*] \Big].
+\end{equation}
+Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
+\begin{equation}
+\hat{\text{R}}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}\text{A}^*(\theta^{(\tau)}) + \mathbf{\Lambda}.
+\end{equation}
+\clearpage
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Результаты численного эксперимента}}
+\end{center}
+\clearpage
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
+\end{center}
+\begin{enumerate}
+\item
+Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // Journal of the Royal Statistical Society: Series B (Methodological). – 1977. – Vol. 39. – No. 1.  – P. 1–38.
+\item
+Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. – 1983. – Vol. 11. –  No. 1. –  P. 95–103.
+\item
+Louis T. A. Finding the observed information matrix when using the EM algorithm // 
+Journal of the Royal Statistical Society: Series B (Methodological). – 1982. – Vol. 44. – No. 2. – P. 226–233.
+\item
+Ross S. M. A first course in probability. 8th ed. – Upper Saddle River, N. J.: Prentice Hall, 2010. – 640p., p. 348.
+\item
+Little R. J. A., Rubin D. B. Statistical analysis with missing data 2nd ed. – Hoboken, N. J.: Wiley-Interscience, Jon Wiley \& Sons, Inc., 2002. – 381p. \\
+\item
+Schreier P. J., Scharf L. L. Statistical Signal Processing of Complex-Valued Data: The Theory of Improper and Noncircular Signals – Cambridge: Cambridge University Press, 2010. – 309p., pp. 41-42.
+\item
+Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 2006. –  664p., pp. 10-37.
+\end{enumerate}
+\clearpage
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №1. Об апостериорном распределении сигналов, полученном на Е-шаге}}
+\end{center}
+\clearpage
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №2. О реализации М-шага}}
+\end{center}
 На практике, если $\text{A}$ соответствует антенной решетки типа ULA, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. Для удобства введем новые обозначения: $C=\Expect_{(X_m,S)|\mathcal{I}}[X S^*], D=\Expect_{(X_m,S)|\mathcal{I}}[S S^*]$. Соответственно минимизации подлежит функция
 \begin{equation}
 \mathcal{Q}_1(u|u^{\tau-1)}) = ||\mathbf{\Lambda}^{-1/2} (C-\widetilde{A}(u)D) ||_F^2,
@@ -264,7 +325,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 \end{bmatrix},
 \nonumber
 \end{equation}
-где $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$.
+причем $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$.
 Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $\rho^{(\tau)}=u-u^{(\tau-1)}$):
 \begin{equation}
 \min_u \mathcal{G}(u|u^{(\tau-1)}).
@@ -295,46 +356,5 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
 \end{equation}
 где $\alpha_m$ -- первое $\alpha=\alpha_0 \beta^m, m \in \Natural$, такое что $\mathcal{Q}_1(u^{(\tau)}| u^{(\tau-1)}) \le \mathcal{Q}_1(u^{(\tau-1)}| u^{(\tau-1)})$ для фиксированных $\alpha_0 > 0, \beta \in (0;1)$.\\
-Оценим ковариацию сигналов $\mathbf{\Gamma}$:
-\begin{equation*}
-\begin{gathered}
-\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} | \mathbf{\Gamma}^{(\tau-1)})
- = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])\bigg].
-\end{gathered}
-\end{equation*}
-Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
-\begin{equation*}
-\begin{gathered}
-\frac{\partial}{\partial \mathbf{\Gamma}}\log (\Det (\mathbf{\Gamma})) = \mathbf{\Gamma}^{-1}, \\
-\frac{\partial}{\partial \mathbf{\Gamma}}\Tr(\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*])= -\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}, \\
-\frac{\partial \mathcal{Q}_2(\mathbf{\Gamma})}{\partial \mathbf{\Gamma}} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1}.
-\end{gathered}
-\end{equation*}
-Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
-\begin{equation*}
-\mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{(X_m,S)|\mathcal{I}}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \Expect_{(X_m,S)|\mathcal{I}}[S S^*] = \mathbf{\Gamma} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{(X_m,S)|\mathcal{I}}[S S^*].
-\end{equation*}
-Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
-\begin{equation}
-\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{(X_m,S)|\mathcal{I}}[S S^*] \Big].
-\end{equation}
-Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
-\begin{equation}
-\hat{\text{R}}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}\text{A}^*(\theta^{(\tau)}) + \mathbf{\Lambda}.
-\end{equation}
-\begin{center}
-\fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
-\end{center}
-\begin{enumerate}
-\item
-Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // Journal of the Royal Statistical Society: Series B (Methodological). – 1977. – Vol. 39. – No. 1.  – P. 1–38.
-\item
-Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. – 1983. – Vol. 11. –  No. 1. –  P. 95–103.
-\item
-Louis T. A. Finding the observed information matrix when using the EM algorithm // 
-Journal of the Royal Statistical Society: Series B (Methodological). – 1982. – Vol. 44. – No. 2. – P. 226–233.
-\item
-Ross S. M. A first course in probability. 8th ed. – Upper Saddle River: Prentice Hall, 2010. – 640p., p. 348.
-\end{enumerate}
 \end{document}
 

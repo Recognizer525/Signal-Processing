@@ -261,6 +261,8 @@ def SNR(A: np.ndarray, P: np.ndarray, Q: np.ndarray, metrics='avg', scale='linea
     else:
         raise ValueError(f"Указан неизвестный тип метрики {metrics}")
     
+    ans = ans.real.astype(np.float64)
+    
     if scale == 'log':
         return 10 * np.log10(ans)
     elif scale == 'linear':
