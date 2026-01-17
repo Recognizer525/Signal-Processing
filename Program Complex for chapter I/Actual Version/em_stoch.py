@@ -252,7 +252,6 @@ def EM(angles: np.ndarray,
 
                 # Вычисляем блоки ковариации наблюдений
                 R_OO = R[np.ix_(O_i, O_i)]
-                #R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
@@ -276,6 +275,7 @@ def EM(angles: np.ndarray,
 
         E_X_E_S_H = np.einsum('li,lj -> lij', E_X_cond, Mu_S_cond.conj().T)
         E_S_E_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
+
         
         #Sigma_XX = np.mean(Sigma_XX_arr, axis=0)
         Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)

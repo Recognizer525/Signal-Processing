@@ -1,7 +1,7 @@
 import numpy as np
 
 import sensors
-import optim_doa as od
+import angle_finding as af
 import diff_sensor_structures as dss
 import debug_funcs as df
 
@@ -85,8 +85,6 @@ def Cov_signals(mu: np.ndarray,
         Новая оценка ковариационной матрицы исходных сигналов.
     """
     T = mu.shape[1]
-    #print(f"sigma={sigma}")
-    #print(f"M[X]M[X]={(1/G) * mu @ mu.conj().T}")
     res = (1/T) * mu @ mu.conj().T + sigma
     #print(f'Cov_signals ={res}')
     # Оставляем только диагональные элементы
@@ -100,7 +98,7 @@ def if_params_converged(angles:np.ndarray,
                         new_angles: np.ndarray, 
                         P: np.ndarray, 
                         new_P: np.ndarray, 
-                        rtol: float) -> bool:
+                        rtol: float = 1e-3) -> bool:
     """
     Проверка достижения сходимости алгоритма на текущей итерации, 
     сравниваются отсортированные вектора/матрицы параметров 
@@ -113,7 +111,7 @@ def if_params_converged(angles:np.ndarray,
     P = P[np.ix_(idx1, idx1)]
     new_P[:] = new_P[np.ix_(idx2, idx2)]
     if (np.linalg.norm(angles - new_angles) < rtol 
-        and np.linalg.norm(P - new_P, ord = 2) < rtol):
+        or np.linalg.norm(P - new_P, ord = 2) < rtol):
         return True
     return False
 
@@ -156,7 +154,7 @@ def incomplete_lkhd(X: np.ndarray,
     """
     A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
-    R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
+    #R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
     #print(f"is_spd(R)={sensors.is_spd(R)}")
     #print(f"is_spd(P)={sensors.is_spd(P)}")
     #print(f"is_spd(Q)={sensors.is_spd(Q)}")
@@ -170,7 +168,7 @@ def incomplete_lkhd(X: np.ndarray,
         if set(O[i, ]) != set(col_numbers - 1):
             O_i = O[i, ][O[i, ] > -1]
             R_o = R[np.ix_(O_i, O_i)]
-            R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
+            #R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
             res += (- np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ 
                       np.linalg.inv(R_o) @ (X[i, O_i].T))
         else:
@@ -234,8 +232,6 @@ def EM(angles: np.ndarray,
     R = sensors.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
-    #print(f"Initial diagonal of diff is {np.diag(R-Q-A @ P @ A.conj().T)}")
-
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
     K_S_cond = np.zeros((T, K, K), dtype=np.complex128)
 
@@ -255,7 +251,6 @@ def EM(angles: np.ndarray,
 
                 # Вычисляем блоки ковариации наблюдений
                 R_OO = R[np.ix_(O_i, O_i)]
-                R_OO = R_OO + 1e-6 * np.eye(R_OO.shape[0])
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
@@ -271,7 +266,7 @@ def EM(angles: np.ndarray,
         Sigma_XX_arr = E_X_E_X_H + K_Xm_cond
 
 
-        Gap_based_Cov[~mask] = R_inv_A_P_H @ Sigma_XX_arr[~mask] @ R_inv_A_P
+        Gap_based_Cov[~mask] = R_inv_A_P_H @ K_Xm_cond[~mask] @ R_inv_A_P
         Gap_based_Cross_cov[~mask] = Sigma_XX_arr[~mask] @ R_inv_A_P
 
         Mu_S_cond = R_inv_A_P_H @ E_X_cond.T
@@ -279,9 +274,12 @@ def EM(angles: np.ndarray,
 
         E_X_E_S_H = np.einsum('li,lj -> lij', E_X_cond, Mu_S_cond.conj().T)
         E_S_E_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
+
+        Sigma_XS_arr = np.where(mask[:, None, None], E_X_E_S_H, Gap_based_Cross_cov)
+
         
         #Sigma_XX = np.mean(Sigma_XX_arr, axis=0)
-        Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)
+        Sigma_XS = np.mean(Sigma_XS_arr, axis=0)
         Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
 
         df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
@@ -294,12 +292,12 @@ def EM(angles: np.ndarray,
         df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
         # М-шаг
-        new_angles = od.find_angles(Sigma_XS, angles, 
-                                            Sigma_SS, Q_inv_sqrt)
+        new_angles = af.find_angles(Sigma_XS, angles, 
+                                    Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         print(f"new_angles={new_angles}")
-        new_P = Sigma_SS
+        new_P = sensors.cov_correcter(Sigma_SS)
         new_P[:] = new_P[np.ix_(idx, idx)]
         print(f"new_P:\n{new_P}")
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)

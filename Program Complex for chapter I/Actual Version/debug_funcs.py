@@ -11,8 +11,8 @@ def is_valid_result(data: np.ndarray,
     бесконечных значений, PSD-свойство. печатает форму данных.
     """
     if np.isnan(data).any() or np.isinf(data).any():
+        print(f"{data_name}.shape={data.shape}")
         raise ValueError(f'Infs or/and NaNs in {data_name}')
-    #print(f"{data_name}.shape={data.shape}")
 
     if expected_shape is not None:
         if data.shape != expected_shape:
