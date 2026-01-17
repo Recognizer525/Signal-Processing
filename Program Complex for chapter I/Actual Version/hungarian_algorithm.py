@@ -22,7 +22,6 @@ def match_angles(theta_ref: np.ndarray, theta_cur: np.ndarray) -> tuple[np.ndarr
     col_ind: np.ndarray
         Индексы, соответствующие перестановке.
     """
-    # cost matrix |θ_i - θ_j|
     cost = np.abs(theta_ref[:, None] - theta_cur[None, :])
 
     row_ind, col_ind = linear_sum_assignment(cost)
@@ -31,7 +30,39 @@ def match_angles(theta_ref: np.ndarray, theta_cur: np.ndarray) -> tuple[np.ndarr
     return theta_cur_matched, col_ind
 
 
-#theta_ref = np.array([-0.4, 0.1, 0.6])
-#theta_cur = np.array([0.58, -0.42, 0.12])
+def match_powers(power_ref: np.ndarray, power_cur: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Сопоставляет текущую и предшествующую ковариацию сигналов.
+    Переставляет элементы диагонали текущей матрицы для того, чтобы
+    минимизировать расстояние между текущей и предшествующей матрицей.
 
-#theta_cur_matched, perm = match_angles(theta_ref, theta_cur)
+    Parameters
+    ---------------------------------------------------------------------------
+    power_ref: np.ndarray
+        Ковариация сигналов на предшествующей итерации.
+    power_cur: np.ndarray 
+        Ковариация сигналов на текущей итерации.
+
+    Returns
+    ---------------------------------------------------------------------------
+    power_cur_matched: np.ndarray
+        Переупорядоченная текущая ковариация сигналов.
+    col_ind: np.ndarray
+        Индексы, соответствующие перестановке.
+    """
+    power_ref = np.diag(power_ref)
+    power_cur = np.diag(power_cur)
+
+    print(f"power_ref={power_ref}")
+    print(f"power_cur={power_cur}")
+
+    cost = np.abs(power_ref[:, None] - power_cur[None, :])
+
+    row_ind, col_ind = linear_sum_assignment(cost)
+
+    power_cur_matched = np.diag(power_cur[col_ind])
+    return power_cur_matched, col_ind
+
+
+
+

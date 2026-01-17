@@ -1,7 +1,6 @@
 import numpy as np
 
 import sensors
-import optim_doa as od
 import angle_finding as af
 import diff_sensor_structures as dss
 import debug_funcs as df
@@ -112,7 +111,7 @@ def if_params_converged(angles:np.ndarray,
     P = P[np.ix_(idx1, idx1)]
     new_P[:] = new_P[np.ix_(idx2, idx2)]
     if (np.linalg.norm(angles - new_angles) < rtol 
-        or np.linalg.norm(P - new_P, ord = 2) < rtol):
+        and np.linalg.norm(P - new_P, ord = 2) < rtol):
         return True
     return False
 
@@ -267,7 +266,7 @@ def EM(angles: np.ndarray,
         Sigma_XX_arr = E_X_E_X_H + K_Xm_cond
 
 
-        Gap_based_Cov[~mask] = R_inv_A_P_H @ Sigma_XX_arr[~mask] @ R_inv_A_P
+        Gap_based_Cov[~mask] = R_inv_A_P_H @ K_Xm_cond[~mask] @ R_inv_A_P
         Gap_based_Cross_cov[~mask] = Sigma_XX_arr[~mask] @ R_inv_A_P
 
         Mu_S_cond = R_inv_A_P_H @ E_X_cond.T
@@ -276,9 +275,11 @@ def EM(angles: np.ndarray,
         E_X_E_S_H = np.einsum('li,lj -> lij', E_X_cond, Mu_S_cond.conj().T)
         E_S_E_S_H = np.einsum('li,lj -> lij', Mu_S_cond.T, Mu_S_cond.conj().T)
 
+        Sigma_XS_arr = np.where(mask[:, None, None], E_X_E_S_H, Gap_based_Cross_cov)
+
         
         #Sigma_XX = np.mean(Sigma_XX_arr, axis=0)
-        Sigma_XS = np.mean(E_X_E_S_H + Gap_based_Cross_cov, axis=0)
+        Sigma_XS = np.mean(Sigma_XS_arr, axis=0)
         Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
 
         df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
