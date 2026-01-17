@@ -155,7 +155,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Для каждого наблюдения $X_t$, содержащего пропуски, оценим условный второй начальный момент $\Expect[X_t X_t^*|\mathcal{I}_t]$:
 \begin{equation*}
 \begin{gathered}
-\Expect[X_t X_t^*|\mathcal{I}_t] = \Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t | \mathcal{I}_t]^* +
+\Expect[X_t X_t^*|\mathcal{I}_t] = \Expect [X_t | \mathcal{I}_t] \cdot \Expect [X_t^* | \mathcal{I}_t] +
 \begin{pmatrix}
 \mathbf{O}_{o_t, o_t} & \mathbf{O}_{o_t, m_t} \\
 \mathbf{O}_{m_t, o_t} & \Sigma_{X_{t, m_t}|\mathcal{I}_t} \\
@@ -167,18 +167,18 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation}
 \left\{ \begin{aligned} 
 \Expect[S_t|\mathcal{I}_t, X_{t,m_t}] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t | \mathcal{I}_t], \\
-\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1} \text{A}\mathbf{\Gamma},
+\Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}} &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\text{Cov}(X_t|\mathcal{I}_t)\hat{\text{R}}^{-1} \text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. \\
 Оценим $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*]$:
 \begin{equation}
-\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t, X_{t,m_t}] \cdot \Expect[S_t|\mathcal{I}_t, X_{t,m_t}]^* + \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}},
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t, X_{t,m_t}] \cdot \Expect[S_t^*|\mathcal{I}_t, X_{t,m_t}] + \Sigma_{S_t|\mathcal{I}_t, X_{t, m_t}},
 \end{equation}
 Оценим $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*]$:
 \begin{equation}
 \begin{gathered}
-\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t, X_{t,m_t}]^*,
+\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t X_t^*|\mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma},
 \end{gathered}
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
@@ -195,13 +195,13 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{equation}
 При этом:
 \begin{equation}
-\Expect_{S_t|\mathcal{I}_t}[X_t X_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[X_t|\mathcal{I}_t]^* = x_t x_t^*,
+\Expect_{S_t|\mathcal{I}_t}[X_t X_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[X_t^*|\mathcal{I}_t] = x_t x_t^*,
 \end{equation}
 \begin{equation}
-\Expect_{S_t|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^* = x_t \cdot \Expect[S_t|\mathcal{I}_t]^* ,
+\Expect_{S_t|\mathcal{I}_t}[X_t S_t^*] = \Expect[X_t|\mathcal{I}_t] \cdot \Expect[S_t^*|\mathcal{I}_t] = x_t \cdot \Expect[S_t^*|\mathcal{I}_t] = x_t \cdot x_t^* \cdot \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
 \end{equation}
 \begin{equation}
-\Expect_{S_t|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t] \cdot \Expect[S_t|\mathcal{I}_t]^* + \Sigma_{S_t|\mathcal{I}_t}.
+\Expect_{S_t|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t] \cdot \Expect[S_t^*|\mathcal{I}_t] + \Sigma_{S_t|\mathcal{I}_t}.
 \end{equation}
 \begin{center}
 \fontsize{12}{16}\selectfont \color{Purple}{\textbf{Агрегация}}
@@ -283,7 +283,7 @@ Journal of the Royal Statistical Society: Series B (Methodological). – 1982. �
 \item
 Ross S. M. A first course in probability. 8th ed. – Upper Saddle River, N. J.: Prentice Hall, 2010. – 640p., p. 348.
 \item
-Little R. J. A., Rubin D. B. Statistical analysis with missing data 2nd ed. – Hoboken, N. J.: Wiley-Interscience, Jon Wiley \& Sons, Inc., 2002. – 381p. \\
+Little R. J. A., Rubin D. B. Statistical analysis with missing data 2nd ed. – Hoboken, N. J.: Wiley-Interscience, Jon Wiley \& Sons, Inc., 2002. – 381p.
 \item
 Schreier P. J., Scharf L. L. Statistical Signal Processing of Complex-Valued Data: The Theory of Improper and Noncircular Signals – Cambridge: Cambridge University Press, 2010. – 309p., pp. 41-42.
 \item
@@ -293,6 +293,66 @@ Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №1. Об апостериорном распределении сигналов, полученном на Е-шаге}}
 \end{center}
+В литературе, посвященной теории вероятностей (к примеру Sheldon Russ, A first course in probability, 8th ed., 2010), широко известно равенство, называемое законом полной дисперсии (Law of total variance):
+\begin{equation}
+\text{Cov}(W) = \Expect[\text{Cov}(W|Y)] + \text{Cov}(\Expect[W|Y]).
+\end{equation}
+Пусть $\mathcal{F}_Z=\sigma(Z)$: -- сигма-алгебра, порожденная $Z$. Тогда все числовые характеристики $W$, включая условные моменты и ковариации относительно $Y$, можно обусловить на $\mathcal{F}_Z$. И, соответственно, из закона полной ковариации следует:
+\begin{equation*}
+\begin{gathered}
+\text{Cov}(W|\mathcal{F}_Z) = \Expect[\text{Cov}(W|Y,Z)|\mathcal{F}_Z] + \text{Cov}(\Expect[W|Y,Z]|\mathcal{F}_Z).
+\end{gathered}
+\end{equation*}
+Вектора $W$, $Y$, $Z$ предполагаются комплексными гауссовскими (случай круговой симметрии), зависимость между $Z$ и $Y$ линейная, $\sigma(Z) \subseteq \sigma(Y)$, предполагается, что $Z=CY$, где $C$ -- булев селектор.  Для линейной гауссовской модели знание $Z$ не уменьшает условную ковариацию $W|Y$ и не влияет на условное математическое ожидание $\Expect[W|Y,Z]$, поскольку $Z$ не содержит никакой новой информации, которой не было бы в $Y$:
+\begin{equation*}
+\begin{gathered}
+\text{Cov}(W|Y,Z)=\text{Cov}(W|Y), \\
+\Expect[W|Y,Z] = \Expect[W|Y].
+\end{gathered}
+\end{equation*}
+Получаем:
+\begin{equation}
+\text{Cov}(W|\mathcal{F}_Z) = \Expect[\text{Cov}(W|Y)|\mathcal{F}_Z] + \text{Cov}(\Expect[W|Y]|\mathcal{F}_Z).
+\end{equation}
+Если $Z=z$, имеем:
+\begin{equation}
+\text{Cov}(W|Z=z) = \Expect[\text{Cov}(W|Y)|Z=z] + \text{Cov}(\Expect[W|Y]|Z=z).
+\end{equation}
+В рамках исходной задачи по оцениванию DoA и ковариации сигналов, $W$ соответствует величине $S_t$,  $Y$ соответствует величине $X_t$, $Z$ соответствует величине $X_{t, o_t}$,  $z$ соответствует величине $x_{t, o_t}, t=1,\ldots,\text{T}$. \\
+Получаем:
+\begin{equation}
+\text{Cov}(S_t|X_{t,o_t}=x_{t, o_t}) = \Expect[\text{Cov}(S_t|X_t)|X_{t,o_t}=x_{t, o_t}] + \text{Cov}(\Expect[S_t|X_t]|X_{t,o_t}=x_{t, o_t}).
+\end{equation}
+Преобразуем первое слагаемое, учитывая тот факт, что ковариация не зависит от реализации $X_{t, o_t}$.
+\begin{equation}
+\Expect[\text{Cov}(S_t|X_t)|X_{t, o_t}=x_{t, o_t}] = \text{Cov}(S_t|X_t) = \mathbf{\Gamma} - \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
+\end{equation}
+Теперь найдем $\Expect[S_t|X_{t,o_t}=x_{t, o_t}]$, $\Expect[S_t|X_{t}]$:
+\begin{equation}
+\Expect[S_t|X_{t,o_t}=x_{t, o_t}] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t|X_{t,o_t}=x_{t, o_t}],
+\end{equation}
+\begin{equation}
+\Expect[S_t|X_t] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t.
+\end{equation}
+Теперь преобразуем второе слагаемое:
+\begin{equation}
+\text{Cov}(\Expect[S_t|X_t]|X_{t, o_t}=x_{t, o_t}) = \text{Cov}(\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t |X_{t, o_t}=x_{t, o_t}) = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \text{Cov}(X_t | X_{t, o_t}=x_{t, o_t}) \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
+\end{equation}
+Для полных наблюдений $X_{t, o_t} = X_t$, и, соответственно:
+\begin{equation}
+\text{Cov}(\Expect[S_t|X_t]|X_{t, o_t}=x_{t, o_t})  = \text{Cov}(\Expect[S_t|X_t]|X_t=x_t) = 0. 
+\end{equation}
+О выводе смешанных вторых моментов $\Expect[X_t S_t^*|X_t=x_t]$ и $\Expect[X_t S_t^*|X_{t, o_t}=x_{t, o_t}]$:
+\begin{equation}
+\Expect[X_t S_t^*|X_t] = X_t \Expect[S_t^*|X_t] = X_t (\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t)^* = X_t X_t^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
+\end{equation}
+\begin{equation*}
+\begin{gathered}
+\Expect[X_t S_t^*|X_{t, o_t}=x_{t, o_t}] = \Expect[X_t \Expect[S_t^*|X_t]|X_{t, o_t}=x_{t, o_t}] = \Expect[X_t  (\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t)^*  | X_{t, o_t}] \\ 
+= \Expect[X_t X_t^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma} |X_{t, o_t}=x_{t, o_t}] = \Expect[X_t X_t^*|X_{t, o_t}=x_{t, o_t}] \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}
+\end{gathered}
+\end{equation*}
+В приведенных выше переходах используется закон полного условного математического ожидания и уже полученное выражение для $\Expect[S_t^*|X_t]$.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №2. О реализации М-шага}}
