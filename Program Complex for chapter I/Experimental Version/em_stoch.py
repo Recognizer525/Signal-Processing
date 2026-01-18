@@ -6,13 +6,13 @@ import diff_sensor_structures as dss
 import debug_funcs as df
 
 
-def init_est2(K: int,
-              Q: np.ndarray,
-              R: np.ndarray,
-              MUSIC_theta: np.ndarray,
-              L: int| None = None,
-              eps: float = 1e-3,
-              seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
+def reasonable_init_est(K: int,
+                        Q: np.ndarray,
+                        R: np.ndarray,
+                        MUSIC_theta: np.ndarray,
+                        L: int| None = None,
+                        eps: float = 1e-3,
+                        seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Создает первоначальную оценку DoA и ковариационной матрицы 
     исходных сигналов. Улучшенная версия функции new_init_est, 
@@ -154,13 +154,13 @@ def incomplete_lkhd(X: np.ndarray,
 
 
 def EM(angles: np.ndarray,
-        P: np.ndarray,
-        X: np.ndarray,
-        Q: np.ndarray,
-        max_iter: int = 50,
-        rtol: float = 1e-3) -> tuple[np.ndarray,
-                                     np.ndarray,
-                                     np.float64]:
+       P: np.ndarray,
+       X: np.ndarray,
+       Q: np.ndarray,
+       max_iter: int = 50,
+       rtol: float = 1e-3) -> tuple[np.ndarray,
+                                    np.ndarray,
+                                    np.float64]:
     """
     Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
@@ -187,6 +187,10 @@ def EM(angles: np.ndarray,
         Новая оценка ковариации исходных сигналов.
     lkhd: np.float64
         Новая оценка неполного правдоподобия.
+    lkhd_list: list
+        Список значений правдоподобия по итерациям.
+    angles_list: list
+        Список значений углов по итерациям.
     """
     Q_inv = np.linalg.inv(Q)
     Q_inv_sqrt = np.sqrt(Q_inv)
@@ -214,6 +218,10 @@ def EM(angles: np.ndarray,
     Gap_based_Cov = np.zeros((T, K, K), dtype=np.complex128)
     Gap_based_Cross_cov = np.zeros((T, L, K), dtype=np.complex128)
     E_X_cond = X.copy()
+
+    lkhd_list = list()
+    angles_list = list()
+    angles_list.append(angles)
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
@@ -279,6 +287,9 @@ def EM(angles: np.ndarray,
         if new_lkhd < lkhd:
             break
         angles, P, lkhd = new_angles, new_P, new_lkhd
+        angles_list.append(angles)
+        lkhd_list.append(lkhd)
+
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
@@ -286,7 +297,7 @@ def EM(angles: np.ndarray,
             print(f"Parameters of interest are angles={angles}, P={P}")
         EM_Iteration += 1
         
-    return angles, P, lkhd
+    return angles, P, lkhd, lkhd_list, angles_list
 
 
 def multistart_EM2(X: np.ndarray,
@@ -326,19 +337,26 @@ def multistart_EM2(X: np.ndarray,
         Оценка ковариационной матрицы исходных сигналов.
     best_lhd: np.float64
         Оценка неполного правдоподобия.
+    best_lkhd_list: list
+        Список значений правдоподобия по итерациям для лучшей итерации мультистарта.
+    best_angles_list: list
+        Список значений углов по итерациям для лучшей итерации мультистарта.
     """
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
+    best_lkhd_list, best_angles_list = None, None
     L = X.shape[1]
     R = sensors.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = init_est2(K, Q, R, MUSIC_theta, L, seed=i*100)
-        est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
+        angles, P = reasonable_init_est(K, Q, R, MUSIC_theta, L, seed=i*100)
+        est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_angles = est_P, est_angles
+            best_lkhd_list, best_angles_list = est_lkhd_list, est_angles_list
+
     print(f"best_start={best_start}")
-    return best_angles, best_P, best_lhd
+    return best_angles, best_P, best_lhd, best_lkhd_list, best_angles_list
 
 
 
