@@ -11,7 +11,6 @@ def reasonable_init_est(K: int,
                         R: np.ndarray,
                         MUSIC_theta: np.ndarray,
                         L: int| None = None,
-                        iter: int|None = None,
                         eps: float = 1e-3,
                         seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -29,13 +28,11 @@ def reasonable_init_est(K: int,
         Оценка ковариации наблюдений.
     MUSIC_theta: np.ndarray
         Оценка углов, полученная через MUSIC.
-    L: int|None
+    L: int
         Количество сенсоров в антенной решетке.
-    iter: int|None
-        Номер итерации мультистарта. Влияет на то, как будет выбрана начальная оценка углов.
     eps: float
         Минимальное значение мощности источника.
-    seed: int|None
+    seed: int
         Randomstate для генерации данных.
 
     Returns
@@ -47,26 +44,10 @@ def reasonable_init_est(K: int,
     """
     if seed is None: 
         seed = 100
-    
-    if iter == 0:
-        theta = MUSIC_theta
-    elif iter > 0 and iter < 8:
-        sigma = 0.05  
-        bias = np.random.RandomState(seed).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
-        theta = np.clip(theta, -np.pi/2, np.pi/2)
-    elif iter >= 8 and iter < 16:
-        sigma = 0.2
-        bias = np.random.RandomState(seed+30).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
-        theta = np.clip(theta, -np.pi/2, np.pi/2)
-    else:
-        sigma = 0.35
-        bias = np.random.RandomState(seed+108).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
-        theta = np.clip(theta, -np.pi/2, np.pi/2)
-
-
+    sigma = 0.05  
+    bias = np.random.RandomState(seed).normal(0, sigma, size=K)
+    theta = MUSIC_theta + bias
+    theta = np.clip(theta, -np.pi/2, np.pi/2)
 
     A = dss.A_ULA(L, theta)
     the_norm = np.linalg.norm(A, axis=0)
@@ -222,7 +203,7 @@ def EM(angles: np.ndarray,
     
     mask = ~np.isnan(X).any(axis=1)
 
-    print(f'Initial angles = {angles}')
+    #print(f'Initial angles = {angles}')
 
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1]+1)
@@ -295,10 +276,10 @@ def EM(angles: np.ndarray,
                                     Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
-        #print(f"new_angles={new_angles}")
+        print(f"new_angles={new_angles}")
         new_P = sensors.cov_correcter(Sigma_SS)
         new_P[:] = new_P[np.ix_(idx, idx)]
-        #print(f"new_P:\n{new_P}")
+        print(f"new_P:\n{new_P}")
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
         if (if_params_converged(angles, new_angles, P, new_P, rtol) or
             if_lkhd_converged(lkhd, new_lkhd)):
@@ -312,6 +293,8 @@ def EM(angles: np.ndarray,
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
+        if lkhd > 0:
+            print(f"Parameters of interest are angles={angles}, P={P}")
         EM_Iteration += 1
         
     return angles, P, lkhd, lkhd_list, angles_list
@@ -365,7 +348,7 @@ def multistart_EM2(X: np.ndarray,
     R = sensors.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = reasonable_init_est(K, Q, R, MUSIC_theta, L, iter=i, seed=i*12+70)
+        angles, P = reasonable_init_est(K, Q, R, MUSIC_theta, L, seed=i*100)
         est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
