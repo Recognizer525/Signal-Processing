@@ -241,6 +241,46 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Результаты численного эксперимента}}
 \end{center}
+\begin{center}
+\fontsize{18}{23}\selectfont \color{black}{\textbf{Первые результаты, предварительные}}
+\end{center}
+\begin{center}
+\fontsize{13}{16}\selectfont \color{purple}{\textbf{Первый набор начальных условий}}
+\end{center}
+\begin{equation*}
+\begin{gathered}
+L = 25, K = 1, T = 12, \text{5 сенсоров неисправны, 50\% пропусков для каждого из них}, \\ P = 0.5 \cdot E_{K}, Q = 8.1 \cdot E_{L}, \theta = [0.7] \approx [40.107^{\circ}].
+\end{gathered}
+\end{equation*}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Screens/Angles1.png}
+    \caption{График сходимости угловой координаты для первого набора начальных условий}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Screens/likelihood1.png}
+    \caption{График роста $\log(p(X_o|\Psi))$ для первого набора начальных условий}
+\end{figure}
+\clearpage
+\begin{center}
+\fontsize{13}{16}\selectfont \color{purple}{\textbf{Второй набор начальных условий}}
+\end{center}
+\begin{equation*}
+\begin{gathered}
+L = 25, K = 1, T = 11, \text{8 сенсоров неисправны, 50\% пропусков для каждого из них},\\  P = 0.5 \cdot E_{K}, Q = 6.1 \cdot E_{L}, \theta = [0.7] \approx [40.107^{\circ}].
+\end{gathered}
+\end{equation*}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Screens/Angles2.png}
+    \caption{График сходимости угловой координаты для второго набора начальных условий}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Screens/likelihood2.png}
+    \caption{График роста $\log(p(X_o|\Psi))$ для второго набора начальных условий}
+\end{figure}
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Список источников}}
@@ -281,7 +321,7 @@ Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 
 \item
 Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{\text{K}})\, \text{mod} \, 2\pi, i = 1,\ldots,\text{K}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
 \end{enumerate}
-Альтернативный подход: используем $\hat{\text{R}}^{(0)}$ для оценки  $\theta^{(0)}$ с помощью подпространственного метода, может быть использован MUSIC, к примеру. \\
+Альтернативный подход: используем $\hat{\text{R}}^{(0)}$ для оценки  $\theta^{(0)}$ с помощью алгоритма MUSIC, используем эту оценку на первой итерации мультистарта ЕМ, на следующих используем оценки в окрестности указанной.\\
 Начальную ковариацию сигналов $\mathbf{\Gamma}^{(0)}$ получаем на основе метода наименьших квадратов с помощью $\theta^{(0)}, \hat{\text{R}}^{(0)}$. Матрица $A(\theta^{(0)})$ -- матрица векторов направленности и представима в следующем виде:
 \begin{equation}
 A(\theta^{(0)})=[a(\theta^{(0)}_1), \ldots, a(\theta^{(0)}_K)],
