@@ -29,6 +29,7 @@
 \usepackage[mathscr]{euscript}
 
 \usepackage[dvipsnames]{xcolor}
+\usepackage{amsfonts}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
  
@@ -263,6 +264,11 @@ Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №1. Инициализация}}
 \end{center}
+Оценим ковариационную матрицу $\hat{\text{R}}^{(0)}$ следующим образом: если $\sum_t \mathbf{I}_{x_t=x_{t,o_t}} \ge \text{L}$, оцениваем $\hat{\text{R}}^{(0)}$ по выборке, образованной $x_t: x_t=x_{t,o_t}$. В противном случае используется следующий подход: пусть $x^l$ -- строка матрицы $X$, соответствующая сенсору $l, l=1,\ldots,\text{L}$, $x_o^l$ -- выборка, образованная доступными наблюдениями в строке $l$, $x_m^l$ -- выборка, образованная недоступными наблюдениями в строке $l$, $x_t^l$ -- компонента наблюдения $x_t$, соответствующая сенсору $l$. Для всех недоступных значений построим следующую оценку: если $x_t^l \in x_m^l, l = 1,\ldots, \text{L},  t = 1,\ldots, \text{T}$, то $\hat{x}_t^l = \overline{x_o^l}$. Оцениваем ковариацию по такому оцененному набору $\hat{x}$:
+\begin{equation}
+\hat{\text{R}}^{(0)} = \text{Cov}(\hat{x}).
+\end{equation}
+\\
 Оценим вектор угловых координат источников $\theta^{(0)}$ следующим образом:
 \begin{enumerate}
 \item
@@ -273,11 +279,33 @@ Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 
 \item
 Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{\text{K}})\, \text{mod} \, 2\pi, i = 1,\ldots,\text{K}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
 \end{enumerate}
-Начальную оценку ковариационной матрицы наблюдений $\hat{\text{R}}^{(0)}$ получаем на основе доступных данных. Начальную ковариацию сигналов $\Gamma^{(0)}$ получаем на основе метода наименьших квадратов с помощью $\theta^{(0)}, \hat{\text{R}}^{(0)}$.
-
-\begin{center}
-\fontsize{20}{24}\selectfont \color{black}{\textbf{Будет дополнено}}
-\end{center}
+Альтернативный подход: используем $\hat{\text{R}}^{(0)}$ для оценки  $\theta^{(0)}$ с помощью подпространственного метода, может быть использован MUSIC, к примеру. \\
+Начальную ковариацию сигналов $\mathbf{\Gamma}^{(0)}$ получаем на основе метода наименьших квадратов с помощью $\theta^{(0)}, \hat{\text{R}}^{(0)}$. Матрица $A(\theta^{(0)})$ -- матрица векторов направленности и представима в следующем виде:
+\begin{equation}
+A(\theta^{(0)})=[a(\theta^{(0)}_1), \ldots, a(\theta^{(0)}_K)],
+\end{equation}
+где $a(\theta^{(0)}_k)$ -- вектор направленности для источника $k$. Перед применением МНК каждый такой вектор отнормируем:
+\begin{equation}
+\check{a}(\theta^{(0)}_k) = \frac{a(\theta^{(0)}_k)}{||a(\theta^{(0)}_k)||}, k=1,\ldots,\text{K},
+\end{equation}
+сформируем из них нормированную матрицу векторов направленности:
+\begin{equation}
+\check{A}(\theta^{(0)})=[\check{a}(\theta^{(0)}_1), \ldots, \check{a}(\theta^{(0)}_\text{K})],
+\end{equation}
+применяем МНК для получения нормированной ковариации мощностей: 
+\begin{equation}
+\check{\Gamma}^{(0)}=\mathcal{D}\big[\check{A}(\theta^{(0)})^{+} (\hat{\text{R}}^{(0)}-\mathbf{\Lambda})(\check{A}(\theta^{(0)})^{+})^*\big],
+\end{equation}
+где $\mathcal{D}\big[ \cdot \big]$ -- диагональное приближение матрицы, $(\cdot)^{+}$ -- псевдообратная матрица. Такой подход не гарантирует, что все элементы матрицы на главной диагонали будут неотрицательными, поэтому используем следующую коректировку: $\check{\Gamma}_{ll}^{(0)} = \max(\check{\Gamma}_{ll}^{(0)}, \varepsilon)$, $l=1,\ldots,\text{L}$. Переходим к ненормированной мощности:
+\begin{equation}
+\mathbf{\Gamma}_{ll}^{(0)}=\frac{\check{\Gamma}_{ll}^{(0)}}{||a(\theta^{(0)}_k)||_l}, l=1,\ldots,\text{L}.
+\end{equation}
+Требуется гарантировать, что при выбранной инициализации на Е-шаге не будет получена условная ковариация сигналов, не являющаяся положительной определенной.
+Вычисляем оценку условной ковариации сигналов, используя начальную оценку, и проверяем, выполняется ли свойство неотрицательной определенности:
+\begin{equation}
+\mathbf{\Gamma}^{(0)} - (\mathbf{\Gamma}^{(0)})^* \text{A}(\theta^{(0)})^*  (\hat{\text{R}}^{(0)})^{-1} \text{A}(\theta^{(0)})\mathbf{\Gamma}^{(0)} \succeq 0,
+\end{equation} 
+пока это свойство не выполняется, домножаем матрицу на 0.5: $\mathbf{\Gamma}^{(0)} = 0.5 \cdot \mathbf{\Gamma}^{(0)}$ и повторно проверяем выполненность вышеуказанного свойства.
 \clearpage
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{Приложение №2. Об апостериорном распределении сигналов, полученном на Е-шаге}}
