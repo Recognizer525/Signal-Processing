@@ -65,35 +65,6 @@ def init_est(K: int,
     return theta, P
 
 
-def Cov_signals(mu: np.ndarray, 
-                sigma: np.ndarray) -> np.ndarray:
-    """
-    Реализует вычисление ковариационной матрицы сигналов.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    mu: np.ndarray
-        Массив, составленный из векторов УМО исходного сигнала, 
-        в зависимости от наблюдений. 
-        Число столбцов соответствует числу наблюдений.
-    sigma: np.ndarray
-        Условная ковариация исходных сигналов с учетом наблюдений.
-
-    Returns
-    ---------------------------------------------------------------------------
-    res: np.ndarray
-        Новая оценка ковариационной матрицы исходных сигналов.
-    """
-    T = mu.shape[1]
-    res = (1/T) * mu @ mu.conj().T + sigma
-    #print(f'Cov_signals ={res}')
-    # Оставляем только диагональные элементы
-    res_masked = res.copy()
-    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
-    print(f'res={res_masked}')
-    return res_masked.real
-
-
 def if_params_converged(angles:np.ndarray, 
                         new_angles: np.ndarray, 
                         P: np.ndarray, 
@@ -178,13 +149,13 @@ def incomplete_lkhd(X: np.ndarray,
 
 
 def EM(angles: np.ndarray,
-        P: np.ndarray,
-        X: np.ndarray,
-        Q: np.ndarray,
-        max_iter: int = 50,
-        rtol: float = 1e-3) -> tuple[np.ndarray,
-                                     np.ndarray,
-                                     np.float64]:
+       P: np.ndarray,
+       X: np.ndarray,
+       Q: np.ndarray,
+       max_iter: int = 50,
+       rtol: float = 1e-3) -> tuple[np.ndarray,
+                                    np.ndarray,
+                                    np.float64]:
     """
     Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
@@ -249,13 +220,10 @@ def EM(angles: np.ndarray,
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
 
-                # Вычисляем блоки ковариации наблюдений
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
-                # Оцениваем параметры апостериорного распределения 
-                # ненаблюдаемых данных и пропущенные значения
                 E_X_cond[i, M_i] = R_MO @ np.linalg.inv(R_OO) @ E_X_cond[i, O_i]
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
@@ -304,12 +272,12 @@ def EM(angles: np.ndarray,
         if (if_params_converged(angles, new_angles, P, new_P, rtol) or
             if_lkhd_converged(lkhd, new_lkhd)):
             break
+        if new_lkhd < lkhd:
+            break
         angles, P, lkhd = new_angles, new_P, new_lkhd
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
         print(f'likelihood is {lkhd} on iteration {EM_Iteration}')
-        if lkhd > 0:
-            print(f"Parameters of interest are angles={angles}, P={P}")
         EM_Iteration += 1
         
     return angles, P, lkhd
@@ -362,6 +330,40 @@ def multi_start_EM(X: np.ndarray,
             best_P, best_angles = est_P, est_angles
     print(f"best_start={best_start}")
     return best_angles, best_P, best_lhd
+
+
+
+
+
+
+####################################################################################################################
+def Cov_signals(mu: np.ndarray, 
+                sigma: np.ndarray) -> np.ndarray:
+    """
+    Реализует вычисление ковариационной матрицы сигналов.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    mu: np.ndarray
+        Массив, составленный из векторов УМО исходного сигнала, 
+        в зависимости от наблюдений. 
+        Число столбцов соответствует числу наблюдений.
+    sigma: np.ndarray
+        Условная ковариация исходных сигналов с учетом наблюдений.
+
+    Returns
+    ---------------------------------------------------------------------------
+    res: np.ndarray
+        Новая оценка ковариационной матрицы исходных сигналов.
+    """
+    T = mu.shape[1]
+    res = (1/T) * mu @ mu.conj().T + sigma
+    #print(f'Cov_signals ={res}')
+    # Оставляем только диагональные элементы
+    res_masked = res.copy()
+    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
+    print(f'res={res_masked}')
+    return res_masked.real
 
 
 

@@ -5,65 +5,6 @@ import angle_finding as af
 import diff_sensor_structures as dss
 import debug_funcs as df
 
-def init_est(K: int,
-             Q: np.ndarray,
-             R: np.ndarray,
-             L: int| None = None,
-             eps: float = 1e-3,
-             seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Создает первоначальную оценку DoA и ковариационной матрицы 
-    исходных сигналов. Улучшенная версия функции new_init_est, 
-    связывает начальные оценки мощности источников с их угловыми координатами.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    K: int
-        Число источников.
-    Q: np.ndarray
-        Ковариация шума.
-    R: np.ndarray
-        Оценка ковариации наблюдений.
-    L: int
-        Количество сенсоров в антенной решетке.
-    eps: float
-        Минимальное значение мощности источника.
-    seed: int
-        Randomstate для генерации данных.
-
-    Returns
-    ---------------------------------------------------------------------------
-    theta: np.ndarray
-        Оценка DoA. Представляет собой одномерный массив размера (K,1).
-    R: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    """
-    if seed is None: 
-        seed = 100
-        
-    start = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
-    theta = np.array([(start + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
-    theta = np.sort(theta)
-    A = dss.A_ULA(L, theta)
-    the_norm = np.linalg.norm(A, axis=0)
-    A1 = A / the_norm
-    pA = np.linalg.pinv(A1)
-    res = R - Q
-    P_normed = np.diag(pA @ res @ pA.conj().T).copy()
-    for i in range(P_normed.shape[0]):
-        P_normed[i] = max(P_normed[i], eps)
-    P = np.diag(P_normed / the_norm)
-    W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
-    while True:
-        if sensors.is_psd(W):
-            break
-        else:
-            P = 0.5 * P
-            W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
-
-    print(f"theta={theta},P={P}")
-    return theta, P
-
 
 def init_est2(K: int,
               Q: np.ndarray,
@@ -127,35 +68,6 @@ def init_est2(K: int,
 
     print(f"theta={theta},P={P}")
     return theta, P
-
-
-def Cov_signals(mu: np.ndarray, 
-                sigma: np.ndarray) -> np.ndarray:
-    """
-    Реализует вычисление ковариационной матрицы сигналов.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    mu: np.ndarray
-        Массив, составленный из векторов УМО исходного сигнала, 
-        в зависимости от наблюдений. 
-        Число столбцов соответствует числу наблюдений.
-    sigma: np.ndarray
-        Условная ковариация исходных сигналов с учетом наблюдений.
-
-    Returns
-    ---------------------------------------------------------------------------
-    res: np.ndarray
-        Новая оценка ковариационной матрицы исходных сигналов.
-    """
-    T = mu.shape[1]
-    res = (1/T) * mu @ mu.conj().T + sigma
-    #print(f'Cov_signals ={res}')
-    # Оставляем только диагональные элементы
-    res_masked = res.copy()
-    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
-    print(f'res={res_masked}')
-    return res_masked.real
 
 
 def if_params_converged(angles:np.ndarray, 
@@ -313,13 +225,10 @@ def EM(angles: np.ndarray,
             if set(O[i, ]) != set(col_numbers - 1):
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
 
-                # Вычисляем блоки ковариации наблюдений
                 R_OO = R[np.ix_(O_i, O_i)]
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
-                # Оцениваем параметры апостериорного распределения 
-                # ненаблюдаемых данных и пропущенные значения
                 E_X_cond[i, M_i] = R_MO @ np.linalg.inv(R_OO) @ E_X_cond[i, O_i]
                 K_Xm_cond[np.ix_([i], M_i, M_i)] += (R_MM - R_MO @ 
                                                       np.linalg.inv(R_OO) @ 
@@ -355,7 +264,6 @@ def EM(angles: np.ndarray,
         df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
         df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
-        # М-шаг
         new_angles = af.find_angles(Sigma_XS, angles, 
                                     Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
@@ -379,55 +287,6 @@ def EM(angles: np.ndarray,
         EM_Iteration += 1
         
     return angles, P, lkhd
-
-
-def multi_start_EM(X: np.ndarray,
-                   K: int,
-                   Q: np.ndarray,
-                   num_of_starts: int = 10,
-                   max_iter: int = 20,
-                   rtol: float = 1e-6) -> tuple[np.ndarray,
-                                                 np.ndarray,
-                                                 np.float64]:
-    """
-    Реализует мультистарт для ЕМ-алгоритма.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    X: np.ndarray
-        Двумерный массив, соответствующий наблюдениям.
-    K: int
-        Число источников.
-    Q: np.ndarray
-        Ковариационная матрица шума.
-    num_of_starts: int
-        Число запусков.
-    max_iter: int
-        Предельное число итераций.
-    rtol: float
-        Величина, используемая для проверки сходимости итерационного процесса.
-
-    Returns
-    ---------------------------------------------------------------------------
-    best_angles: np.ndarray
-        Оценка DoA.
-    best_P: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    best_lhd: np.float64
-        Оценка неполного правдоподобия.
-    """
-    best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
-    L = X.shape[1]
-    R = sensors.initial_Cov(X)
-    for i in range(num_of_starts):
-        print(f'{i}-th start')
-        angles, P = init_est(K, Q, R, L, seed=i*100)
-        est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
-        if est_lhd > best_lhd:
-            best_lhd, best_start = est_lhd, i
-            best_P, best_angles = est_P, est_angles
-    print(f"best_start={best_start}")
-    return best_angles, best_P, best_lhd
 
 
 def multistart_EM2(X: np.ndarray,
@@ -484,3 +343,141 @@ def multistart_EM2(X: np.ndarray,
 
 
 
+###############################################################################################
+
+def Cov_signals(mu: np.ndarray, 
+                sigma: np.ndarray) -> np.ndarray:
+    """
+    Реализует вычисление ковариационной матрицы сигналов.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    mu: np.ndarray
+        Массив, составленный из векторов УМО исходного сигнала, 
+        в зависимости от наблюдений. 
+        Число столбцов соответствует числу наблюдений.
+    sigma: np.ndarray
+        Условная ковариация исходных сигналов с учетом наблюдений.
+
+    Returns
+    ---------------------------------------------------------------------------
+    res: np.ndarray
+        Новая оценка ковариационной матрицы исходных сигналов.
+    """
+    T = mu.shape[1]
+    res = (1/T) * mu @ mu.conj().T + sigma
+    #print(f'Cov_signals ={res}')
+    # Оставляем только диагональные элементы
+    res_masked = res.copy()
+    res_masked[~np.eye(res.shape[0], dtype=bool)] = 0
+    print(f'res={res_masked}')
+    return res_masked.real
+
+
+def init_est(K: int,
+             Q: np.ndarray,
+             R: np.ndarray,
+             L: int| None = None,
+             eps: float = 1e-3,
+             seed: int|None = None) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Создает первоначальную оценку DoA и ковариационной матрицы 
+    исходных сигналов. Улучшенная версия функции new_init_est, 
+    связывает начальные оценки мощности источников с их угловыми координатами.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    K: int
+        Число источников.
+    Q: np.ndarray
+        Ковариация шума.
+    R: np.ndarray
+        Оценка ковариации наблюдений.
+    L: int
+        Количество сенсоров в антенной решетке.
+    eps: float
+        Минимальное значение мощности источника.
+    seed: int
+        Randomstate для генерации данных.
+
+    Returns
+    ---------------------------------------------------------------------------
+    theta: np.ndarray
+        Оценка DoA. Представляет собой одномерный массив размера (K,1).
+    R: np.ndarray
+        Оценка ковариационной матрицы исходных сигналов.
+    """
+    if seed is None: 
+        seed = 100
+        
+    start = np.random.RandomState(seed).uniform(-np.pi/2, np.pi/2)
+    theta = np.array([(start + i * np.pi / K + np.pi / 2) % np.pi - np.pi/2 for i in range(K)])
+    theta = np.sort(theta)
+    A = dss.A_ULA(L, theta)
+    the_norm = np.linalg.norm(A, axis=0)
+    A1 = A / the_norm
+    pA = np.linalg.pinv(A1)
+    res = R - Q
+    P_normed = np.diag(pA @ res @ pA.conj().T).copy()
+    for i in range(P_normed.shape[0]):
+        P_normed[i] = max(P_normed[i], eps)
+    P = np.diag(P_normed / the_norm)
+    W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+    while True:
+        if sensors.is_psd(W):
+            break
+        else:
+            P = 0.5 * P
+            W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
+
+    print(f"theta={theta},P={P}")
+    return theta, P
+
+
+def multi_start_EM(X: np.ndarray,
+                   K: int,
+                   Q: np.ndarray,
+                   num_of_starts: int = 10,
+                   max_iter: int = 20,
+                   rtol: float = 1e-6) -> tuple[np.ndarray,
+                                                 np.ndarray,
+                                                 np.float64]:
+    """
+    Реализует мультистарт для ЕМ-алгоритма.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    X: np.ndarray
+        Двумерный массив, соответствующий наблюдениям.
+    K: int
+        Число источников.
+    Q: np.ndarray
+        Ковариационная матрица шума.
+    num_of_starts: int
+        Число запусков.
+    max_iter: int
+        Предельное число итераций.
+    rtol: float
+        Величина, используемая для проверки сходимости итерационного процесса.
+
+    Returns
+    ---------------------------------------------------------------------------
+    best_angles: np.ndarray
+        Оценка DoA.
+    best_P: np.ndarray
+        Оценка ковариационной матрицы исходных сигналов.
+    best_lhd: np.float64
+        Оценка неполного правдоподобия.
+    """
+    best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
+    L = X.shape[1]
+    R = sensors.initial_Cov(X)
+    for i in range(num_of_starts):
+        print(f'{i}-th start')
+        angles, P = init_est(K, Q, R, L, seed=i*100)
+        est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
+        if est_lhd > best_lhd:
+            best_lhd, best_start = est_lhd, i
+            best_P, best_angles = est_P, est_angles
+    print(f"best_start={best_start}")
+    return best_angles, best_P, best_lhd

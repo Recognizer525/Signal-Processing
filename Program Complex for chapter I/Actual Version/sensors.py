@@ -1,6 +1,4 @@
 import numpy as np
-from numpy.linalg import eig
-from scipy.signal import find_peaks
 
 DIST_RATIO = 0.5
 
