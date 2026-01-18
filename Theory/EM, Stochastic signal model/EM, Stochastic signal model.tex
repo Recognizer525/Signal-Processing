@@ -150,6 +150,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
+Нам недоступны значения $X_{t,m_t}$, ввиду этого мы не можем найти $P(S_t|\mathcal{I}_t, X_{t,m_t})$, однако ввиду того, что модель линейная гауссовская, мы можем найти параметры распределения $P(S_t|\mathcal{I}_t), t = 1,\ldots, \text{T}$.
 Параметры апостериорного распределения $P(S_t|\mathcal{I}_t), t = 1,\ldots, \text{T}$ можно найти исходя из следующих формул, если $m_t \ne \varnothing$:
 \begin{equation}
 \left\{ \begin{aligned} 
@@ -157,7 +158,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \text{Cov}(S_t|\mathcal{I}_t) &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}\text{A}^* \hat{\text{R}}^{-1}\text{Cov}(X_t|\mathcal{I}_t)\hat{\text{R}}^{-1} \text{A}\mathbf{\Gamma},
 \end{aligned} \right.
 \end{equation}
-где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. \\
+где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. Для вывода этих формул используются свойство башни условного математического ожидания (tower property) и закон полной дисперсии (подробности приведены в приложении 2). \\
 Оценим $\Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*]$:
 \begin{equation}
 \Expect_{(X_{t,m_t},S_t)|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t, X_{t,m_t}] \cdot \Expect[S_t^*|\mathcal{I}_t, X_{t,m_t}] + \text{Cov}(S_t|\mathcal{I}_t, X_{t, m_t}),
@@ -190,6 +191,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation}
 \Expect_{S_t|\mathcal{I}_t}[S_t S_t^*] = \Expect[S_t|\mathcal{I}_t] \cdot \Expect[S_t^*|\mathcal{I}_t] + \text{Cov}(S_t|\mathcal{I}_t). 
 \end{equation}
+\clearpage
 \begin{center}
 \fontsize{12}{16}\selectfont \color{Purple}{\textbf{Агрегация}}
 \end{center}
@@ -312,9 +314,12 @@ A(\theta^{(0)})=[a(\theta^{(0)}_1), \ldots, a(\theta^{(0)}_K)],
 \end{center}
 В рамках Е-шага необходимо вычислить $\Expect[S_t|X_{t,o_t}=x_{t, o_t}]$,  $\text{Cov}(S_t|X_{t,o_t}=x_{t, o_t})$.
 Вычисление $\Expect[S_t|X_{t,o_t}=x_{t, o_t}]$ реализуется так:
-\begin{equation}
-\Expect[S_t|X_{t,o_t}=x_{t, o_t}] =  \Expect[\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t|X_{t,o_t}=x_{t, o_t}] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t|X_{t,o_t}=x_{t, o_t}].
-\end{equation}
+\begin{equation*}
+\begin{gathered}
+\Expect[S_t|X_{t,o_t}=x_{t, o_t}] =  \Expect[\Expect[S_t|X_t]|X_{t,o_t}=x_{t,o_t}]  \\ 
+= \Expect[\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t|X_{t,o_t}=x_{t, o_t}] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t|X_{t,o_t}=x_{t, o_t}].
+\end{gathered}
+\end{equation*}
 Для нахождения $\text{Cov}(S_t|X_{t,o_t}=x_{t, o_t})$ может быть использовано равенство, называемое законом полной дисперсии (Law of total variance, может быть найдено в Sheldon Russ, A first course in probability, 8th ed., 2010):
 \begin{equation}
 \text{Cov}(W) = \Expect[\text{Cov}(W|Y)] + \text{Cov}(\Expect[W|Y]).
@@ -383,12 +388,14 @@ A(\theta^{(0)})=[a(\theta^{(0)}_1), \ldots, a(\theta^{(0)}_K)],
 \end{equation}
 где
 \begin{equation}
+{\small
 \widetilde{A}(u) = \begin{bmatrix}
 1&1&\dots&1\\
 e^{-2j\pi \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi \frac{\text{d}}{\lambda}u_\text{K}}\\
 \dots&\dots&\ddots&\vdots\\
 e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_\text{K}}\\
 \end{bmatrix}.
+}
 \end{equation}
 Для ускорения оптимизации можно оптимизировать не $\mathcal{Q}_1(u|u^{(\tau-1)})$, а суррогатную функцию $\mathcal{G}(u|u^{(\tau-1)})$, построенную так:
 \begin{equation}
@@ -396,15 +403,16 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 \end{equation}
 где
 \begin{equation}
+{\small
 \mathbf{H} = \begin{bmatrix}
 \max(|\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&0&\dots&0\\
 0& \max(|\grad_2 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)&\dots&0\\
 \dots&\dots&\ddots&\vdots\\
 0& 0&\dots& \max(|\grad_\text{K} \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})|,\varepsilon)\\
 \end{bmatrix},
-\nonumber
+}
 \end{equation}
-причем $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$.
+причем $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}|u^{(\tau-1)})$. Диагональная аппроксимация $\mathbf{H}$ предотвращает слишком маленькие или слишком большие шаги, сохраняя численную стабильность.
 Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $\rho^{(\tau)}=u-u^{(\tau-1)}$):
 \begin{equation}
 \min_u \mathcal{G}(u|u^{(\tau-1)}).
@@ -462,5 +470,6 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}| u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)}| 
 \begin{equation}
 \mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{(X_m,S)|\mathcal{I}}[S S^*] \Big].
 \end{equation}
+Ввиду того, что М-шаг не максимизирует, а лишь улучшает УМО полного правдоподобия, представленный алгоритм является не точным ЕМ, а обобщенным (Generalized) EM.
 \end{document}
 
