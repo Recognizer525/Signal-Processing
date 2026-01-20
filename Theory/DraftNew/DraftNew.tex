@@ -131,7 +131,7 @@ $$
 \begin{gathered}
  \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
  \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
-\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
+\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} [\log \Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
 - \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
 \end{gathered}
@@ -222,7 +222,6 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid\mathcal{I}_t). 
 \end{equation*}
-\clearpage
 \subsection{E-шаг, Агрегация}
 Теперь оценим вторые начальные моменты  $\Expect_{q(\Xi)}[X X^*]$,  $\Expect_{q(\Xi)}[S S^*]$, $\Expect_{q(\Xi)}[X S^*]$:
 \begin{equation*}
