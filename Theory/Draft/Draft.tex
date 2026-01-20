@@ -65,8 +65,8 @@
 \end{comment}
 
 \section*{Введение}
-В парадигме статистической обработки сигналов (Krim, Viberg, 1996; Godara, 1997) важную роль играет задача оценивания угловых координат (DoA) источников сигналов. Существуют две категории методов для оценивания угловых координат: подпространственные (к примеру, MUSIC, ESPRIT), основанные на разбиении ковариационной матрицы наблюдений на подпространство, соответствующее сигналу, и подпространство, соответствующее шуму, и методы, основанные на поиске ММП-оценки. Последние оказываются особенно полезными в постановках задач, предполагающих относительно низкое отношение сигнал-шум, корреляцию между сигналами или малое число наблюдений.  \\
-Одним из классических методов нахождения оценки максимального правдоподобия является ЕМ-алгоритм~\cite{Dempster} (Dempster, Laird, Rubin, 1977). В практических приложениях зачастую используются модификации этого алгоритма, позволяющие упростить оптимизацию на М-шаге (ECM-алгоритм, Meng, Rubin, 1993), либо обеспечивающие более быструю сходимость (SAGE-алгоритм, Fessler, Hero, 1994), и подобные методы уже применяются для оценивания угловых координат источников (Feder, Weinstein, 1988; Miller, Fuhrmann, 1990; Gong, Lyu, 2021). Данные алгоритмы используют предположение об известном шуме. В последние годы, начали появляться статьи (Gong, Lyu, 2023), посвященные использованию ЕМ-алгоритма в условиях равномерного (по сенсорам) неизвестного шума. В подобных алгоритмах, как правило, на М-шаге происходит вычисление сразу несколько групп параметров, к примеру, могут быть вычислены угловые координаты и ковариационная матрица сигналов.\\
+В парадигме статистической обработки сигналов особое место занимает задача оценивания угловых координат (DoA) источников сигналов (~\cite{KrimViberg}, ~\cite{Godara}). Существуют две категории методов для оценивания угловых координат: подпространственные (к примеру, MUSIC, ESPRIT), основанные на разбиении ковариационной матрицы наблюдений на подпространство, соответствующее сигналу, и подпространство, соответствующее шуму, и методы, основанные на поиске ММП-оценки. Последние оказываются особенно полезными в постановках задач, предполагающих относительно низкое отношение сигнал-шум, корреляцию между сигналами или малое число наблюдений.  \\
+Одним из классических методов нахождения оценки максимального правдоподобия является ЕМ-алгоритм~\cite{DempsterRubin}. В практических приложениях зачастую используются модификации этого алгоритма, позволяющие упростить оптимизацию на М-шаге (ECM-алгоритм, ~\cite{MengRubin}), либо обеспечивающие более быструю сходимость (SAGE-алгоритм, ~\cite{FesslerHero}), и подобные методы уже применяются для оценивания угловых координат источников (~\cite{MillerFuhrmann}, ~\cite{FederWeinstein}, ~\cite{GongLyu2021}). Данные алгоритмы используют предположение об известном шуме. В последние годы, начали появляться статьи ~\cite{GongLyu2023}, посвященные использованию ЕМ-алгоритма в условиях равномерного (по сенсорам) неизвестного шума. В подобных алгоритмах, как правило, на М-шаге происходит вычисление сразу несколько групп параметров, к примеру, могут быть вычислены угловые координаты и ковариационная матрица сигналов.\\
 В реальных условиях эксплуатации сенсоры могут быть подвержены стохастическим аппаратным сбоям, вследствие чего их показания в определенные моменты времени могут не быть надежными. \\
 В работе формулируется задача поиска оптимальных угловых координат источников сигналов в условиях, когда часть сенсоров подвержены аппаратным сбоям или случайным помехам, и, ввиду этого, часть наблюдений содержит случайные пропуски. Используется стохастическая модель сигнала, шум предполагается известным и диагональным. Сигнал и шум предполагаются независимыми и имеющими комплексное нормальное распределение. В качестве скрытых переменных рассматриваются исходные сигналы и пропуски в наблюдениях. Ввиду чувствительности ЕМ-алгоритма к инициализации, используется мультистарт, для первой итерации используется оценка, полученная алгоритмом MUSIC, на последующих - случайные смещения указанной оценки.  В условиях, когда число сенсоров оказывается меньше числа наблюдений, причем порядка трети сенсоров ненадежны, оценки, полученные с помощью алгоритма MUSIC оказываются существенно смещены, предложенный в работе ЕМ-алгоритм позволяет получить оценки угловых координат, для которых характерно значительно меньшее смещение относительно истинных значений параметров.
 
@@ -132,13 +132,11 @@ $$
 \begin{gathered}
  \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
  \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
-\Big[\sum_{t=1}^T  \Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[\log \Prob(S_t)]\Big] = \\
+\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
 - \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
 \end{gathered}
 \end{equation*}
-Выражение $\Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[\cdot]$  соответствует случаю максимально полного набора латентных переменных: некоторые наблюдения в наборе могут не содержать пропуски ($X_{t,m_t}=\varnothing$), и тогда это выражение упрощается до $\Expect_{S_t \mid \mathcal{I}_t}[\cdot]$.
-Для нахождения условных моментов, указанных в формуле выше, требуется найти апостериорное распределение скрытых переменных. 
 \subsection{Апостериорное распределение латентных переменных для неполных наблюдений}
 Распределение $\Prob(X_{t,m_t},S_t \mid X_{t,o_t})$ задается однозначно ввиду того, что:
 \begin{enumerate}
@@ -147,9 +145,8 @@ $S_t \perp N_t$;
 \item
 $\text{A}$ -- матрица линейного преобразования;
 \item
-$S_t, N_t$ имеют нулевую псевдоковариацию и нулевое математическое ожидание.
+$S_t, N_t$ комплексные гауссовские векторы,  которые имеют нулевую псевдоковариацию и нулевое математическое ожидание.
 \end{enumerate}
-Подобная формулировка будет улучшена и дополнена источником, это предложение и предшествующее ему -- только для чернового варианта! \\
 Сначала найдем апостериорное распределение $\Prob(X_m \mid \mathcal{I})$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
 \begin{equation}
 \hat{\text{R}} =
@@ -196,14 +193,14 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{aligned} \right.
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. Для вывода этих формул используются свойство башни условного математического ожидания (tower property) и закон полной дисперсии (подробности приведены в приложении Б). \\
-Оценим $\Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[S_t S_t^*]$:
+Оценим $\Expect [S_t S_t^* \mid \mathcal{I}_t]$:
 \begin{equation}
-\Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[S_t S_t^*] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid \mathcal{I}_t),
+\Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid \mathcal{I}_t),
 \end{equation}
-Оценим $\Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[X_t S_t^*]$:
+Оценим $\Expect [X_t S_t^* \mid \mathcal{I}_t]$:
 \begin{equation}
 \begin{gathered}
-\Expect_{(X_{t,m_t},S_t) \mid \mathcal{I}_t}[X_t S_t^*] = \Expect[X_t X_t^* \mid \mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma},
+\Expect [X_t S_t^* \mid \mathcal{I}_t] = \Expect[X_t X_t^* \mid \mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma},
 \end{gathered}
 \end{equation}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
@@ -218,13 +215,13 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{equation}
 При этом:
 \begin{equation}
-\Expect_{S_t \mid \mathcal{I}_t}[X_t X_t^*] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[X_t^* \mid \mathcal{I}_t] = x_t x_t^*,
+\Expect [X_t X_t^* \mid \mathcal{I}_t] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[X_t^* \mid \mathcal{I}_t] = x_t x_t^*,
 \end{equation}
 \begin{equation}
-\Expect_{S_t \mid \mathcal{I}_t}[X_t S_t^*] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot x_t^* \cdot \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
+\Expect [X_t S_t^* \mid \mathcal{I}_t] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot x_t^* \cdot \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
 \end{equation}
 \begin{equation}
-\Expect_{S_t \mid \mathcal{I}_t}[S_t S_t^*] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid\mathcal{I}_t). 
+\Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid\mathcal{I}_t). 
 \end{equation}
 \clearpage
 \subsection{E-шаг, Агрегация}
@@ -510,23 +507,38 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)
 
 \begin{thebibliography}{1}
 %
-\bibitem{Dempster}
-Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // Journal of the Royal Statistical Society: Series B (Methodological). – 1977. – Vol. 39. – No. 1.  – P. 1–38.
-
+\bibitem{KrimViberg}
+Krim H., Viberg M. Two decades of array signal processing research: the parametric approach // IEEE Signal Processing Magazine. – 1996. – Vol. 13, No. 4. – P. 67–94. – DOI: 10.1109/79.526899.
+\bibitem{Godara}
+Godara L. C. Application of antenna arrays to mobile communications. Part II: Beam-forming and direction-of-arrival considerations // Proceedings of the IEEE. – 1997. – Vol. 85, No. 8. – P. 1195-1245. – DOI: 10.1109/5.622504.
+\bibitem{DempsterRubin}
+Dempster A. P., Laird N. M., Rubin D. B. Maximum likelihood from incomplete data via the EM algorithm // Journal of the Royal Statistical Society: Series B (Methodological). – 1977. – Vol. 39, No. 1.  – P. 1-38.
+\bibitem{MengRubin}
+Meng X.-L., Rubin D. B. Maximum likelihood estimation via the ECM algorithm: a general framework // Biometrika. – 1993. – Vol. 80, No. 2. – P. 267-278. – DOI: 10.1093/biomet/80.2.267.
+\bibitem{FesslerHero}
+Fessler J. A., Hero A. O. Space-alternating generalized expectation-maximization algorithm // IEEE Transactions on Signal Processing. — 1994. – Vol. 42, No. 10. – P. 2664-2677. – DOI: 10.1109/78.324732.
 \bibitem{Wu}
-Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. – 1983. – Vol. 11. –  No. 1. –  P. 95–103.
-\begin{comment}
-\item
+Wu C. F. J. On the convergence properties of the EM algorithm // The Annals of Statistics. – 1983. – Vol. 11, No. 1. –  P. 95–103.
+\bibitem{MillerFuhrmann}
+Miller M. I., Fuhrmann D. R. Maximum‑likelihood narrow‑band direction finding and the EM algorithm // IEEE Transactions on Acoustics, Speech, and Signal Processing. – 1990. – Vol. 38, No. 9. – P. 1560-1577. – DOI: 10.1109/29.60075.
+\bibitem{FederWeinstein}
+Feder M., Weinstein E. Parameter estimation of superimposed signals using the EM algorithm // IEEE Transactions on Acoustics, Speech, and Signal Processing. – 1988. – Vol. 36, No. 4. – P. 477-489. – DOI: 10.1109/29.1552.
+\bibitem{GongLyu2021}
+Gong M.-Y., Lyu B. Alternating maximization and the EM algorithm in maximum‑likelihood direction finding // IEEE Trans. Veh. Technol. – 2021. – Vol. 70, No. 10. – P. 9634-9645. – DOI: 10.1109/TVT.2021.3106794.
+\bibitem{GongLyu2023}
+Gong M.-Y., Lyu B. EM and SAGE Algorithms for DOA Estimation in the Presence of Unknown Uniform Noise // Sensors. – 2023. – Vol. 23, No. 10. – 4811. – DOI: 10.3390/s23104811.
+\bibitem{Louis}
 Louis T. A. Finding the observed information matrix when using the EM algorithm // 
-Journal of the Royal Statistical Society: Series B (Methodological). – 1982. – Vol. 44. – No. 2. – P. 226–233.
-\item
+Journal of the Royal Statistical Society: Series B (Methodological). – 1982. – Vol. 44, No. 2. – P. 226–233.
+\bibitem{Ross}
 Ross S. M. A first course in probability. 8th ed. – Upper Saddle River, N. J.: Prentice Hall, 2010. – 640p., p. 348.
-\item
+\bibitem{LittleRubin}
 Little R. J. A., Rubin D. B. Statistical analysis with missing data 2nd ed. – Hoboken, N. J.: Wiley-Interscience, Jon Wiley \& Sons, Inc., 2002. – 381p.
-\item
+\bibitem{SchreierScharf}
 Schreier P. J., Scharf L. L. Statistical Signal Processing of Complex-Valued Data: The Theory of Improper and Noncircular Signals – Cambridge: Cambridge University Press, 2010. – 309p., pp. 41-42.
-\item
+\bibitem{NocedalWright}
 Nocedal J., Wright S.J. Numerical Optimization. 2nd ed. – New York: Springer, 2006. –  664p., pp. 10-37.
+\begin{comment}
 \end{comment}
 \end{thebibliography}
 \end{document}
