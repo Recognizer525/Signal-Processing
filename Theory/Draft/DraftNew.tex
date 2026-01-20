@@ -72,23 +72,23 @@
 
 \section{Постановка задачи}
 Предположим, имеется линейная антенная решетка, состоящая из $\text{L}$ сенсоров, которая принимает узкополосные сигналы, направленные из $\text{K}$  источников, причем $\text{K} < \text{L}$. Этим источникам соответствуют угловые координаты (DoA) $\theta$, практически не изменяющиеся во времени. По итогам измерений было получено $\text{T}$ снимков полученного сигнала, причем ввиду стохастических технических сбоев, связанных с сенсорами, большая часть таких снимков содержит помимо надежных данных ненадежные, которые в рамках данной задачи рассматриваются как пропуски. Пусть $X$ --- набор наблюдений, полученных сенсорами в моменты времени $t=1,\ldots,\text{T}$, $X_t$ соответствует наблюдению в момент времени $t$, через $x$ и $x_t$ будем обозначать реализации полного набора наблюдений и наблюдения в отдельный момент времени $t$  соответственно. Ввиду наличия пропусков в данных, будем считать, что набор наблюдений $X$ состоит из доступной части $X_o = \{X_{t, o_t}\}_{t=1}^\text{T}$ и недоступной: $X_m = \{X_{t, m_t}\}_{t=1}^\text{T}$, причем $o_t \cup m_t = \{1,\ldots,\text{T}\}, o_t \cap m_t = \varnothing,  \forall t \in \{1,\ldots,\text{T}\}$. Предполагается, что $\nexists o_t: o_t = \varnothing$, т.е. нет таких наблюдений, которые состоят лишь из недоступной части. \\ Набор $X$ является результатом следующей модели наблюдений:
-\begin{equation}
+\begin{equation}\label{main_model}
 X = \text{A} S + N,
 \end{equation}
 где
-\begin{equation}
+\begin{equation*}
 X=[X_1,\ldots, X_\text{T}], S=[S_1,\ldots, S_\text{T}], N=[N_1,\ldots, N_\text{T}],
-\end{equation}
+\end{equation*}
 и $X_t \in \Complex^{\text{L}}, S_t \in \Complex^{\text{K}}, N_t \in \Complex^{\text{L}}$ -- векторы-столбцы, соответствующие наблюдениям, источникам и шумам в момент времени  $t = 1, \ldots, \text{T}$, $\text{A}$ -- матрица векторов направленности для равномерного линейного массива:
-\begin{equation}
+\begin{equation*}
 \text{A}(\theta) = \begin{bmatrix}
 1&1&\dots&1\\
 e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
 \dots&\dots&\ddots&\vdots\\
 e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
 \end{bmatrix}.
-\end{equation}
-Возможны следующие варианты для шума и сигнала в наблюдениях:
+\end{equation*}
+Возможны следующие варианты для шума и сигнала в наблюдениях~\eqref{main_model}:
 \begin{center}
 \begin{tabular}[t]{|c|c|c|c|}
 \hline
@@ -101,9 +101,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \end{tabular}
 \end{center}
 
-\section{Детерминированный сигнал и стохастический шум}
-См. папку 
-\section{Стохастический сигнал и шум}
+\section{Стохастические сигнал и шум}
  Пусть cигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, в любой момент времени $S_t \perp N_t$.
 Составим EM-алгоритм для случая известного шума.
 \subsection{Описание алгоритма}
@@ -124,9 +122,9 @@ $$
 Наблюдения $X_t$, $t=1,\ldots,\text{T}$ предполагаются независимыми и одинаково распределенными.
 
 Требуется найти математическое ожидание полного правдоподобия с учетом  текущей оценки параметров и апостериорного совместного распределения пропущенных значений в наблюдениях $X_m$ и сигналов $S$ 
-\begin{equation}
- \Expect_{(X_m,S) \mid X_o=x_o, \Upsilon^{(\tau-1)}}[\log \Prob(X, S)].
-\end{equation}
+\begin{equation*}
+ \Expect_{q(\Xi)}[\log \Prob(X, S)]= \Expect_{(X_m,S) \mid X_o=x_o, \Upsilon^{(\tau-1)}}[\log \Prob(X, S)].
+\end{equation*}
 Преобразуем выражение, учитывая тот факт, что наблюдения являются независимыми, и обозначив через $\mathcal{I}$ условную информацию $X_o=x_o, \Upsilon^{(\tau-1)}$ и через $q(\Xi_t)$ распределение $\Prob(X_{t,m_t},S_t \mid X_{t,o_t}=x_{t,o_t}, \Upsilon^{(\tau-1)})$:
 \begin{equation*}
 \begin{gathered}
@@ -148,25 +146,25 @@ $\text{A}$ -- матрица линейного преобразования;
 $S_t, N_t$ комплексные гауссовские векторы,  которые имеют нулевую псевдоковариацию и нулевое математическое ожидание.
 \end{enumerate}
 Сначала найдем апостериорное распределение $\Prob(X_m \mid \mathcal{I})$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
-\begin{equation}
+\begin{equation*}
 \hat{\text{R}} =
 \begin{pmatrix}
 \hat{\text{R}}_{o_t, o_t} & \hat{\text{R}}_{o_t, m_t}\\
 \hat{\text{R}}_{m_t, o_t} & \hat{\text{R}}_{m_t, m_t}
 \end{pmatrix},
-\end{equation}
+\end{equation*}
 где каждый блок определяется как
 \begin{equation*}
 \hat{\text{R}}_{a,b} = (\hat{\text{R}}_{ij})_{i \in a, j \in b}.
 \end{equation*}
 Для каждого наблюдения, содержащего пропуски, требуется найти апостериорное распределение пропущенных значений, $\Prob(X_{t, m_t} \mid X_{t, o_t}=x_{t, o_t},\Upsilon^{(\tau-1)}), t=1,\ldots,\text{T}, m_t \ne \varnothing$ . Обозначим через $\mathcal{I}_t$ условную информацию $X_{t, o_t}=x_{t, o_t},\Upsilon^{(\tau-1)}$.
 Параметры апостериорного распределения $\Prob(X_{t, m_t} \mid \mathcal{I}_t), t=1,\ldots,\text{T}$ на итерации $\tau$ можно найти следующим образом:
-\begin{equation}
+\begin{equation*}
 \left\{ \begin{aligned} 
 \Expect[X_{t, m_t} \mid \mathcal{I}_t] &= \hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\cdot x_{t, o_t}, \\
 \Cov(X_{t, m_t}\mid \mathcal{I}_t) &= \hat{\text{R}}_{m_t, m_t}-\hat{\text{R}}_{m_t, o_t}\left(\hat{\text{R}}_{o_t, o_t}\right)^{-1}\hat{\text{R}}_{o_t, m_t},
 \end{aligned} \right.
-\end{equation}
+\end{equation*}
 где $\hat{\text{R}}_{o_t, o_t}= \hat{\text{R}}_{o_t, o_t}^{(\tau-1)}$, 
 $\hat{\text{R}}_{o_t, m_t}= \hat{\text{R}}_{o_t, m_t}^{(\tau-1)}$, 
 $\hat{\text{R}}_{m_t, o_t}= \hat{\text{R}}_{m_t, o_t}^{(\tau-1)}$,
@@ -186,55 +184,55 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{equation*}
 где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
 Параметры апостериорного распределения $P(S_t \mid \mathcal{I}_t), t = 1,\ldots, \text{T}$ можно найти следующим образом:
-\begin{equation}
+\begin{equation*}
 \left\{ \begin{aligned} 
 \Expect[S_t \mid \mathcal{I}_t] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t \mid \mathcal{I}_t], \\
 \Cov(S_t \mid \mathcal{I}_t) &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma} + \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Cov(X_t \mid \mathcal{I}_t)\hat{\text{R}}^{-1} \text{A}\mathbf{\Gamma},
 \end{aligned} \right.
-\end{equation}
+\end{equation*}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$. Для вывода этих формул используются свойство башни условного математического ожидания (tower property) и закон полной дисперсии (подробности приведены в приложении Б). \\
 Оценим $\Expect [S_t S_t^* \mid \mathcal{I}_t]$:
-\begin{equation}
+\begin{equation*}
 \Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid \mathcal{I}_t),
-\end{equation}
+\end{equation*}
 Оценим $\Expect [X_t S_t^* \mid \mathcal{I}_t]$:
-\begin{equation}
+\begin{equation*}
 \begin{gathered}
 \Expect [X_t S_t^* \mid \mathcal{I}_t] = \Expect[X_t X_t^* \mid \mathcal{I}_t]\hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma},
 \end{gathered}
-\end{equation}
+\end{equation*}
 где $\text{A}=\text{A}(\theta^{(\tau-1)})$, $\hat{\text{R}}=\hat{\text{R}}^{(\tau-1)}$, $\mathbf{\Gamma}=\mathbf{\Gamma}^{(\tau-1)}$. \\
 \subsection{Апостериорное распределение латентных переменных для полных наблюдений}
 Если $m_t = \varnothing$, то апостериорное распределение упрощается следующим образом: $\Prob(X_{t,m_t},S_t \mid \mathcal{I}_t)=\Prob(S_t \mid \mathcal{I}_t)$.
 Параметры апостериорного распределения $\Prob(S_t \mid \mathcal{I}_t), t = 1,\ldots, \text{T}$:
-\begin{equation}
+\begin{equation*}
 \left\{ \begin{aligned} 
 \Expect[S_t \mid \mathcal{I}_t] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t \mid \mathcal{I}_t], \\
 \Cov(S_t \mid \mathcal{I}_t) &= \mathbf{\Gamma} - \mathbf{\Gamma}^*\text{A}^*  \hat{\text{R}}^{-1}\text{A}\mathbf{\Gamma}.
 \end{aligned} \right.
-\end{equation}
+\end{equation*}
 При этом:
-\begin{equation}
+\begin{equation*}
 \Expect [X_t X_t^* \mid \mathcal{I}_t] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[X_t^* \mid \mathcal{I}_t] = x_t x_t^*,
-\end{equation}
-\begin{equation}
+\end{equation*}
+\begin{equation*}
 \Expect [X_t S_t^* \mid \mathcal{I}_t] = \Expect[X_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot \Expect[S_t^* \mid \mathcal{I}_t] = x_t \cdot x_t^* \cdot \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
-\end{equation}
-\begin{equation}
+\end{equation*}
+\begin{equation*}
 \Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid\mathcal{I}_t). 
-\end{equation}
+\end{equation*}
 \clearpage
 \subsection{E-шаг, Агрегация}
 Теперь оценим вторые начальные моменты  $\Expect_{q(\Xi)}[X X^*]$,  $\Expect_{q(\Xi)}[S S^*]$, $\Expect_{q(\Xi)}[X S^*]$:
-\begin{equation}
+\begin{equation*}
 \Expect_{q(\Xi)}[XX^*] = \frac{1}{\text{T}}\sum_{t=1}^T \Expect[X_t X_t^* \mid \mathcal{I}_t],
-\end{equation}
-\begin{equation}
+\end{equation*}
+\begin{equation*}
 \Expect_{q(\Xi)}[S S^*] =  \frac{1}{\text{T}} \sum_{t=1}^T \Expect_{q(\Xi_t)}[S_t S_t^*],
-\end{equation}
-\begin{equation}
+\end{equation*}
+\begin{equation*}
 \Expect_{q(\Xi)}[X S^*] =  \frac{1}{\text{T}} \sum_{t=1}^T \Expect_{q(\Xi_t)}[X_t S_t^*].
-\end{equation}
+\end{equation*}
 \subsection{М-шаг}
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
@@ -261,9 +259,9 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
-\begin{equation}
+\begin{equation*}
 \hat{\text{R}}^{(\tau)} = \text{A}(\theta^{(\tau)})\mathbf{\Gamma}^{(\tau)}\text{A}^*(\theta^{(\tau)}) + \mathbf{\Lambda}.
-\end{equation}
+\end{equation*}
 
 \section{Результаты численного эксперимента}
 
@@ -304,46 +302,46 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \clearpage
 \section*{\makebox[\linewidth][c]{Приложение А. Инициализация}}
 Оценим ковариационную матрицу $\hat{\text{R}}^{(0)}$ следующим образом: если $\sum_t \mathbf{I}_{x_t=x_{t,o_t}} \ge \text{L}$, оцениваем $\hat{\text{R}}^{(0)}$ по выборке, образованной $x_t: x_t=x_{t,o_t}$. В противном случае используется следующий подход: пусть $x^l$ -- строка матрицы $X$, соответствующая сенсору $l, l=1,\ldots,\text{L}$, $x_o^l$ -- выборка, образованная доступными наблюдениями в строке $l$, $x_m^l$ -- выборка, образованная недоступными наблюдениями в строке $l$, $x_t^l$ -- компонента наблюдения $x_t$, соответствующая сенсору $l$. Для всех недоступных значений построим следующую оценку: если $x_t^l \in x_m^l, l = 1,\ldots, \text{L},  t = 1,\ldots, \text{T}$, то $\hat{x}_t^l = \overline{x_o^l}$. Оцениваем ковариацию по такому оцененному набору $\hat{x}$:
-\begin{equation}
+\begin{equation*}
 \hat{\text{R}}^{(0)} = \Cov(\hat{x}).
-\end{equation}
+\end{equation*}
 \\
 Оценим вектор угловых координат источников $\theta^{(0)}$ следующим образом:
 \begin{enumerate}
 \item
 Выберем число $\nu$, которое будет соответствовать первому компоненту вектора $\theta^{(0)}$:
-\begin{equation}
+\begin{equation*}
 \nu \sim \mathcal{U}([-\pi;\pi]);
-\end{equation}
+\end{equation*}
 \item
 Оценим компоненты вектора $\theta^{(0)}$ так:  $\theta^{(0)}_i = (\nu + (i-1)\cdot \frac{2\pi}{\text{K}})\, \text{mod} \, 2\pi, i = 1,\ldots,\text{K}$. При этом,  $a \, \text{mod} \, b = a - b \cdot \lfloor \frac{a}{b} \rfloor$.
 \end{enumerate}
 Альтернативный подход: используем $\hat{\text{R}}^{(0)}$ для оценки  $\theta^{(0)}$ с помощью алгоритма MUSIC, используем эту оценку на первой итерации мультистарта ЕМ, на следующих используем оценки в окрестности указанной.\\
 Начальную ковариацию сигналов $\mathbf{\Gamma}^{(0)}$ получаем на основе метода наименьших квадратов с помощью $\theta^{(0)}, \hat{\text{R}}^{(0)}$. Матрица $\text{A}(\theta^{(0)})$ -- матрица векторов направленности и представима в следующем виде:
-\begin{equation}
+\begin{equation*}
 \text{A}(\theta^{(0)})=[\text{a}(\theta^{(0)}_1), \ldots, \text{a}(\theta^{(0)}_K)],
-\end{equation}
+\end{equation*}
 где $\text{a}(\theta^{(0)}_k)$ -- вектор направленности для источника $k$. Перед применением МНК каждый такой вектор отнормируем:
-\begin{equation}
+\begin{equation*}
 \check{\text{a}}(\theta^{(0)}_k) = \frac{\text{a}(\theta^{(0)}_k)}{||\text{a}(\theta^{(0)}_k)||}, k=1,\ldots,\text{K},
-\end{equation}
+\end{equation*}
 сформируем из них нормированную матрицу векторов направленности:
-\begin{equation}
+\begin{equation*}
 \check{\text{A}}(\theta^{(0)})=[\check{\text{a}}(\theta^{(0)}_1), \ldots, \check{\text{a}}(\theta^{(0)}_\text{K})],
-\end{equation}
+\end{equation*}
 применяем МНК для получения нормированной ковариации мощностей: 
-\begin{equation}
+\begin{equation*}
 \check{\Gamma}^{(0)}=\mathcal{D}\big[\check{\text{A}}(\theta^{(0)})^{+} (\hat{\text{R}}^{(0)}-\mathbf{\Lambda})(\check{\text{A}}(\theta^{(0)})^{+})^*\big],
-\end{equation}
+\end{equation*}
 где $\mathcal{D}\big[ \cdot \big]$ -- диагональное приближение матрицы, $(\cdot)^{+}$ -- псевдообратная матрица. Такой подход не гарантирует, что все элементы матрицы на главной диагонали будут неотрицательными, поэтому используем следующую коректировку: $\check{\Gamma}_{ll}^{(0)} = \max(\check{\Gamma}_{ll}^{(0)}, \varepsilon)$, $l=1,\ldots,\text{L}$. Переходим к ненормированной мощности:
-\begin{equation}
+\begin{equation*}
 \mathbf{\Gamma}_{ll}^{(0)}=\frac{\check{\Gamma}_{ll}^{(0)}}{||a(\theta^{(0)}_k)||_l}, l=1,\ldots,\text{L}.
-\end{equation}
+\end{equation*}
 Требуется гарантировать, что при выбранной инициализации на Е-шаге не будет получена условная ковариация сигналов, не являющаяся положительной определенной.
 Вычисляем оценку условной ковариации сигналов, используя начальную оценку, и проверяем, выполняется ли свойство неотрицательной определенности:
-\begin{equation}
+\begin{equation*}
 \mathbf{\Gamma}^{(0)} - (\mathbf{\Gamma}^{(0)})^* \text{A}(\theta^{(0)})^*  (\hat{\text{R}}^{(0)})^{-1} \text{A}(\theta^{(0)})\mathbf{\Gamma}^{(0)} \succeq 0,
-\end{equation} 
+\end{equation*} 
 пока это свойство не выполняется, домножаем матрицу на 0.5: $\mathbf{\Gamma}^{(0)} = 0.5 \cdot \mathbf{\Gamma}^{(0)}$ и повторно проверяем выполненность вышеуказанного свойства.
 \clearpage
 \section*{\makebox[\linewidth][c]{Приложение Б. О корректности Е-шага}}
@@ -356,13 +354,13 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 Для нахождения $\Cov(S_t \mid X_{t,o_t}=x_{t, o_t})$ может быть использовано равенство, называемое законом полной дисперсии (Law of total variance, может быть найдено в Sheldon Russ, A first course in probability, 8th ed., 2010):
-\begin{equation}
+\begin{equation*}
 \Cov(W) = \Expect[\Cov(W \mid Y)] + \Cov(\Expect[W \mid Y]).
-\end{equation}
+\end{equation*}
 Пусть $\mathcal{F}_Z=\sigma(Z)$: -- сигма-алгебра, порожденная $Z$. Тогда все числовые характеристики $W$, включая условные моменты и ковариации относительно $Y$, можно обусловить на $\mathcal{F}_Z$. И, соответственно, из закона полной ковариации следует:
-\begin{equation}
+\begin{equation*}
 \Cov(W \mid \mathcal{F}_Z) = \Expect[\Cov(W \mid Y,Z) \mid \mathcal{F}_Z] + \Cov(\Expect[W \mid Y,Z] \mid \mathcal{F}_Z).
-\end{equation}
+\end{equation*}
 Вектора $W$, $Y$, $Z$ предполагаются комплексными гауссовскими (случай круговой симметрии), зависимость между $Z$ и $Y$ линейная, $\sigma(Z) \subseteq \sigma(Y)$, предполагается, что $Z=CY$, где $C$ -- булев селектор.  Для линейной гауссовской модели знание $Z$ не уменьшает условную ковариацию $W \mid Y$ и не влияет на условное математическое ожидание $\Expect[W \mid Y,Z]$, поскольку $Z$ не содержит никакой новой информации, которой не было бы в $Y$:
 \begin{equation*}
 \begin{gathered}
@@ -371,22 +369,22 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 Получаем:
-\begin{equation}
+\begin{equation*}
 \Cov(W \mid \mathcal{F}_Z) = \Expect[\Cov(W \mid Y) \mid \mathcal{F}_Z] + \Cov(\Expect[W \mid Y] \mid \mathcal{F}_Z).
-\end{equation}
+\end{equation*}
 Если $Z=z$, имеем:
-\begin{equation}
+\begin{equation*}
 \Cov(W \mid Z=z) = \Expect[\Cov(W \mid Y) \mid Z=z] + \Cov(\Expect[W \mid Y] \mid Z=z).
-\end{equation}
+\end{equation*}
 В рамках исходной задачи по оцениванию DoA и ковариации сигналов, $W$ соответствует величине $S_t$,  $Y$ соответствует величине $X_t$, $Z$ соответствует величине $X_{t, o_t}$,  $z$ соответствует величине $x_{t, o_t}, t=1,\ldots,\text{T}$. \\
 Получаем:
-\begin{equation}
+\begin{equation*}
 \Cov(S_t \mid X_{t,o_t}=x_{t, o_t}) = \Expect[\Cov(S_t \mid X_t) \mid X_{t,o_t}=x_{t, o_t}] + \Cov(\Expect[S_t \mid X_t]\mid X_{t,o_t}=x_{t, o_t}).
-\end{equation}
+\end{equation*}
 Преобразуем первое слагаемое, учитывая тот факт, что ковариация не зависит от реализации $X_{t, o_t}$.
-\begin{equation}
+\begin{equation*}
 \Expect[\Cov(S_t \mid X_t) \mid X_{t, o_t}=x_{t, o_t}] = \Cov(S_t \mid X_t) = \mathbf{\Gamma} - \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
-\end{equation}
+\end{equation*}
 Теперь преобразуем второе слагаемое:
 \begin{equation*}
 \begin{gathered}
@@ -395,17 +393,17 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 Таким образом:
-\begin{equation}
+\begin{equation*}
 \Cov(S_t \mid X_{t,o_t}=x_{t, o_t}) = \mathbf{\Gamma} - \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma} + \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Cov(X_t \mid X_{t, o_t}=x_{t, o_t}) \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma}.
-\end{equation}
+\end{equation*}
 Для полных наблюдений $X_{t, o_t} = X_t$, и, соответственно:
-\begin{equation}
+\begin{equation*}
 \Cov(\Expect[S_t \mid X_t] \mid X_{t, o_t}=x_{t, o_t})  = \Cov(\Expect[S_t \mid X_t]\mid X_t=x_t) = 0. 
-\end{equation}
+\end{equation*}
 О выводе смешанных вторых моментов $\Expect[X_t S_t^* \mid X_t=x_t]$ и $\Expect[X_t S_t^* \mid X_{t, o_t}=x_{t, o_t}]$:
-\begin{equation}
+\begin{equation*}
 \Expect[X_t S_t^* \mid X_t] = X_t \Expect[S_t^* \mid X_t] = X_t (\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t)^* = X_t X_t^* \hat{\text{R}}^{-1} \text{A} \mathbf{\Gamma},
-\end{equation}
+\end{equation*}
 \begin{equation*}
 \begin{gathered}
 \Expect[X_t S_t^* \mid X_{t, o_t}=x_{t, o_t}] = \Expect[X_t \Expect[S_t^* \mid X_t] \mid X_{t, o_t}=x_{t, o_t}] = \Expect[X_t  (\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t)^*  \mid X_{t, o_t}=x_{t, o_t}] \\ 
@@ -416,11 +414,11 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \clearpage
 \section*{\makebox[\linewidth][c]{Приложение В. О реализации М-шага}}
 Если антенная решетка является равномерной и линейной, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. . Соответственно минимизации подлежит функция
-\begin{equation}
+\begin{equation*}
 \mathcal{Q}_1(u \mid u^{\tau-1)}) = ||\mathbf{\Lambda}^{-1/2} (\Expect_{q(\Xi)}[X S^*]-\widetilde{\text{A}}(u) \Expect_{q(\Xi)}[S S^*]) ||_F^2,
-\end{equation}
+\end{equation*}
 где
-\begin{equation}
+\begin{equation*}
 {\small
 \widetilde{\text{A}}(u) = \begin{bmatrix}
 1&1&\dots&1\\
@@ -429,13 +427,13 @@ e^{-2j\pi \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi \frac{\text{d}}{\lambda}u_2}&\
 e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_2}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_\text{K}}\\
 \end{bmatrix}.
 }
-\end{equation}
+\end{equation*}
 Для ускорения оптимизации можно оптимизировать не $\mathcal{Q}_1(u \mid u^{(\tau-1)})$, а суррогатную функцию $\mathcal{G}(u \mid u^{(\tau-1)})$, построенную так:
-\begin{equation}
+\begin{equation*}
 \mathcal{G}(u \mid u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)}) + \grad \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)})^T (u-u^{(\tau-1)}) + \frac{1}{2} (u-u^{(\tau-1)})^T \mathbf{H} (u-u^{(\tau-1)}),
-\end{equation}
+\end{equation*}
 где
-\begin{equation}
+\begin{equation*}
 {\small
 \mathbf{H} = \begin{bmatrix}
 \max(|\grad_1 \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)})|,\varepsilon)&0&\dots&0\\
@@ -444,37 +442,37 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 0& 0&\dots& \max(|\grad_\text{K} \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)})|,\varepsilon)\\
 \end{bmatrix},
 }
-\end{equation}
+\end{equation*}
 причем $\grad_1 \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})$ -- $i$-я компонента градиента $\mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})$. Диагональная аппроксимация $\mathbf{H}$ предотвращает слишком маленькие или слишком большие шаги, сохраняя численную стабильность.
 Теперь эту суррогатную функцию надо минимизировать (или, эквивалентно, найти направление шага $\rho^{(\tau)}=u-u^{(\tau-1)}$):
-\begin{equation}
+\begin{equation*}
 \min_u \mathcal{G}(u \mid u^{(\tau-1)}).
-\end{equation}
+\end{equation*}
 Подставим $u = u^{(\tau-1)}+\rho$:
-\begin{equation}
+\begin{equation*}
 \mathcal{G}(u^{(\tau-1)} + \rho \mid u^{(\tau-1)}) = \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)}) + \grad \mathcal{Q}_1 (u^{(\tau-1)}\mid u^{(\tau-1)})^T\rho + \frac{1}{2}\rho^T\mathbf{H}\rho.
-\end{equation}
+\end{equation*}
 Для нахождения минимума берем градиент по $\rho$:
-\begin{equation}
+\begin{equation*}
 \grad_\rho \mathcal{G}(u^{(\tau-1)} + \rho\mid u^{(\tau-1)}) =  \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})   + \mathbf{H}\rho,
-\end{equation}
+\end{equation*}
 при $\grad_\rho \mathcal{G}=0$ будет выполняться:
-\begin{equation}
+\begin{equation*}
 0 =  \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})   + \mathbf{H}\rho,
-\end{equation}
+\end{equation*}
 решаем относительно $\rho^{(\tau)}$:
-\begin{equation}
+\begin{equation*}
 \rho^{(\tau)} = -\mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)}).
-\end{equation}
+\end{equation*}
 Важно заметить, что производная по направлению $\grad \mathcal{Q}_1(u^{(\tau-1)} \mid u^{(\tau-1)})^T \rho^{(\tau)}$ принимает вид:
-\begin{equation}
+\begin{equation*}
 \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \rho^{(\tau)} = - \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)}),
-\end{equation} 
+\end{equation*} 
 и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $\rho^{(\tau)}$ соответствует невозрастанию функции.
 Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$:
-\begin{equation}
+\begin{equation*}
 u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
-\end{equation}
+\end{equation*}
 где $\alpha_m$ -- первое $\alpha=\alpha_0 \beta^m, m \in \Natural$, такое что $\mathcal{Q}_1(u^{(\tau)}\mid u^{(\tau-1)}) \le \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})$ для фиксированных $\alpha_0 > 0, \beta \in (0;1)$.\\
 В рамках программного комплекса реализуется мультистарт для поиска оптимального $u$ на М-шаге. Указанный выше оптимизационный алгоритм запускается не только из точки $u^{(\tau-1)}$, но и из случайно выбранных допустимых точек, в том числе находящихся в окрестности $u^{(\tau-1)}$. Для выбранной начальной точки с индексом $j$, обновление оценки синусов угловых координат $\widetilde{u}^{(j)}$  может быть принято, только если:
 \begin{enumerate}
@@ -484,9 +482,9 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)
  $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(\min(\widetilde{u}^{(i)}: 1 \le i \le j-1)\mid u^{(\tau-1)})$, \text{при $j>1$}.
 \end{enumerate}  
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
-\begin{equation}
+\begin{equation*}
 \mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} \mid \mathbf{\Gamma}^{(\tau-1)}) = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*])\bigg].
-\end{equation}
+\end{equation*}
 Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
 \begin{equation*}
 \begin{gathered}
@@ -500,9 +498,9 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)
 \mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{q(\Xi)}[S S^*].
 \end{equation*}
 Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
-\begin{equation}
+\begin{equation*}
 \mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{q(\Xi)}[S S^*] \Big].
-\end{equation}
+\end{equation*}
 Ввиду того, что М-шаг не максимизирует, а лишь улучшает УМО полного правдоподобия, представленный алгоритм является не точным ЕМ, а обобщенным (Generalized) EM.
 
 \begin{thebibliography}{1}
