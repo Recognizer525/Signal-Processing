@@ -89,8 +89,9 @@ e^{-2j\pi \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi \frac{\text{d}}{\la
 e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
 \end{bmatrix}.
 \end{equation*}
-Возможны следующие варианты для шума и сигнала в наблюдениях~\eqref{main_model}:
-\begin{center}
+Возможны следующие варианты~(см. тпбл.\ref{table1}) для шума и сигнала в наблюдениях~\eqref{main_model}.
+\begin{table}
+\centering
 \begin{tabular}[t]{|c|c|c|c|}
 \hline
   Сигнал $S$&Шум  $N$\\
@@ -100,7 +101,8 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
  Стохастический  & Стохастический\\
 \hline
 \end{tabular}
-\end{center}
+\caption{Варианты моделей}\label{table1}
+\end{table}
 
 \section{Стохастические сигнал и шум}
  Пусть cигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, в любой момент времени $S_t \perp N_t$.
@@ -131,7 +133,7 @@ $$
 \begin{gathered}
  \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
  \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
-\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} [\log \Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
+\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
 - \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
 \end{gathered}
@@ -144,7 +146,7 @@ $S_t \perp N_t$;
 \item
 $\text{A}$ -- матрица линейного преобразования;
 \item
-$S_t, N_t$ комплексные гауссовские векторы,  которые имеют нулевую псевдоковариацию и нулевое математическое ожидание.
+$S_t, N_t$ комплексные гауссовские векторы,  которые имеют нулевую псевдоковариацию.
 \end{enumerate}
 Сначала найдем апостериорное распределение $\Prob(X_m \mid \mathcal{I})$. Для достижения этой цели, для каждой пары $ \{ (o_t, m_t): m_t \ne \varnothing \}$ создадим разбиение оценки ковариационной матрицы наблюдений $\hat{\text{R}}$ на блоки, индуцированное этим разбиением множества индексов, оно имеет следующий вид:
 \begin{equation*}
@@ -184,7 +186,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 где $\mathbf{O}_{o_t, o_t}$, $\mathbf{O}_{o_t, m_t}$, $\mathbf{O}_{m_t, o_t}$ -- нулевые блочные матрицы. Разбиение указанной матрицы на четыре блока, три из которых состоят из нулей, индукцировано разбиением множества индексов $\{1,\ldots,\text{L}\}$ на множества $o_t, m_t$. \\
-Параметры апостериорного распределения $P(S_t \mid \mathcal{I}_t), t = 1,\ldots, \text{T}$ можно найти следующим образом:
+Параметры апостериорного распределения $\Prob(S_t \mid \mathcal{I}_t), t = 1,\ldots, \text{T}$ можно найти следующим образом:
 \begin{equation*}
 \left\{ \begin{aligned} 
 \Expect[S_t \mid \mathcal{I}_t] &= \mathbf{\Gamma}^*\text{A}^* \hat{\text{R}}^{-1}\Expect [X_t \mid \mathcal{I}_t], \\
@@ -222,6 +224,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \Expect [S_t S_t^* \mid \mathcal{I}_t] = \Expect[S_t \mid \mathcal{I}_t] \cdot \Expect[S_t^* \mid \mathcal{I}_t] + \Cov(S_t \mid\mathcal{I}_t). 
 \end{equation*}
+\clearpage
 \subsection{E-шаг, Агрегация}
 Теперь оценим вторые начальные моменты  $\Expect_{q(\Xi)}[X X^*]$,  $\Expect_{q(\Xi)}[S S^*]$, $\Expect_{q(\Xi)}[X S^*]$:
 \begin{equation*}
@@ -237,7 +240,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 Требуется найти наилучшую оценку параметров, решив следующую задачу оптимизации:
 \begin{equation*}
 \begin{gathered}
-\Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{q(\Xi)}[\log P(X, S)] = \\
+\Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
 \argmin_{\Upsilon}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big].
 \end{gathered}
@@ -265,7 +268,42 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 
 \section{Результаты численного эксперимента}
 
+\subsection{Пример 1}
+\begin{table}[H]
+\centering
+\begin{tabular}[t]{|c|c|}
+\hline
+   Число сенсоров &1000\\
+\hline  
+   Частота & 1000 Гц\\
+\hline
+  Приведенное давление шума  $p_n$ & 0.0016 Па/$\sqrt{\text{Гц}}$   \\
+\hline
+Приведенное давление сигнала $p_s$ & 0.01 Па/$\sqrt{\text{Гц}}$\\
+\hline
+Длина волны & 1.5  м\\
+\hline
+Расстояние до источника $r$ &100 м, 1000 м\\
+\hline
+    Расстояние между сенсорами& 0.75 м\\
+\hline
+\end{tabular}
+\caption{Исходные данные}\label{table1}
+\end{table}
+Дисперсия сигнала:
+$$
+d_s = p_s^2/(r/r_0)^2, \quad r_0 = 1\text{ м}
+$$
+Дисперсия шума:
+$$
+d_n = p_n^2
+$$
+
+
+
 \subsection{Первый набор начальных условий}
+
+
 
 \begin{equation*}
 \begin{gathered}
@@ -353,7 +391,7 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 = \Expect[\mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} X_t \mid X_{t,o_t}=x_{t, o_t}] = \mathbf{\Gamma}^* \text{A}^* \hat{\text{R}}^{-1} \Expect[X_t \mid X_{t,o_t}=x_{t, o_t}].
 \end{gathered}
 \end{equation*}
-Для нахождения $\Cov(S_t \mid X_{t,o_t}=x_{t, o_t})$ может быть использовано равенство, называемое законом полной дисперсии (Law of total variance, может быть найдено в Sheldon Russ, A first course in probability, 8th ed., 2010):
+Для нахождения $\Cov(S_t \mid X_{t,o_t}=x_{t, o_t})$ может быть использовано равенство, называемое законом полной дисперсии (Law of total variance, ~\cite{Ross}):
 \begin{equation*}
 \Cov(W) = \Expect[\Cov(W \mid Y)] + \Cov(\Expect[W \mid Y]).
 \end{equation*}
@@ -468,7 +506,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 \begin{equation*}
 \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \rho^{(\tau)} = - \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)}),
 \end{equation*} 
-и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $\rho^{(\tau)}$ соответствует невозрастанию функции.
+и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $\rho^{(\tau)}$ соответствует невозрастанию функции ~\cite{NocedalWright}.
 Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$:
 \begin{equation*}
 u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
@@ -531,7 +569,7 @@ Journal of the Royal Statistical Society: Series B (Methodological). – 1982. �
 \bibitem{Ross}
 Ross S. M. A first course in probability. 8th ed. – Upper Saddle River, N. J.: Prentice Hall, 2010. – 640p., p. 348.
 \bibitem{LittleRubin}
-Little R. J. A., Rubin D. B. Statistical analysis with missing data 2nd ed. – Hoboken, N. J.: Wiley-Interscience, Jon Wiley \& Sons, Inc., 2002. – 381p.
+Little R. J. A., Rubin D. B. Statistical analysis with missing data 3rd ed. – Hoboken, N. J.: Wiley, 2019. – 462p.
 \bibitem{SchreierScharf}
 Schreier P. J., Scharf L. L. Statistical Signal Processing of Complex-Valued Data: The Theory of Improper and Noncircular Signals – Cambridge: Cambridge University Press, 2010. – 309p., pp. 41-42.
 \bibitem{NocedalWright}
