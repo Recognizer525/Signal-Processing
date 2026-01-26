@@ -31,10 +31,6 @@ def MCAR(X: np.ndarray,
         Двумерный массив, представляет собой выборку, 
         в которую добавлены абсолютно случайные пропуски.
     '''
-    if type(mis_cols)==int:
-        mis_cols=np.ndarray([mis_cols], dtype=np.int16)
-    if type(share_mv)==int:
-        share_mv=np.ndarray([share_mv], dtype=np.float32)
     #print(f"share_mv={share_mv}")
     #print(f"mis_cols={mis_cols}")
 
@@ -49,7 +45,7 @@ def MCAR(X: np.ndarray,
 
     # Проверяем индексы столбцов
     n_cols = X.shape[1]
-    assert all(isinstance(c, np.int16) for c in mis_cols), \
+    assert all(isinstance(c, (int, np.int16, np.int32, np.int64)) for c in mis_cols), \
     "mis_cols должен содержать целые индексы"
     assert all(0 <= c < n_cols for c in mis_cols), \
     "Индекс столбца вне диапазона"

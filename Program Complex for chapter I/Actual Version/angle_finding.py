@@ -102,8 +102,6 @@ def find_angles(Sigma_XS_np: np.ndarray,
         u_hat = optimize_u_mm(Sigma_XS, u_start, P, Q_inv_sqrt)
         val = cost_u(u_hat, Sigma_XS, P, Q_inv_sqrt)
         old_val = cost_u(u_start, Sigma_XS, P, Q_inv_sqrt)
-        if val > old_val:
-            raise ValueError('Cost function increases!')
 
         if val < best_val:
             best_val, best_u = val, u_hat

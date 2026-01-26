@@ -149,11 +149,12 @@ def incomplete_lkhd(X: np.ndarray,
     """
     A = dss.A_ULA(X.shape[1], theta)
     R = A @ P @ A.conj().T + Q
-    #R = 0.5 * (R + R.conj().T) + 1e-6 * np.eye(R.shape[0])
-    #print(f"is_spd(R)={sensors.is_spd(R)}")
-    #print(f"is_spd(P)={sensors.is_spd(P)}")
-    #print(f"is_spd(Q)={sensors.is_spd(Q)}")
+    
+    #print(f"is_psd(R)={sensors.is_psd(R)}")
+    #print(f"is_psd(P)={sensors.is_psd(P)}")
+    #print(f"is_psd(Q)={sensors.is_psd(Q)}")
     #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
+
     inv_R = np.linalg.inv(R)
     Indicator = np.isnan(X)
     col_numbers = np.arange(1, X.shape[1]+1)
