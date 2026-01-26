@@ -78,7 +78,8 @@ def find_angles(Sigma_XS_np: np.ndarray,
                 theta0_np: np.ndarray, 
                 P_np: np.ndarray, 
                 Q_inv_sqrt_np: np.ndarray, 
-                num_of_starts: int = 10) -> np.ndarray:
+                num_of_starts: int = 10,
+                base_seed: int = 42) -> np.ndarray:
     """
     Поиск DoA с использованием GEM/MM-алгоритма
     с гарантией неубывания EM-функционала.
@@ -94,8 +95,18 @@ def find_angles(Sigma_XS_np: np.ndarray,
         if i == 0:
             u_start = u0
         else:
+            gen = torch.Generator(device=u0.device)
+            gen.manual_seed(base_seed + i)
+
+            noise = torch.randn(
+                u0.shape,
+                dtype=u0.dtype,
+                device=u0.device,
+                generator=gen
+                )
+            
             u_start = torch.clamp(
-                u0 + 0.2 * torch.randn_like(u0),
+                u0 + 0.2 * noise,
                 -1.0, 1.0
             )
 
