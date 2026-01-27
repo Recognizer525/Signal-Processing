@@ -340,11 +340,8 @@ def multi_start_EM(X: np.ndarray,
     return best_angles, best_P, best_lhd
 
 
-
-
-
-
 ####################################################################################################################
+
 def old_incomplete_lkhd(X: np.ndarray,
                         theta: np.ndarray, 
                         P: np.ndarray, 

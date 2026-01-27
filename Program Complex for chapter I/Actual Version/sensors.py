@@ -66,6 +66,20 @@ def MCAR(X: np.ndarray,
     return X1
 
 
+def signal_variance(signal_pressure: float, distance: float) -> float:
+    """
+    На основе давления сигнала и расстояния определяет ковариацию сигнала.
+    """
+    return (signal_pressure / distance) ** 2
+
+
+def noise_variance(noise_pressure: float) -> float:
+    """
+    На основе давления шума и расстояния определяет ковариацию шума.
+    """
+    return noise_pressure ** 2
+
+
 def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
     """
     Генерирует детерминированные сигналы, 
@@ -199,10 +213,10 @@ def is_psd(A: np.ndarray, tol: float = 1e-6) -> bool:
     """
     Проверяет, что матрица A симметрична и положительно определена.
     """
-    # Проверим эрмитовость
+    # Проверка эрмитовости
     if not np.allclose(A, A.conj().T, atol=tol):
         return False
-    # Проверим положительную определённость
+    # Проверка положительной определенности.
     evals = np.linalg.eigvalsh(A)
     is_psd = evals.min() >= -1e-8
     #print(f'min={evals.min()}')
