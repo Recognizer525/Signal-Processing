@@ -105,7 +105,7 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2j\pi (\text
 \end{table}
 
 \section{Стохастические сигнал и шум}
- Пусть cигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрицы $\mathbf{\Gamma}$ и $\mathbf{\Lambda}$ предполагаются диагональными, т.е. сигналы не коррелированы между собой, шумы также не коррелированы между собой, в любой момент времени $S_t \perp N_t$.
+ Пусть cигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрица $\mathbf{\Lambda}$ предполагается диагональной, т.е. шумы не коррелированы между собой, также в любой момент времени $S_t \perp N_t$.
 Составим EM-алгоритм для случая известного шума.
 \subsection{Описание алгоритма}
 Воспользуемся EM-алгоритмом для того, чтобы определить значения параметров $\Upsilon = (\theta, \mathbf{\Gamma})$,  $\Xi = (X_m, S)$ -- латентные переменные (недоступные значения и сигналы). Пусть $\Xi_t = (X_{t, m_t}, S_t)$ -- набор латентных переменных, соответствующих наблюдению $X_t$, причем для отдельных наблюдений $X_{t, m_t}=\varnothing$. Алгоритм состоит из двух шагов:
@@ -534,10 +534,6 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)
 Приравняем производную к нулю (функция по $\mathbf{\Gamma}$ выпукла):
 \begin{equation*}
 \mathbf{O} = \mathbf{\Gamma}^{-1}-\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*]\mathbf{\Gamma}^{-1} \Rightarrow \mathbf{\Gamma}^{(\tau)} = \Expect_{q(\Xi)}[S S^*].
-\end{equation*}
-Предполагая, что сигналы некоррелированны, будем использовать лишь диагональное приближение матрицы, приравняв элементы вне главной диагонали к нулю:
-\begin{equation*}
-\mathbf{\Gamma}^{(\tau)} =  \mathcal{D} \Big[\Expect_{q(\Xi)}[S S^*] \Big].
 \end{equation*}
 Ввиду того, что М-шаг не максимизирует, а лишь улучшает УМО полного правдоподобия, представленный алгоритм является не точным ЕМ, а обобщенным (Generalized) EM.
 
