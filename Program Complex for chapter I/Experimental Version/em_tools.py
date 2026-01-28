@@ -252,6 +252,7 @@ def EM(angles: np.ndarray,
 
     EM_Iteration = 0
     while EM_Iteration < max_iter:
+        print(f"Iteration={EM_Iteration}")
         R_inv_A_P = np.linalg.inv(R) @ A @ P
         R_inv_A_P_H = R_inv_A_P.conj().T
         Common_Cov_S = P - R_inv_A_P_H @ A @ P
@@ -310,8 +311,10 @@ def EM(angles: np.ndarray,
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
         if (if_params_converged(angles, new_angles, P, new_P, rtol) or
             if_lkhd_converged(lkhd, new_lkhd)):
+            print(f"Parameter estimates or lkhd estimates converged!")
             break
         if new_lkhd < lkhd:
+            print(f"Accumulation of floating-point errors, likelihood started to decrease!")
             break
         angles, P, lkhd = new_angles, new_P, new_lkhd
         angles_list.append(angles)
