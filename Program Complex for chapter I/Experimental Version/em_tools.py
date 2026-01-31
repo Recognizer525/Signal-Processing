@@ -9,7 +9,7 @@ import debug_funcs as df
 def reasonable_init_est(K: int,
                         Q: np.ndarray,
                         R: np.ndarray,
-                        MUSIC_theta: np.ndarray,
+                        theta_guess: np.ndarray,
                         L: int| None = None,
                         iter: int|None = None,
                         eps: float = 1e-3,
@@ -27,8 +27,8 @@ def reasonable_init_est(K: int,
         Ковариация шума.
     R: np.ndarray
         Оценка ковариации наблюдений.
-    MUSIC_theta: np.ndarray
-        Оценка углов, полученная через MUSIC.
+    theta_guess: np.ndarray
+        Текущая начальная оценка углов.
     L: int|None
         Количество сенсоров в антенной решетке.
     iter: int|None
@@ -49,21 +49,21 @@ def reasonable_init_est(K: int,
         seed = 100
     
     if iter == 0:
-        theta = MUSIC_theta
+        theta = theta_guess
     elif iter > 0 and iter < 8:
         sigma = 0.05  
         bias = np.random.RandomState(seed).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
+        theta = theta_guess + bias
         theta = np.clip(theta, -np.pi/2, np.pi/2)
     elif iter >= 8 and iter < 16:
         sigma = 0.2
         bias = np.random.RandomState(seed+30).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
+        theta = theta_guess + bias
         theta = np.clip(theta, -np.pi/2, np.pi/2)
     else:
         sigma = 0.35
         bias = np.random.RandomState(seed+108).normal(0, sigma, size=K)
-        theta = MUSIC_theta + bias
+        theta = theta_guess + bias
         theta = np.clip(theta, -np.pi/2, np.pi/2)
 
 
@@ -79,7 +79,7 @@ def reasonable_init_est(K: int,
     P = np.diag(P_normed / the_norm)
     W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
     while True:
-        if sensors.is_psd(W):
+        if sensors.is_pd(W):
             break
         else:
             P = 0.5 * P
@@ -154,9 +154,9 @@ def incomplete_lkhd(X: np.ndarray,
     if sgn_R == 0:
         raise ValueError(f"Non-inversible R")
 
-    #print(f"is_psd(R)={sensors.is_psd(R)}")
-    #print(f"is_psd(P)={sensors.is_psd(P)}")
-    #print(f"is_psd(Q)={sensors.is_psd(Q)}")
+    #print(f"is_pd(R)={sensors.is_pd(R)}")
+    #print(f"is_pd(P)={sensors.is_pd(P)}")
+    #print(f"is_pd(Q)={sensors.is_pd(Q)}")
     #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
 
     inv_R = np.linalg.inv(R)
@@ -331,7 +331,7 @@ def EM(angles: np.ndarray,
 def multistart_EM2(X: np.ndarray,
                    K: int,
                    Q: np.ndarray,
-                   MUSIC_theta: np.ndarray,
+                   theta_guess: np.ndarray,
                    num_of_starts: int = 10,
                    max_iter: int = 20,
                    rtol: float = 1e-6) -> tuple[np.ndarray,
@@ -348,8 +348,8 @@ def multistart_EM2(X: np.ndarray,
         Число источников.
     Q: np.ndarray
         Ковариационная матрица шума.
-    MUSIC_theta: np.ndarray
-        Оценка углов через MUSIC.
+    theta_guess: np.ndarray
+        Текущая начальная оценка углов.
     num_of_starts: int
         Число запусков.
     max_iter: int
@@ -376,7 +376,7 @@ def multistart_EM2(X: np.ndarray,
     R = sensors.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = reasonable_init_est(K, Q, R, MUSIC_theta, L, iter=i, seed=i*12+70)
+        angles, P = reasonable_init_est(K, Q, R, theta_guess, L, iter=i, seed=i*12+70)
         est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
@@ -441,7 +441,7 @@ def init_est(K: int,
     P = np.diag(P_normed / the_norm)
     W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
     while True:
-        if sensors.is_psd(W):
+        if sensors.is_pd(W):
             break
         else:
             P = 0.5 * P

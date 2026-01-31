@@ -209,7 +209,7 @@ def is_diagonal(A: np.ndarray) -> bool:
     return np.all(A == np.diag(np.diagonal(A)))
 
 
-def is_psd(A: np.ndarray, tol: float = 1e-6) -> bool:
+def is_pd(A: np.ndarray, tol: float = 1e-6) -> bool:
     """
     Проверяет, что матрица A симметрична и положительно определена.
     """
@@ -218,9 +218,9 @@ def is_psd(A: np.ndarray, tol: float = 1e-6) -> bool:
         return False
     # Проверка положительной определенности.
     evals = np.linalg.eigvalsh(A)
-    is_psd = evals.min() >= -1e-8
+    res = evals.min() >= -1e-8
     #print(f'min={evals.min()}')
-    return is_psd
+    return res
 
 
 def cov_correcter(A: np.ndarray, reg_coef=1e-3) -> np.ndarray:

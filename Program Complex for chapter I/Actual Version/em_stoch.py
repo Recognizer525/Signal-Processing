@@ -55,7 +55,7 @@ def init_est(K: int,
     P = np.diag(P_normed / the_norm)
     W = P - P @ A.conj().T @ np.linalg.inv(R) @ A @ P
     while True:
-        if sensors.is_psd(W):
+        if sensors.is_pd(W):
             break
         else:
             P = 0.5 * P
@@ -130,9 +130,9 @@ def incomplete_lkhd(X: np.ndarray,
     if sgn_R == 0:
         raise ValueError(f"Non-inversible R")
 
-    #print(f"is_psd(R)={sensors.is_psd(R)}")
-    #print(f"is_psd(P)={sensors.is_psd(P)}")
-    #print(f"is_psd(Q)={sensors.is_psd(Q)}")
+    #print(f"is_pd(R)={sensors.is_pd(R)}")
+    #print(f"is_pd(P)={sensors.is_pd(P)}")
+    #print(f"is_pd(Q)={sensors.is_pd(Q)}")
     #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
 
     inv_R = np.linalg.inv(R)
