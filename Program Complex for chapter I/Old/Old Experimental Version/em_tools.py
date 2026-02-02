@@ -185,10 +185,9 @@ def EM(angles: np.ndarray,
        X: np.ndarray,
        Q: np.ndarray,
        max_iter: int = 50,
-       rtol: float = 1e-3,
-       reg_coef: float = 0) -> tuple[np.ndarray,
-                                     np.ndarray,
-                                     np.float64]:
+       rtol: float = 1e-3) -> tuple[np.ndarray,
+                                    np.ndarray,
+                                    np.float64]:
     """
     Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
@@ -206,8 +205,6 @@ def EM(angles: np.ndarray,
         Предельное число итераций.
     rtol: float
         Величина, используемая для проверки сходимости итерационного процесса.
-    reg_coef: float
-        Коэффициент регуляризации для смягчения численной нестабильности.
 
     Returns
     ---------------------------------------------------------------------------
@@ -267,7 +264,6 @@ def EM(angles: np.ndarray,
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
 
                 R_OO = R[np.ix_(O_i, O_i)]
-                R_OO = sensors.cov_correcter(R_OO, reg_coef)
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
@@ -279,10 +275,9 @@ def EM(angles: np.ndarray,
 
         E_X_E_X_H = np.einsum('li,lj -> lij', E_X_cond, E_X_cond.conj())
         Sigma_XX_arr = E_X_E_X_H + K_Xm_cond
-        Sigma_XX_arr = sensors.cov_correcter(Sigma_XX_arr, reg_coef)
 
 
-        Gap_based_Cov[~mask] = R_inv_A_P_H @ Sigma_XX_arr[~mask] @ R_inv_A_P
+        Gap_based_Cov[~mask] = R_inv_A_P_H @ K_Xm_cond[~mask] @ R_inv_A_P
         Gap_based_Cross_cov[~mask] = Sigma_XX_arr[~mask] @ R_inv_A_P
 
         Mu_S_cond = R_inv_A_P_H @ E_X_cond.T
@@ -312,7 +307,7 @@ def EM(angles: np.ndarray,
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         #print(f"new_angles={new_angles}")
-        new_P = sensors.cov_correcter(Sigma_SS, reg_coef)
+        new_P = sensors.cov_correcter(Sigma_SS)
         new_P[:] = new_P[np.ix_(idx, idx)]
         #print(f"new_P:\n{new_P}")
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
@@ -349,8 +344,7 @@ def multistart_EM2(X: np.ndarray,
                    theta_guess: np.ndarray,
                    num_of_starts: int = 10,
                    max_iter: int = 20,
-                   rtol: float = 1e-6,
-                   reg_coef: float = 0) -> tuple[np.ndarray,
+                   rtol: float = 1e-6) -> tuple[np.ndarray,
                                                  np.ndarray,
                                                  np.float64]:
     """
@@ -372,8 +366,6 @@ def multistart_EM2(X: np.ndarray,
         Предельное число итераций.
     rtol: float
         Величина, используемая для проверки сходимости итерационного процесса.
-    reg_coef: float
-        Коэффициент регуляризации для смягчения численной нестабильности.
 
     Returns
     ---------------------------------------------------------------------------
@@ -395,7 +387,7 @@ def multistart_EM2(X: np.ndarray,
     for i in range(num_of_starts):
         print(f'{i}-th start')
         angles, P = reasonable_init_est(K, Q, R, theta_guess, L, iter=i, seed=i*12+70)
-        est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol, reg_coef)
+        est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_angles = est_P, est_angles
