@@ -1,0 +1,140 @@
+\documentclass[11pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{animate} 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{colortbl}
+%\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{cancel}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepackage[mathscr]{euscript}
+\usepackage{cite}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsfonts}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+ 
+\newcommand{\Expect}{\mathbb{E}}
+\newcommand{\Var}{\mathcal{D}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\NormComplex}{\mathcal{CN}}
+\newcommand{\Natural}{\mathbb{N}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Int}{\mathbb{Z}}
+\newcommand{\DK}{\mathbf{D}_{KL}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Det}{Det}
+\newcommand{\infdiv}{D_{KL}\infdivx}
+\newcommand\Fontvi{\fontsize{8.2}{7.2}\selectfont}
+\newcommand{\myitem}{\item[\checkmark]}
+%\newcommand{\myitem}{\item[\squares]}
+
+\begin{document}
+\begin{comment}
+\begin{center}
+\fontsize{20}{23}\selectfont \color{red}{\textbf{ЕМ-алгоритм, стохастическая модель сигнала}}
+\end{center}
+\begin{center}
+\fontsize{16}{20}\selectfont \color{teal}{\textbf{Введение}}
+\end{center}
+\end{comment}
+
+\begin{equation*}
+\begin{gathered}
+ \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
+ \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
+\Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
+\end{gathered}
+\end{equation*}
+
+Пусть $\mathbf{\Lambda} = h \text{I}_{\text{L}}$, и требуется найти $h$, максимизирующий следующую функцию:
+\begin{equation*}
+\begin{gathered}
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big].
+\end{gathered}
+\end{equation*}
+Исключим слагаемые, не содержащие $\mathbf{\Lambda}$:
+\begin{equation*}
+\begin{gathered}
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big].
+\end{gathered}
+\end{equation*}
+При этом, $W^{-1} = \frac{1}{h}\text{I}_{\text{L}}$. Проведем преобразования:
+\begin{equation*}
+\begin{gathered}
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big] = \\
+- \text{T} \bigg[\log|h\text{I}_{\text{L}}| +\Tr ( \frac{1}{h}\text{I}_{\text{L}} \Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\frac{1}{h}\text{I}_{\text{L}} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) \\
++ \Tr(\frac{1}{h}\text{I}_{\text{L}} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \bigg] = \\
+- \text{T} \bigg[\text{L} \log h + \frac{1}{h} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2  \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) \\
++ \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big) \bigg].
+\end{gathered}
+\end{equation*}
+Обозначим через $B$ выражение 
+\begin{equation*}
+\begin{gathered}
+ \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)).
+\end{gathered}
+\end{equation*}
+Получаем функцию
+\begin{equation*}
+\begin{gathered}
+\mathcal{S}(h) = - \text{T} \bigg[\text{L} \log h + \frac{1}{h} B \bigg].
+\end{gathered}
+\end{equation*}
+Производная этой формулы имеет следующий вид:
+\begin{equation*}
+\begin{gathered}
+\mathcal{S}'(h) = \frac{B}{h^2} - \frac{\text{L}}{h} .
+\end{gathered}
+\end{equation*}
+Эта производная равна нулю, если:
+\begin{equation*}
+\begin{gathered}
+h = \frac{B}{\text{L}}.
+\end{gathered}
+\end{equation*}
+Соответственно:
+\begin{equation*}
+\begin{gathered}
+h^* = \frac{1}{\text{L}} \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)).
+\end{gathered}
+\end{equation*}
+Ввиду того, что нет гарантии положительности $B$, нужно брать максимум из двух чисел: вышеуказанной оценки и некоторого малого числа $\varepsilon$.
+\begin{equation*}
+\begin{gathered}
+h^{(\tau)} = \max \bigg(\frac{1}{\text{L}} \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)),\varepsilon \bigg).
+\end{gathered}
+\end{equation*}
+\end{document}
+
