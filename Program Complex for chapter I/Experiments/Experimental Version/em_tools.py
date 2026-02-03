@@ -1,9 +1,9 @@
 import numpy as np
 
-import sensors
-import angle_finding as af
-import diff_sensor_structures as dss
-import debug_funcs as df
+from common import sensors
+from common import angle_finding as af
+from common import diff_sensor_structures as dss
+from common import debug_funcs as df
 
 
 def reasonable_init_est(K: int,

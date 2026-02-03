@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-import diff_sensor_structures as dss
+from . import diff_sensor_structures as dss
 
 DIST_RATIO = 0.5
 

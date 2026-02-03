@@ -1,6 +1,6 @@
 import numpy as np
 
-import sensors
+from . import sensors as sn
 
 def is_valid_result(data: np.ndarray,
                     data_name: str,
@@ -20,11 +20,11 @@ def is_valid_result(data: np.ndarray,
         pass
 
     if check_psd and data.ndim == 2:
-        if not sensors.is_pd(data):
-            raise ValueError(f"{data_name} is not psd")
+        if not sn.is_pd(data):
+            raise ValueError(f"{data_name} is not pd")
 
     if check_psd and data.ndim == 3:
         for i in range(data.shape[0]):
-            if not sensors.is_pd(data[i]):
+            if not sn.is_pd(data[i]):
                 print(f"{data_name}[{i}]={data[i]}")
-                raise ValueError(f"{data_name}[{i}] is not psd")
+                raise ValueError(f"{data_name}[{i}] is not pd")

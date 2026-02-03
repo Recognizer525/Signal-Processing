@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import eig, pinv
 from scipy.signal import find_peaks
 
-import sensors as sn
+from . import sensors as sn
 
 DIST_RATIO = 0.5
 
