@@ -70,7 +70,7 @@
  \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
  \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
 \Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
-- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
 \end{gathered}
 \end{equation*}
@@ -78,32 +78,32 @@
 Пусть $\mathbf{\Lambda} = h \text{I}_{\text{L}}$, и требуется найти $h$, максимизирующий следующую функцию:
 \begin{equation*}
 \begin{gathered}
-- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
 Исключим слагаемые, не содержащие $\mathbf{\Lambda}$:
 \begin{equation*}
 \begin{gathered}
-- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big].
 \end{gathered}
 \end{equation*}
 При этом, $W^{-1} = \frac{1}{h}\text{I}_{\text{L}}$. Проведем преобразования:
 \begin{equation*}
 \begin{gathered}
-- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big] = \\
-- \text{T} \bigg[\log|h\text{I}_{\text{L}}| +\Tr ( \frac{1}{h}\text{I}_{\text{L}} \Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\frac{1}{h}\text{I}_{\text{L}} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) \\
+- \text{T} \bigg[\log|h\text{I}_{\text{L}}| +\Tr ( \frac{1}{h}\text{I}_{\text{L}} \Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\frac{1}{h}\text{I}_{\text{L}} \text{A}^*(\theta) \Expect_{q(\Xi)}[X S^*]) \\
 + \Tr(\frac{1}{h}\text{I}_{\text{L}} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \bigg] = \\
-- \text{T} \bigg[\text{L} \log h + \frac{1}{h} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2  \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) \\
+- \text{T} \bigg[\text{L} \log h + \frac{1}{h} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2  \Re \Tr(\text{A}^*(\theta) \Expect_{q(\Xi)}[X S^*]) \\
 + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big) \bigg].
 \end{gathered}
 \end{equation*}
 Обозначим через $B$ выражение 
 \begin{equation*}
 \begin{gathered}
- \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)).
+ \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr\big(\text{A}^*(\theta) \Expect_{q(\Xi)}[X S^*] \big) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)).
 \end{gathered}
 \end{equation*}
 Получаем функцию
@@ -127,13 +127,13 @@ h = \frac{B}{\text{L}}.
 Соответственно:
 \begin{equation*}
 \begin{gathered}
-h^* = \frac{1}{\text{L}} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big).
+h^* = \frac{1}{\text{L}} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr\big(\text{A}^*(\theta) \Expect_{q(\Xi)}[X S^*] \big) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big).
 \end{gathered}
 \end{equation*}
 Ввиду того, что нет гарантии положительности $B$, нужно брать максимум из двух чисел: вышеуказанной оценки и некоторого малого числа $\varepsilon$.
 \begin{equation*}
 \begin{gathered}
-h^{(\tau)} = \max \bigg(\frac{1}{\text{L}} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[X S^*]) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big),\varepsilon \bigg).
+h^{(\tau)} = \max \bigg(\frac{1}{\text{L}} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 2 \Re \Tr\big(\text{A}^*(\theta)  \Expect_{q(\Xi)}[X S^*] \big) + \Tr(\text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) \Big),\varepsilon \bigg).
 \end{gathered}
 \end{equation*}
 \end{document}
