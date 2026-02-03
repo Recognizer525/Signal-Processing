@@ -186,9 +186,10 @@ def EM(angles: np.ndarray,
        Q: np.ndarray,
        max_iter: int = 50,
        rtol: float = 1e-3,
-       reg_coef: float = 0) -> tuple[np.ndarray,
-                                     np.ndarray,
-                                     np.float64]:
+       reg_coef: float = 0,
+       show_lkhd: bool = True) -> tuple[np.ndarray,
+                                        np.ndarray,
+                                        np.float64]:
     """
     Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
@@ -208,6 +209,8 @@ def EM(angles: np.ndarray,
         Величина, используемая для проверки сходимости итерационного процесса.
     reg_coef: float
         Коэффициент регуляризации для смягчения численной нестабильности.
+    show_lkhd: bool
+        Показывать ли значение неполного правдоподобия после каждого обновления параметров.
 
     Returns
     ---------------------------------------------------------------------------
@@ -226,6 +229,9 @@ def EM(angles: np.ndarray,
     Q_inv_sqrt = np.sqrt(Q_inv)
 
     lkhd = incomplete_lkhd(X, angles, P, Q)
+
+    if show_lkhd:
+        print(f"Inital likelihood = {lkhd}")
     
     T = X.shape[0]
     L = Q.shape[0]
@@ -255,8 +261,8 @@ def EM(angles: np.ndarray,
     lkhd_list.append(lkhd)
     angles_list.append(angles)
 
-    EM_Iteration = 0
-    while EM_Iteration < max_iter:
+    EM_Iteration = 1
+    while EM_Iteration <= max_iter:
         print(f"Iteration={EM_Iteration}")
         R_inv_A_P = np.linalg.inv(R) @ A @ P
         R_inv_A_P_H = R_inv_A_P.conj().T
@@ -315,18 +321,18 @@ def EM(angles: np.ndarray,
         new_P = sensors.cov_correcter(Sigma_SS, reg_coef)
         new_P[:] = new_P[np.ix_(idx, idx)]
         #print(f"new_P:\n{new_P}")
+
         new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
+
+        if show_lkhd:
+            print(f'likelihood is {new_lkhd} on iteration {EM_Iteration}.')
+
         if if_params_converged(angles, new_angles, P, new_P, rtol):
             print("Parameters are converged!")
             break
         if if_lkhd_converged(lkhd, new_lkhd):
             print("Likelihood is converged!")
             break
-
-        #if (if_params_converged(angles, new_angles, P, new_P, rtol) or
-            #if_lkhd_converged(lkhd, new_lkhd)):
-            #print(f"Parameter estimates or lkhd estimates converged!")
-            #break
 
         if new_lkhd < lkhd:
             print(f"Accumulation of floating-point errors, likelihood started to decrease!")
@@ -337,7 +343,6 @@ def EM(angles: np.ndarray,
 
         A = dss.A_ULA(L, angles)
         R = A @ P @ A.conj().T + Q
-        print(f'likelihood is {lkhd} on iteration {EM_Iteration}.')
         EM_Iteration += 1
         
     return angles, P, lkhd, lkhd_list, angles_list
@@ -374,6 +379,8 @@ def multistart_EM2(X: np.ndarray,
         Величина, используемая для проверки сходимости итерационного процесса.
     reg_coef: float
         Коэффициент регуляризации для смягчения численной нестабильности.
+    show_lkhd: bool
+        Показывать ли значение неполного правдоподобия после каждого обновления параметров.
 
     Returns
     ---------------------------------------------------------------------------

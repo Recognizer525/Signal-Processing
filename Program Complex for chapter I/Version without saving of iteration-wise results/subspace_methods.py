@@ -2,6 +2,8 @@ import numpy as np
 from numpy.linalg import eig, pinv
 from scipy.signal import find_peaks
 
+import sensors as sn
+
 DIST_RATIO = 0.5
 
 
@@ -89,3 +91,57 @@ def ESPRIT_DoA(R: np.ndarray, num_sources: int) -> np.ndarray:
     doa_estimates = np.arcsin(np.angle(phi_eigvals) / (2 * np.pi * DIST_RATIO))
     
     return doa_estimates
+
+
+def trunc_MUSIC(data: np.ndarray, num_sources: int) -> np.ndarray:
+    """
+    Из наблюдений исключаются столбцы с пропусками,
+    по ковариации оставшихся данных реализуется MUSIC.
+    """
+    mask1 = ~np.isnan(data).any(axis=0)
+    truncated_data = data[:, mask1]
+    R = sn.complex_cov(truncated_data)
+    res = MUSIC_DoA(R, num_sources)
+    return res
+
+
+def trunc_ESPRIT(data: np.ndarray, num_sources: int) -> np.ndarray:
+    """
+    Из наблюдений исключаются столбцы с пропусками,
+    по ковариации оставшихся данных реализуется ESPRIT.
+    """
+    mask1 = ~np.isnan(data).any(axis=0)
+    truncated_data = data[:, mask1]
+    R = sn.complex_cov(truncated_data)
+    res = ESPRIT_DoA(R, num_sources)
+    return res
+
+
+def mean_imput_MUSIC(data: np.ndarray, num_sources: int) -> np.ndarray:
+    """
+    Применяется mean imputation к столбцам с пропусками,
+    оценивается ковариация полученного набора,
+    по ковариации оставшихся данных реализуется MUSIC.
+    """
+    col_means = np.nanmean(data, axis=0)
+    inds = np.where(np.isnan(data))
+    data1 = data.copy()
+    data1[inds] = np.take(col_means, inds[1])
+    R = sn.complex_cov(data1)
+    res = MUSIC_DoA(R, num_sources)
+    return res
+
+
+def mean_imput_ESPRIT(data: np.ndarray, num_sources: int) -> np.ndarray:
+    """
+    Применяется mean imputation к столбцам с пропусками,
+    оценивается ковариация полученного набора,
+    по ковариации оставшихся данных реализуется ESPRIT.
+    """
+    col_means = np.nanmean(data, axis=0)
+    inds = np.where(np.isnan(data))
+    data1 = data.copy()
+    data1[inds] = np.take(col_means, inds[1])
+    R = sn.complex_cov(data1)
+    res = ESPRIT_DoA(R, num_sources)
+    return res
