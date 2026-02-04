@@ -10,7 +10,7 @@ def cost(u: torch.Tensor,
          Q_inv: torch.Tensor) -> torch.Tensor:
     """
     Вычисляет значение целевой функции, минимизация 
-    которой позволяет найти оптимальные нулевые координаты. 
+    которой позволяет найти оптимальные угловые координаты. 
     """
     A = dss.A_ULA_torch(Q_inv.shape[0], u)
     operand1 = -2 * torch.real(torch.trace(torch.conj(A).T @ Q_inv @ Sigma_XS))

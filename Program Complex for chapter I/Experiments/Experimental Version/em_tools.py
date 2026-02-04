@@ -3,6 +3,7 @@ import numpy as np
 from common import sensors
 from common import angle_finding as af
 from common import estim_angles as ea
+from common import estim_angles2 as ea2
 from common import diff_sensor_structures as dss
 from common import debug_funcs as df
 
@@ -314,7 +315,7 @@ def EM(angles: np.ndarray,
         df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
         df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
-        new_angles = ea.find_angles(Sigma_XS, angles, 
+        new_angles = ea2.find_angles(Sigma_XS, angles, 
                                     Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]

@@ -134,7 +134,7 @@ $$
  \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
  \Expect_{q(\Xi)}[\log \Prob(X\mid S) + \log \Prob(S)] = \\
 \Big[\sum_{t=1}^T  \Expect_{q(\Xi_t)} \log [\Prob(X_t \mid S_t)] + \sum_{t=1}^T \Expect_{q(\Xi_t)}[\log \Prob(S_t)]\Big] = \\
-- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+- \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big]. 
 \end{gathered}
 \end{equation*}
@@ -241,16 +241,15 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \begin{equation*}
 \begin{gathered}
 \Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{q(\Xi)}[\log \Prob(X, S)] = \\
-\argmin_{\Upsilon}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
+\argmin_{\Upsilon}  \text{T} \Big[\log|\mathbf{\Lambda}| +\Tr \big( \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[XX^*] \big) - 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
 + \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[SS^*] \text{A}^*(\theta)) + \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1} \Expect_{q(\Xi)}[SS^*]) \Big].
 \end{gathered}
 \end{equation*}
 Оценим угловые координаты источников $\theta$:
 \begin{equation*}
 \begin{gathered}
-\theta^{(\tau)}= \argmin_{\theta}\mathcal{Q}_1(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[ - 2 \Tr\big(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[X S^*]\big) \\
-+ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[S S^*] \text{A}^*(\theta)) \Big] = \\
-\argmin_{\theta} ||\mathbf{\Lambda}^{-1/2} (\Expect_{q(\Xi)}[X S^*]-\text{A}(\theta)\Expect_{q(\Xi)}[S S^*]) ||_F^2.
+\theta^{(\tau)}= \argmin_{\theta}\mathcal{Q}_1(\theta|\theta^{(\tau-1)})  = \argmin_{\theta} \Big[- 2 \Re \Tr\big(\text{A}^*(\theta) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) \\
++ \Tr(\mathbf{\Lambda}^{-1} \text{A}(\theta) \Expect_{q(\Xi)}[S S^*] \text{A}^*(\theta)) \Big].
 \end{gathered}
 \end{equation*}
 Эту задачу можно решить численно, подробности приведены в приложении 3. \\
@@ -451,9 +450,9 @@ $$
 В приведенных выше переходах используется закон полного условного математического ожидания и уже полученное выражение для $\Expect[S_t^* \mid X_t]$.
 \clearpage
 \section*{\makebox[\linewidth][c]{Приложение В. О реализации М-шага}}
-Если антенная решетка является равномерной и линейной, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. . Соответственно минимизации подлежит функция
+Если антенная решетка является равномерной и линейной, удобно искать оптимальный $u=\sin(\theta)$, а затем находить $\theta$ как $\arcsin(u)$. Соответственно минимизации подлежит функция
 \begin{equation*}
-\mathcal{Q}_1(u \mid u^{\tau-1)}) = ||\mathbf{\Lambda}^{-1/2} (\Expect_{q(\Xi)}[X S^*]-\widetilde{\text{A}}(u) \Expect_{q(\Xi)}[S S^*]) ||_F^2,
+\mathcal{Q}_1(u|u^{(\tau-1)}) = - 2 \Re \Tr\big(\widetilde{\text{A}}^*(u) \mathbf{\Lambda}^{-1} \Expect_{q(\Xi)}[X S^*]\big) + \Tr(\mathbf{\Lambda}^{-1} \widetilde{\text{A}}(u) \Expect_{q(\Xi)}[S S^*] \widetilde{\text{A}}^*(u)),
 \end{equation*}
 где
 \begin{equation*}
