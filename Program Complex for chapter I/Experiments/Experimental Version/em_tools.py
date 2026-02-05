@@ -1,11 +1,11 @@
 import numpy as np
 
 from common import sensors
-from common import angle_finding as af
-from common import estim_angles as ea
+#from common import estim_angles as ea
 from common import estim_angles2 as ea2
 from common import diff_sensor_structures as dss
 from common import debug_funcs as df
+from common import convergence as conv
 
 
 def reasonable_init_est(K: int,
@@ -89,40 +89,6 @@ def reasonable_init_est(K: int,
 
     print(f"theta={theta},P={P}")
     return theta, P
-
-
-def if_params_converged(angles:np.ndarray, 
-                        new_angles: np.ndarray, 
-                        P: np.ndarray, 
-                        new_P: np.ndarray, 
-                        rtol: float = 1e-3) -> bool:
-    """
-    Проверка достижения сходимости алгоритма на текущей итерации, 
-    сравниваются отсортированные вектора/матрицы параметров 
-    на текущей и предшествующей итерации.
-    """
-    idx1 = np.argsort(angles)
-    idx2 = np.argsort(new_angles)
-    angles[:] = angles[idx1]
-    new_angles[:] = new_angles[idx2]
-    P = P[np.ix_(idx1, idx1)]
-    new_P[:] = new_P[np.ix_(idx2, idx2)]
-    if (np.linalg.norm(angles - new_angles) < rtol 
-        and np.linalg.norm(P - new_P, ord = 2) < rtol):
-        return True
-    return False
-
-
-def if_lkhd_converged(old_lkhd: float,
-                      lkhd: float,
-                      rtol: float = 1e-6) -> bool:
-    """
-    Проверяет степень близости старого и нового значения 
-    неполного правдоподобия.
-    """
-    if lkhd == 0:
-        return np.abs(lkhd - old_lkhd) < rtol
-    return np.abs(lkhd-old_lkhd)/np.abs(lkhd) < rtol
 
 
 def incomplete_lkhd(X: np.ndarray,
@@ -329,10 +295,10 @@ def EM(angles: np.ndarray,
         if show_lkhd:
             print(f'likelihood is {new_lkhd} on iteration {EM_Iteration}.')
 
-        if if_params_converged(angles, new_angles, P, new_P, rtol):
+        if conv.if_params_converged(angles, new_angles, P, new_P, rtol):
             print("Parameters are converged!")
             break
-        if if_lkhd_converged(lkhd, new_lkhd):
+        if conv.if_lkhd_converged(lkhd, new_lkhd):
             print("Likelihood is converged!")
             break
 
@@ -525,58 +491,5 @@ def multi_start_EM(X: np.ndarray,
             best_P, best_angles = est_P, est_angles
     print(f"best_start={best_start}")
     return best_angles, best_P, best_lhd
-
-
-def old_incomplete_lkhd(X: np.ndarray,
-                        theta: np.ndarray, 
-                        P: np.ndarray, 
-                        Q: np.ndarray) -> np.float64:
-    """
-    Вычисляет неполное правдоподобие на основании доступных наблюдений 
-    и текущей оценки параметров.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    X: np.ndarray
-        Двумерный массив, соответствующий наблюдениям.
-    theta: np.ndarray
-        Одномерный массив размера (K,1). Соответствует оценке DoA.
-    P: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    Q: np.ndarray
-        Ковариационная матрица шума.
-
-    Returns
-    ---------------------------------------------------------------------------
-    res: np.float64
-        Значение неполного правдоподобия.
-    """
-    A = dss.A_ULA(X.shape[1], theta)
-    R = A @ P @ A.conj().T + Q
-    
-    #print(f"is_psd(R)={sensors.is_psd(R)}")
-    #print(f"is_psd(P)={sensors.is_psd(P)}")
-    #print(f"is_psd(Q)={sensors.is_psd(Q)}")
-    #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
-
-    inv_R = np.linalg.inv(R)
-    Indicator = np.isnan(X)
-    col_numbers = np.arange(1, X.shape[1]+1)
-    O = col_numbers * (Indicator == False) - 1
-    res = 0
-    for i in range(X.shape[0]):
-        if set(O[i, ]) != set(col_numbers - 1):
-            O_i = O[i, ][O[i, ] > -1]
-            R_o = R[np.ix_(O_i, O_i)]
-            #R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
-            res += (- np.log(np.linalg.det(R_o)) - (X[i, O_i].T).conj().T @ 
-                      np.linalg.inv(R_o) @ (X[i, O_i].T))
-        else:
-            res += (- np.log(np.linalg.det(R)) - 
-                    (X[i].T).conj().T @ inv_R @ (X[i].T))
-    return res.real
-
-
-
 
 
