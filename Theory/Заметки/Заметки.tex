@@ -142,24 +142,24 @@ h^{(\tau)} = \max \bigg(\frac{1}{\text{L}} \Big( \Tr (\Expect_{q(\Xi)}[XX^*]) - 
 \begin{center}
 \fontsize{16}{20}\selectfont \color{teal}{\textbf{МAP-оценивание ковариации сигналов}}
 \end{center}
-Можно превратить EM в MAP-EM, если искать не $\log P(X \mid \theta)$, а $\log P(X \mid \theta) + \log P(\theta)$, в случае моей задачи разумно задать априор для ковариации сигналов (ЕМ-алгоритм с ММП-оценкой ее не ищет практически, неидентифицируемость или слабая идентифицируемость масштаба, вероятно). Будем считать, что ковариация сигналов $\mathbf{\Gamma}_{p \times p}$ имеет обратное комплексное распределение Вишарта:
+Можно превратить EM в MAP-EM, если искать не $\log P(X \mid \theta)$, а $\log P(X \mid \theta) + \log P(\theta)$, в случае моей задачи разумно задать априор для ковариации сигналов (ЕМ-алгоритм с ММП-оценкой ее не ищет практически, неидентифицируемость или слабая идентифицируемость масштаба, вероятно). Будем считать, что ковариация сигналов $\mathbf{\Gamma}_{\text{K} \times \text{K}}$ имеет обратное комплексное распределение Вишарта:
 \begin{equation}
-\mathbf{\Gamma} \sim \mathcal{CW}^{-1} (\mathbf{\Psi}, \nu, p),
+\mathbf{\Gamma} \sim \mathcal{CW}^{-1} (\mathbf{\Psi}, \nu),
 \end{equation}
 где $\Psi$ -- априорная информация о ковариации сигналов, $\nu$ -- степень уверенности. \\
 В таком случае, оптимизации подвергается следующая функция:
 \begin{equation}
-\mathcal{Q}(\theta|\theta^{(\tau-1)}) = \Expect_{q(\Xi)}[\log P(X,S| \theta)]\\ + \log P(S).
+\mathcal{Q}(\Upsilon|\Upsilon^{(\tau-1)}) = \Expect_{q(\Xi)}[\log \Prob(X,S| \theta)]\\ + \log \Prob(\mathbf{\Gamma}).
 \end{equation}
 Точный шаг для обновления параметров будет определяться так:
 \begin{equation}
-\mathbf{\Gamma} = \frac{\text{T}\Expect[S S^* \mid q(\Xi)] + \Psi}{\nu + d + \text{T}}.
+\mathbf{\Gamma} = \frac{\text{T}\Expect[S S^* \mid q(\Xi)] + \Psi}{\nu + \text{K} + \text{T}}.
 \end{equation}
 Чем больше $\nu$, тем больше уверенности в априорных данных.
 Плотность для $\mathbf{\Gamma} $ пропорциональна следующей величине (нормировочная константа в данном случае не важна):
 \begin{equation}
-p(\mathbf{\Gamma} ) \propto |\mathbf{\Gamma} |^{-(\nu + d + 1)/2}
-\exp\!\left(-\tfrac12 \operatorname{tr}(\Psi \mathbf{\Gamma} ^{-1})\right).
+\Prob(\mathbf{\Gamma} ) \propto |\mathbf{\Gamma} |^{-(\nu + \text{K})}
+\exp\!\left(- \Tr(\Psi \mathbf{\Gamma} ^{-1})\right).
 \end{equation}
 \end{document}
 
