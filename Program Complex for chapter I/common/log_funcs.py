@@ -61,7 +61,7 @@ def incomplete_lkhd(X: np.ndarray,
 
 def log_prior(Psi: np.ndarray,
               P: np.ndarray,
-              nu: int) -> float:
+              nu: int) -> np.float64:
     """
     Вычисляет log P(theta).
     """
@@ -70,7 +70,7 @@ def log_prior(Psi: np.ndarray,
     if sgn_P == 0:
         raise ValueError(f"Non-inversible P")
     op1 = - (nu + P.shape[0]) * log_det_P
-    return op1 + op2
+    return (op1 + op2).real
 
 
 def log_posterior(X: np.ndarray,
@@ -78,7 +78,7 @@ def log_posterior(X: np.ndarray,
                   P: np.ndarray,
                   Q: np.ndarray,
                   Psi: np.ndarray,
-                  nu: int) -> float:
+                  nu: int) -> np.float64:
     """
     Вычисляет log P(X|theta) + log P(theta).
     """

@@ -75,10 +75,10 @@ def EM(angles: np.ndarray,
     Q_inv = np.linalg.inv(Q)
     Q_inv_sqrt = np.sqrt(Q_inv)
 
-    lkhd = lf.incomplete_lkhd(X, angles, P, Q)
+    lkhd = lf.log_posterior(X, angles, P, Q, Psi, nu)
 
     if show_lkhd:
-        print(f"Inital likelihood = {lkhd}")
+        print(f"Inital log_posterior = {lkhd}")
     
     T = X.shape[0]
     L = Q.shape[0]
@@ -173,21 +173,21 @@ def EM(angles: np.ndarray,
             print(f"new_angles={new_angles}")
             print(f"new_P:\n{new_P}")
 
-        new_lkhd = lf.incomplete_lkhd(X, new_angles, new_P, Q)
+        new_lkhd = lf.log_posterior(X, new_angles, new_P, Q, Psi, nu)
 
         if show_lkhd:
-            print(f'likelihood is {new_lkhd} on iteration {EM_Iteration}.')
+            print(f'Log_posterior is {new_lkhd} on iteration {EM_Iteration}.')
 
         if conv.if_params_converged(angles, new_angles, P, new_P, rtol_params):
             print("Parameters are converged!")
             break
 
         if conv.if_lkhd_converged(lkhd, new_lkhd, rtol_lkhd):
-            print("Likelihood is converged!")
+            print("Log_posterior is converged!")
             break
 
         if new_lkhd < lkhd:
-            print(f"Accumulation of floating-point errors, likelihood started to decrease!")
+            print(f"Accumulation of floating-point errors, log_posterior started to decrease!")
             break
         angles, P, lkhd = new_angles, new_P, new_lkhd
         angles_list.append(angles)
@@ -276,6 +276,8 @@ def multistart_EM(X: np.ndarray,
                                                                          P=P, 
                                                                          X=X, 
                                                                          Q=Q, 
+                                                                         Psi=Psi,
+                                                                         nu=nu,
                                                                          max_iter=max_iter, 
                                                                          rtol_params=rtol_params,
                                                                          rtol_lkhd=rtol_lkhd, 
@@ -368,7 +370,9 @@ def multistart_EM2(X: np.ndarray,
         est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles=angles, 
                                                                          P=P, 
                                                                          X=X, 
-                                                                         Q=Q, 
+                                                                         Q=Q,
+                                                                         Psi=Psi,
+                                                                         nu=nu, 
                                                                          max_iter=max_iter, 
                                                                          rtol_params=rtol_params,
                                                                          rtol_lkhd=rtol_lkhd, 
