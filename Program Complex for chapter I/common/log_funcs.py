@@ -57,3 +57,32 @@ def incomplete_lkhd(X: np.ndarray,
         else:
             res += (- log_det_R - (X[i].T).conj().T @ inv_R @ (X[i].T))
     return res.real
+
+
+def log_prior(Psi: np.ndarray,
+              P: np.ndarray,
+              nu: int) -> float:
+    """
+    Вычисляет log P(theta).
+    """
+    op2 = - np.trace(Psi @ np.linalg.inv(P))
+    sgn_P, log_det_P = np.linalg.slogdet(P)
+    if sgn_P == 0:
+        raise ValueError(f"Non-inversible P")
+    op1 = - (nu + P.shape[0]) * log_det_P
+    return op1 + op2
+
+
+def log_posterior(X: np.ndarray,
+                  theta: np.ndarray, 
+                  P: np.ndarray,
+                  Q: np.ndarray,
+                  Psi: np.ndarray,
+                  nu: int) -> float:
+    """
+    Вычисляет log P(X|theta) + log P(theta).
+    """
+    op1 = incomplete_lkhd(X, theta, P, Q)
+    op2 = log_prior(Psi, P, nu)
+
+    return op1 + op2
