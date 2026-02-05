@@ -253,11 +253,11 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{gathered}
 \end{equation*}
 Эту задачу можно решить численно, подробности приведены в приложении 3. \\
-Оценим ковариацию сигналов $\mathbf{\Gamma}$ с учетом предположения о некоррелированности сигналов:
+Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
 \begin{gathered}
 \mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} \mid \mathbf{\Gamma}^{(\tau-1)})
- = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*])\bigg] = \mathcal{D} \Big[\Expect_{q(\Xi)}[S S^*] \Big].
+ =  \argmin_{\mathbf{\Gamma}} \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*])\bigg] = \Expect_{q(\Xi)}[S S^*] .
 \end{gathered}
 \end{equation*}
 Обновляем оценку ковариации наблюдений с учетом полученных оценок параметров:
@@ -291,11 +291,11 @@ $\hat{\text{R}}_{m_t, m_t}= \hat{\text{R}}_{m_t, m_t}^{(\tau-1)}$.\\
 \end{table}
 Дисперсия сигнала:
 $$
-d_s = p_s^2/(r/r_0)^2, \quad r_0 = 1\text{ м}
+d_s = p_s^2/(r/r_0)^2, \quad r_0 = 1\text{ м},
 $$
 Дисперсия шума:
 $$
-d_n = p_n^2
+d_n = p_n^2.
 $$
 
 
@@ -506,11 +506,28 @@ e^{-2j\pi (\text{L}-1) \frac{\text{d}}{\lambda}u_1}& e^{-2j\pi (\text{L}-1) \fra
 \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \rho^{(\tau)} = - \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})^T \mathbf{H}^{-1}  \grad \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)}),
 \end{equation*} 
 и поскольку $\mathbf{H}$ -- положительно определенная матрица, производная по направлению может принимать лишь неположительные значения, а значит направление $\rho^{(\tau)}$ соответствует невозрастанию функции ~\cite{NocedalWright}.
-Далее используется backtracking line search для гарантии невозрастания $\mathcal{Q}_1$:
+Далее используется backtracking line search в сочетании с проекцией на допустимое множество:
 \begin{equation*}
-u^{(\tau)}=u^{(\tau-1)} + \alpha_m \rho^{(\tau)},
+\tilde u^{(\tau)} = u^{(\tau-1)} + \alpha_m \rho^{(\tau)}, \qquad
+u^{(\tau)} = \Pi_{\mathcal{U}}(\tilde u^{(\tau)}),
 \end{equation*}
-где $\alpha_m$ -- первое $\alpha=\alpha_0 \beta^m, m \in \Natural$, такое что $\mathcal{Q}_1(u^{(\tau)}\mid u^{(\tau-1)}) \le \mathcal{Q}_1(u^{(\tau-1)}\mid u^{(\tau-1)})$ для фиксированных $\alpha_0 > 0, \beta \in (0;1)$.\\
+где $\Pi_{\mathcal{U}}$ — евклидова проекция на множество
+\[
+\mathcal{U} = [-1,1]^L =
+\{u \in \mathbb{R}^L \mid \|u\|_\infty \le 1\},
+\]
+задаваемая покомпонентным ограничением:
+\[
+(\Pi_{\mathcal{U}}(x))_i = \min\{1,\max\{-1,x_i\}\}.
+\]
+Параметр шага $\alpha_m$ выбирается как первое
+$\alpha = \alpha_0 \beta^m$, $m \in \mathbb{N}$, такое что
+\[
+\mathcal{Q}_1\bigl(u^{(\tau)} \mid u^{(\tau-1)}\bigr)
+\le
+\mathcal{Q}_1\bigl(u^{(\tau-1)} \mid u^{(\tau-1)}\bigr),
+\]
+при фиксированных $\alpha_0 > 0$ и $\beta \in (0,1)$. \\
 В рамках программного комплекса реализуется мультистарт для поиска оптимального $u$ на М-шаге. Указанный выше оптимизационный алгоритм запускается не только из точки $u^{(\tau-1)}$, но и из случайно выбранных допустимых точек, в том числе находящихся в окрестности $u^{(\tau-1)}$. Для выбранной начальной точки с индексом $j$, обновление оценки синусов угловых координат $\widetilde{u}^{(j)}$  может быть принято, только если:
 \begin{enumerate}
 \item
@@ -518,9 +535,18 @@ $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(u^{(\tau-1)
 \item
  $\mathcal{Q}_1(\widetilde{u}^{(j)}\mid u^{(\tau-1)}) > \mathcal{Q}_1(\min(\widetilde{u}^{(i)}: 1 \le i \le j-1)\mid u^{(\tau-1)})$, \text{при $j>1$}.
 \end{enumerate}  
+Выбранный подход корректен ввиду следующих соображений:
+\begin{enumerate}
+\item
+Функция $\mathcal{Q}_1(u \mid u^{(\tau-1)})$  дифференцируема, поскольку $\widetilde{\text{A}}(u)$ состоит из экспонент вида $e^{j \pi m u_k}, k = 1, \ldots, K, m \in \mathbb{R}$, т.е. гладких функций, умножение подобных матриц на фиксированные матрицы, взятие следа, взятие действительной части не нарушают гладкость.
+\item
+Функция $\mathcal{Q}_1(u \mid u^{(\tau-1)})$  ограничена снизу, поскольку вектор $u$ принадлежит компакту $\mathcal{U}$, матрицы, определяющие вид функции $\mathcal{Q}_1(u \mid u^{(\tau-1)})$ и отличные от $\widetilde{\text{A}}(u)$, являются фиксированными, след от произведения таких матриц, принимает лишь конечные значения.
+\item
+Градиент $\grad \mathcal{Q}_1(u \mid u^{(\tau-1)}$ не принимает нулевые значения для любых $u \in \mathcal{U}$, поскольку $ \mathcal{Q}_1(u \mid u^{(\tau-1)}) $ -- гладкая функция, не сводящаяся к константе.
+\end{enumerate}
 Оценим ковариацию сигналов $\mathbf{\Gamma}$:
 \begin{equation*}
-\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} \mid \mathbf{\Gamma}^{(\tau-1)}) = \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*])\bigg].
+\mathbf{\Gamma}^{(\tau)}= \argmin_{\mathbf{\Gamma}} \mathcal{Q}_2(\mathbf{\Gamma} \mid \mathbf{\Gamma}^{(\tau-1)}) = \argmin_{\mathbf{\Gamma}} \text{T}\bigg[ \log |\mathbf{\Gamma}| + \Tr(\mathbf{\Gamma}^{-1}\Expect_{q(\Xi)}[S S^*])\bigg].
 \end{equation*}
 Определим точку, где производная данной функции принимает значение 0, и, таким образом, находим минимум функции:
 \begin{equation*}
