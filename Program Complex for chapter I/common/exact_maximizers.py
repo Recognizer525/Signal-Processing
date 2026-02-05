@@ -39,4 +39,4 @@ def MAP_est_of_P(Sigma_SS: np.ndarray,
         Количество наблюдений.
     """
     d = Sigma_SS.shape[0]
-    return (Sigma_SS + Psi) / (n + nu + d + 1)
+    return (Sigma_SS + Psi) / (n + nu + d)

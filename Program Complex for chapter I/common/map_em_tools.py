@@ -9,12 +9,15 @@ from . import debug_funcs as df
 from . import convergence as conv
 from . import initialization as intl
 from . import log_funcs as lf
+from . import exact_maximizers as exm
 
 
 def EM(angles: np.ndarray,
        P: np.ndarray,
        X: np.ndarray,
        Q: np.ndarray,
+       Psi: np.ndarray,
+       nu: int,
        max_iter: int = 50,
        rtol_params: float = 1e-3,
        rtol_lkhd: float = 1e-6,
@@ -25,7 +28,7 @@ def EM(angles: np.ndarray,
                                     np.ndarray,
                                     np.float64]:
     """
-    Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
+    Запускает MAP-ЕМ-алгоритм для выбранной начальной оценки параметров.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -37,6 +40,10 @@ def EM(angles: np.ndarray,
         Двумерный массив, соответствующий наблюдениям.
     Q: np.ndarray
         Ковариационная матрица шума.
+    Psi: np.ndarray
+        Априорная информация о ковариации сигналов.
+    nu: int
+        Степень уверенности в априорной информации.
     max_iter: int
         Предельное число итераций.
     rtol_params: float
@@ -158,7 +165,8 @@ def EM(angles: np.ndarray,
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
 
-        new_P = sn.cov_correcter(Sigma_SS, reg_coef)
+        new_P = exm.MAP_est_of_P(Sigma_SS, Psi, nu, X.shape[0])
+        new_P = sn.cov_correcter(new_P, reg_coef)
         new_P[:] = new_P[np.ix_(idx, idx)]
 
         if show_params:
@@ -196,6 +204,8 @@ def multistart_EM(X: np.ndarray,
                   K: int,
                   Q: np.ndarray,
                   theta_guess: np.ndarray,
+                  Psi: np.ndarray,
+                  nu: int,
                   num_of_starts: int = 10,
                   max_iter: int = 20,
                   rtol_params: float = 1e-6,
@@ -208,7 +218,7 @@ def multistart_EM(X: np.ndarray,
                                                 np.ndarray,
                                                 np.float64]:
     """
-    Реализует мультистарт для ЕМ-алгоритма.
+    Реализует мультистарт для MAP-ЕМ-алгоритма.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -220,6 +230,10 @@ def multistart_EM(X: np.ndarray,
         Ковариационная матрица шума.
     theta_guess: np.ndarray
         Текущая начальная оценка углов.
+    Psi: np.ndarray
+        Априорная информация о ковариации сигналов.
+    nu: int
+        Степень уверенности в априорной информации.
     num_of_starts: int
         Число запусков.
     max_iter: int
@@ -285,6 +299,8 @@ def multistart_EM(X: np.ndarray,
 def multistart_EM2(X: np.ndarray,
                    K: int,
                    Q: np.ndarray,
+                   Psi: np.ndarray,
+                   nu: int,
                    num_of_starts: int = 10,
                    max_iter: int = 20,
                    rtol_params: float = 1e-6,
@@ -297,7 +313,7 @@ def multistart_EM2(X: np.ndarray,
                                                 np.ndarray,
                                                 np.float64]:
     """
-    Реализует мультистарт для ЕМ-алгоритма.
+    Реализует мультистарт для MAP-ЕМ-алгоритма.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -307,6 +323,10 @@ def multistart_EM2(X: np.ndarray,
         Число источников.
     Q: np.ndarray
         Ковариационная матрица шума.
+    Psi: np.ndarray
+        Априорная информация о ковариации сигналов.
+    nu: int
+        Степень уверенности в априорной информации.
     num_of_starts: int
         Число запусков.
     max_iter: int
