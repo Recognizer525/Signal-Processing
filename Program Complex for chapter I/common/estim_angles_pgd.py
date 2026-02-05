@@ -28,6 +28,10 @@ def gradient_descent_backtracking(
     max_iters: int = 100,
     max_ls: int = 25,
     grad_tol: float = 1e-6) -> torch.Tensor:
+
+    """
+    Проекционный градиетнный спуск для поиска оптимального u.
+    """
     
     # Вычисляем начальное значение стоимости
     with torch.no_grad():
