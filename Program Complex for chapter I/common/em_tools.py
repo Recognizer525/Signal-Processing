@@ -1,70 +1,13 @@
 import numpy as np
 
-from common import sensors
-#from common import estim_angles_pgd as ea
-from common import optim_estim_angles as oea
-from common import diff_sensor_structures as dss
-from common import debug_funcs as df
-from common import convergence as conv
-from common import initialization as intl
-
-
-
-def incomplete_lkhd(X: np.ndarray,
-                    theta: np.ndarray, 
-                    P: np.ndarray, 
-                    Q: np.ndarray) -> np.float64:
-    """
-    Вычисляет неполное правдоподобие на основании доступных наблюдений 
-    и текущей оценки параметров.
-
-    Parameters
-    ---------------------------------------------------------------------------
-    X: np.ndarray
-        Двумерный массив, соответствующий наблюдениям.
-    theta: np.ndarray
-        Одномерный массив размера (K,1). Соответствует оценке DoA.
-    P: np.ndarray
-        Оценка ковариационной матрицы исходных сигналов.
-    Q: np.ndarray
-        Ковариационная матрица шума.
-
-    Returns
-    ---------------------------------------------------------------------------
-    res: np.float64
-        Значение неполного правдоподобия.
-    """
-    A = dss.A_ULA(X.shape[1], theta)
-    R = A @ P @ A.conj().T + Q
-
-    sgn_R, log_det_R = np.linalg.slogdet(R)
-    if sgn_R == 0:
-        raise ValueError(f"Non-inversible R")
-
-    #print(f"is_pd(R)={sensors.is_pd(R)}")
-    #print(f"is_pd(P)={sensors.is_pd(P)}")
-    #print(f"is_pd(Q)={sensors.is_pd(Q)}")
-    #print(f"Positive P? Ans is {np.all(np.diag(P) >= 0)}")
-
-    inv_R = np.linalg.inv(R)
-    Indicator = np.isnan(X)
-    col_numbers = np.arange(1, X.shape[1]+1)
-    O = col_numbers * (Indicator == False) - 1
-    res = 0
-    for i in range(X.shape[0]):
-        if set(O[i, ]) != set(col_numbers - 1):
-            O_i = O[i, ][O[i, ] > -1]
-            R_o = R[np.ix_(O_i, O_i)]
-            sgn_R_o, log_det_R_o = np.linalg.slogdet(R_o)
-            if sgn_R_o == 0:
-                raise ValueError(f"Non-inversible R_o")
-
-            #R_o = R_o + 1e-6 * np.eye(R_o.shape[0])
-            res += (- log_det_R_o - (X[i, O_i].T).conj().T @ 
-                      np.linalg.inv(R_o) @ (X[i, O_i].T))
-        else:
-            res += (- log_det_R - (X[i].T).conj().T @ inv_R @ (X[i].T))
-    return res.real
+from . import sensors as sn
+#from common import estim_angles_pgd as ead
+from . import optim_estim_angles as oea
+from . import diff_sensor_structures as dss
+from . import debug_funcs as df
+from . import convergence as conv
+from . import initialization as intl
+from . import log_funcs as lf
 
 
 def EM(angles: np.ndarray,
@@ -115,7 +58,7 @@ def EM(angles: np.ndarray,
     Q_inv = np.linalg.inv(Q)
     Q_inv_sqrt = np.sqrt(Q_inv)
 
-    lkhd = incomplete_lkhd(X, angles, P, Q)
+    lkhd = lf.incomplete_lkhd(X, angles, P, Q)
 
     if show_lkhd:
         print(f"Inital likelihood = {lkhd}")
@@ -132,7 +75,7 @@ def EM(angles: np.ndarray,
     col_numbers = np.arange(1, X.shape[1]+1)
     M, O = col_numbers * Indicator - 1, col_numbers * (Indicator == False) - 1
 
-    R = sensors.initial_Cov(X)
+    R = sn.initial_Cov(X)
     A = dss.A_ULA(L, angles)
 
     K_Xm_cond = np.zeros((T, L, L), dtype=np.complex128)
@@ -160,7 +103,7 @@ def EM(angles: np.ndarray,
                 M_i, O_i = M[i, ][M[i, ] > -1], O[i, ][O[i, ] > -1]
 
                 R_OO = R[np.ix_(O_i, O_i)]
-                R_OO = sensors.cov_correcter(R_OO, reg_coef)
+                R_OO = sn.cov_correcter(R_OO, reg_coef)
                 R_MO = R[np.ix_(M_i, O_i)]
                 R_MM = R[np.ix_(M_i, M_i)]
 
@@ -172,7 +115,7 @@ def EM(angles: np.ndarray,
 
         E_X_E_X_H = np.einsum('li,lj -> lij', E_X_cond, E_X_cond.conj())
         Sigma_XX_arr = E_X_E_X_H + K_Xm_cond
-        Sigma_XX_arr = sensors.cov_correcter(Sigma_XX_arr, reg_coef)
+        Sigma_XX_arr = sn.cov_correcter(Sigma_XX_arr, reg_coef)
 
 
         Gap_based_Cov[~mask] = R_inv_A_P_H @ Sigma_XX_arr[~mask] @ R_inv_A_P
@@ -204,11 +147,11 @@ def EM(angles: np.ndarray,
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
         #print(f"new_angles={new_angles}")
-        new_P = sensors.cov_correcter(Sigma_SS, reg_coef)
+        new_P = sn.cov_correcter(Sigma_SS, reg_coef)
         new_P[:] = new_P[np.ix_(idx, idx)]
         #print(f"new_P:\n{new_P}")
 
-        new_lkhd = incomplete_lkhd(X, new_angles, new_P, Q)
+        new_lkhd = lf.incomplete_lkhd(X, new_angles, new_P, Q)
 
         if show_lkhd:
             print(f'likelihood is {new_lkhd} on iteration {EM_Iteration}.')
@@ -234,16 +177,16 @@ def EM(angles: np.ndarray,
     return angles, P, lkhd, lkhd_list, angles_list
 
 
-def multistart_EM2(X: np.ndarray,
-                   K: int,
-                   Q: np.ndarray,
-                   theta_guess: np.ndarray,
-                   num_of_starts: int = 10,
-                   max_iter: int = 20,
-                   rtol: float = 1e-6,
-                   reg_coef: float = 0) -> tuple[np.ndarray,
-                                                 np.ndarray,
-                                                 np.float64]:
+def multistart_EM(X: np.ndarray,
+                  K: int,
+                  Q: np.ndarray,
+                  theta_guess: np.ndarray,
+                  num_of_starts: int = 10,
+                  max_iter: int = 20,
+                  rtol: float = 1e-6,
+                  reg_coef: float = 0) -> tuple[np.ndarray,
+                                                np.ndarray,
+                                                np.float64]:
     """
     Реализует мультистарт для ЕМ-алгоритма.
 
@@ -284,7 +227,7 @@ def multistart_EM2(X: np.ndarray,
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
     best_lkhd_list, best_angles_list = None, None
     L = X.shape[1]
-    R = sensors.initial_Cov(X)
+    R = sn.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
         angles, P = intl.init_est_kn1(K, Q, R, theta_guess, L, iter=i, seed=i*12+70)
@@ -298,20 +241,17 @@ def multistart_EM2(X: np.ndarray,
     return best_angles, best_P, best_lhd, best_lkhd_list, best_angles_list
 
 
-
-
-###############################################################################################
-
-def multi_start_EM(X: np.ndarray,
-                   K: int,
-                   Q: np.ndarray,
-                   num_of_starts: int = 10,
-                   max_iter: int = 20,
-                   rtol: float = 1e-6) -> tuple[np.ndarray,
+def multi_start_EM2(X: np.ndarray,
+                    K: int,
+                    Q: np.ndarray,
+                    num_of_starts: int = 10,
+                    max_iter: int = 20,
+                    rtol: float = 1e-6) -> tuple[np.ndarray,
                                                  np.ndarray,
                                                  np.float64]:
     """
-    Реализует мультистарт для ЕМ-алгоритма.
+    Реализует мультистарт для ЕМ-алгоритма. Не использует первоначальные предположения 
+    об угловых координатах источников сигналов.
 
     Parameters
     ---------------------------------------------------------------------------
@@ -339,13 +279,15 @@ def multi_start_EM(X: np.ndarray,
     """
     best_lhd, best_angles, best_P, best_start = -np.inf, None, None, None
     L = X.shape[1]
-    R = sensors.initial_Cov(X)
+    R = sn.initial_Cov(X)
     for i in range(num_of_starts):
         print(f'{i}-th start')
-        angles, P = intl.init_est_kn12(K, Q, R, L, seed=i*100)
+        angles, P = intl.init_est_kn2(K, Q, R, L, seed=i*100)
         est_angles, est_P, est_lhd = EM(angles, P, X, Q, max_iter, rtol)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_angles = est_P, est_angles
     print(f"best_start={best_start}")
     return best_angles, best_P, best_lhd
+
+
