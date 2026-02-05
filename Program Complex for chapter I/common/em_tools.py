@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from . import sensors as sn
 #from common import estim_angles_pgd as ead
@@ -15,11 +16,14 @@ def EM(angles: np.ndarray,
        X: np.ndarray,
        Q: np.ndarray,
        max_iter: int = 50,
-       rtol: float = 1e-3,
+       rtol_params: float = 1e-3,
+       rtol_lkhd: float = 1e-6,
        reg_coef: float = 0,
-       show_lkhd: bool = True) -> tuple[np.ndarray,
-                                        np.ndarray,
-                                        np.float64]:
+       show_lkhd: bool = True,
+       show_params: bool = True,
+       debug: bool = True) -> tuple[np.ndarray,
+                                    np.ndarray,
+                                    np.float64]:
     """
     Запускает ЕМ-алгоритм для выбранной начальной оценки параметров.
 
@@ -35,12 +39,18 @@ def EM(angles: np.ndarray,
         Ковариационная матрица шума.
     max_iter: int
         Предельное число итераций.
-    rtol: float
-        Величина, используемая для проверки сходимости итерационного процесса.
+    rtol_params: float
+        Величина, используемая для проверки сходимости итерационного процесса по параметрам.
+    rtol_lkhd: float
+        Величина, используемая для проверки сходимости итерационного процесса по правдоподобию.
     reg_coef: float
         Коэффициент регуляризации для смягчения численной нестабильности.
     show_lkhd: bool
         Показывать ли значение неполного правдоподобия после каждого обновления параметров.
+    show_params: bool
+        Показывать ли новую оценку параметров после каждого их обновления.
+    debug: bool
+        Проверять ли на ошибки массивы и матрицы, возникающие после Е-шага.
 
     Returns
     ---------------------------------------------------------------------------
@@ -134,32 +144,37 @@ def EM(angles: np.ndarray,
         Sigma_XS = np.mean(Sigma_XS_arr, axis=0)
         Sigma_SS = np.mean(E_S_E_S_H + K_S_cond, axis=0)
 
-        df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
-        df.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
-        df.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
-        df.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
-        df.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
-        df.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
-        df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
-        df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
+        if debug:
+            df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
+            df.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
+            df.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
+            df.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
+            df.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
+            df.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
+            df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
+            df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
 
         new_angles = oea.find_angles(Sigma_XS, angles, Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
-        #print(f"new_angles={new_angles}")
+
         new_P = sn.cov_correcter(Sigma_SS, reg_coef)
         new_P[:] = new_P[np.ix_(idx, idx)]
-        #print(f"new_P:\n{new_P}")
+        
+        if show_params:
+            print(f"new_angles={new_angles}")
+            print(f"new_P:\n{new_P}")
 
         new_lkhd = lf.incomplete_lkhd(X, new_angles, new_P, Q)
 
         if show_lkhd:
             print(f'likelihood is {new_lkhd} on iteration {EM_Iteration}.')
 
-        if conv.if_params_converged(angles, new_angles, P, new_P, rtol):
+        if conv.if_params_converged(angles, new_angles, P, new_P, rtol_params):
             print("Parameters are converged!")
             break
-        if conv.if_lkhd_converged(lkhd, new_lkhd):
+
+        if conv.if_lkhd_converged(lkhd, new_lkhd, rtol_lkhd):
             print("Likelihood is converged!")
             break
 
@@ -183,8 +198,13 @@ def multistart_EM(X: np.ndarray,
                   theta_guess: np.ndarray,
                   num_of_starts: int = 10,
                   max_iter: int = 20,
-                  rtol: float = 1e-6,
-                  reg_coef: float = 0) -> tuple[np.ndarray,
+                  rtol_params: float = 1e-6,
+                  rtol_lkhd: float = 1e-6,
+                  reg_coef: float = 0,
+                  show_lkhd: bool = True,
+                  show_params: bool = True,
+                  show_time: bool = True,
+                  debug: bool = True) -> tuple[np.ndarray,
                                                 np.ndarray,
                                                 np.float64]:
     """
@@ -204,12 +224,18 @@ def multistart_EM(X: np.ndarray,
         Число запусков.
     max_iter: int
         Предельное число итераций.
-    rtol: float
-        Величина, используемая для проверки сходимости итерационного процесса.
+    rtol_params: float
+        Величина, используемая для проверки сходимости итерационного процесса по параметрам.
+    rtol_lkhd: float
+        Величина, используемая для проверки сходимости итерационного процесса по правдоподобию.
     reg_coef: float
         Коэффициент регуляризации для смягчения численной нестабильности.
     show_lkhd: bool
         Показывать ли значение неполного правдоподобия после каждого обновления параметров.
+    show_params: bool
+        Показывать ли новую оценку параметров после каждого их обновления.
+    debug: bool
+        Проверять ли на ошибки массивы и матрицы, возникающие после Е-шага.
 
     Returns
     ---------------------------------------------------------------------------
@@ -231,7 +257,17 @@ def multistart_EM(X: np.ndarray,
     for i in range(num_of_starts):
         print(f'{i}-th start')
         angles, P = intl.init_est_kn1(K, Q, R, theta_guess, L, iter=i, seed=i*12+70)
-        est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles, P, X, Q, max_iter, rtol, reg_coef)
+        est_angles, est_P, est_lhd, est_lkhd_list, est_angles_list  = EM(angles=angles, 
+                                                                         P=P, 
+                                                                         X=X, 
+                                                                         Q=Q, 
+                                                                         max_iter=max_iter, 
+                                                                         rtol_params=rtol_params,
+                                                                         rtol_lkhd=rtol_lkhd, 
+                                                                         reg_coef=reg_coef,
+                                                                         show_lkhd=show_lkhd,
+                                                                         show_params=show_params,
+                                                                         debug=debug)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
             best_P, best_angles = est_P, est_angles
