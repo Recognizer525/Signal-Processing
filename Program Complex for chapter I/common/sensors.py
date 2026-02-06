@@ -218,7 +218,8 @@ def is_pd(A: np.ndarray, tol: float = 1e-6) -> bool:
         return False
     # Проверка положительной определенности.
     evals = np.linalg.eigvalsh(A)
-    res = evals.min() >= -1e-8
+    #res = evals.min() >= -1e-8
+    res = evals.min() > 0
     #print(f'min={evals.min()}')
     return res
 

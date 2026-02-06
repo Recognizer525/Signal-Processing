@@ -153,13 +153,13 @@ def EM(angles: np.ndarray,
 
         if debug:
             df.is_valid_result(E_X_E_X_H,'E_X_E_X_H', expected_shape=(T, L, L))
-            df.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_psd=True)
+            df.is_valid_result(Sigma_XX_arr,'Sigma_XX_arr', expected_shape=(T, L, L), check_pd=True)
             df.is_valid_result(Mu_S_cond,'Mu_S_cond', expected_shape=(K,T))
-            df.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_psd=True)
+            df.is_valid_result(K_S_cond,'K_S_cond', expected_shape=(T,K,K), check_pd=True)
             df.is_valid_result(E_X_E_S_H,'E_X_E_S_H', expected_shape=(T,L,K))
-            df.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_psd=True)
+            df.is_valid_result(E_S_E_S_H,'E_S_E_S_H', expected_shape=(T,K,K), check_pd=True)
             df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
-            df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_psd=True)
+            df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_pd=True)
 
         new_angles = oea.find_angles(Sigma_XS, angles, Sigma_SS, Q_inv_sqrt)
         idx = np.argsort(new_angles)
@@ -208,7 +208,7 @@ def multistart_EM(X: np.ndarray,
                   nu: int,
                   num_of_starts: int = 10,
                   max_iter: int = 20,
-                  rtol_params: float = 1e-6,
+                  rtol_params: float = 1e-3,
                   rtol_lkhd: float = 1e-6,
                   reg_coef: float = 0,
                   show_lkhd: bool = True,
@@ -305,7 +305,7 @@ def multistart_EM2(X: np.ndarray,
                    nu: int,
                    num_of_starts: int = 10,
                    max_iter: int = 20,
-                   rtol_params: float = 1e-6,
+                   rtol_params: float = 1e-3,
                    rtol_lkhd: float = 1e-6,
                    reg_coef: float = 0,
                    show_lkhd: bool = True,

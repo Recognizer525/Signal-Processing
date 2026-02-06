@@ -10,14 +10,16 @@ def if_params_converged(angles:np.ndarray,
     сравниваются отсортированные вектора/матрицы параметров 
     на текущей и предшествующей итерации.
     """
+
+
     idx1 = np.argsort(angles)
     idx2 = np.argsort(new_angles)
     angles[:] = angles[idx1]
     new_angles[:] = new_angles[idx2]
     P = P[np.ix_(idx1, idx1)]
     new_P[:] = new_P[np.ix_(idx2, idx2)]
-    if (np.linalg.norm(angles - new_angles) < rtol 
-        and np.linalg.norm(P - new_P, ord = 2) < rtol):
+    if (np.linalg.norm(angles - new_angles) / np.linalg.norm(new_angles) < rtol 
+        and np.linalg.norm(P - new_P, ord = 2) / np.linalg.norm(new_P, ord = 2)  < rtol):
         return True
     return False
 
