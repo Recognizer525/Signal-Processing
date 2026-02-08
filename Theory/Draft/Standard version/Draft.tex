@@ -77,7 +77,7 @@ X = \text{A}(\theta) S + N,
 \begin{equation*}
 X=[X_1,\ldots, X_\text{T}], S=[S_1,\ldots, S_\text{T}], N=[N_1,\ldots, N_\text{T}],
 \end{equation*}
-и $X_t \in \Complex^{\text{L}}, S_t \in \Complex^{\text{K}}, N_t \in \Complex^{\text{L}}$ -- векторы-столбцы, соответствующие наблюдениям, источникам и шумам в момент времени  $t = 1, \ldots, \text{T}$, $\text{A}(\theta)$ -- матрица векторов направленности для равномерной линейной антенной решетки:
+и $X_t \in \Complex^{\text{L}}, S_t \in \Complex^{\text{K}}, N_t \in \Complex^{\text{L}}$ -- векторы-столбцы, соответствующие наблюдениям, источникам и шумам в момент времени  $t = 1, \ldots, \text{T}$, $\text{A}(\theta)$ -- матрица направляющих векторов для равномерной линейной антенной решетки:
 \begin{equation*}
 \text{A}(\theta) = \begin{bmatrix}
 1&1&\dots&1\\
@@ -102,7 +102,7 @@ q(\Xi) = \Prob(X_m,S \mid X_o=x_o, \Upsilon^{(\tau-1)}),
 $$
 причем $\tau$ -- номер итерации ЕМ-алгоритма.
 \item {\bf M-шаг}
-$$\Upsilon^{(\tau)}=\argmax_{\Upsilon} \Expect_{q(\Xi)}[\log \Prob(X, S)].
+$$\Upsilon^{(\tau)}=\argmax_{\Upsilon \in \mathbb{R}^{2\text{K}}} \Expect_{q(\Xi)}[\log \Prob(X, S)].
 $$ 
 \end{itemize}
 Наблюдения $X_t$, $t=1,\ldots,\text{T}$ предполагаются независимыми и одинаково распределенными.
