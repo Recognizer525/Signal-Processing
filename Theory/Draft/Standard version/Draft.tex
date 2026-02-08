@@ -81,14 +81,13 @@ X=[X_1,\ldots, X_\text{T}], S=[S_1,\ldots, S_\text{T}], N=[N_1,\ldots, N_\text{T
 \begin{equation*}
 \text{A}(\theta) = \begin{bmatrix}
 1&1&\dots&1\\
-e^{-2\text{i}\pi \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2\text{i}\pi \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2\text{i}\pi \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
+e^{-2i\pi \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2i\pi \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2i\pi \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
 \dots&\dots&\ddots&\vdots\\
-e^{-2\text{i}\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2\text{i}\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2\text{i}\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
+e^{-2i\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_1)}& e^{-2i\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_2)}&\dots&e^{-2i\pi (\text{L}-1) \frac{\text{d}}{\lambda}\sin(\theta_\text{K})}\\
 \end{bmatrix},
 \end{equation*}
-где $d$ -- расстояние между сенсорами, $\lambda$ -- длина волны, $\text{i}$ -- мнимая единица. \\
+где $d$ -- расстояние между сенсорами, $\lambda$ -- длина волны, $i$ -- мнимая единица. \\
 Cигналы, испускаемые источниками, шумы на сенсорах и наблюдения предполагаются стохастическими: $S_t \sim \NormComplex(\mathbf{O}_{\text{K} \times 1},\mathbf{\Gamma})$, $N_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \mathbf{\Lambda})$, $ X_t \sim \NormComplex(\mathbf{O}_{\text{L} \times 1}, \text{A}\mathbf{\Gamma}\text{A}^* + \mathbf{\Lambda})$, $t=1,\ldots,\text{T}$. Матрица $\mathbf{\Lambda}$ предполагается диагональной, т.е. шумы не коррелированы между собой, также в любой момент времени $S_t \perp N_t$.
-Составим EM-алгоритм для случая известного шума.
 \section{Описание алгоритма}
 Воспользуемся EM-алгоритмом для того, чтобы оценить значения параметров $\Upsilon = (\theta, \mathbf{\Gamma})$,  $\Xi = (X_m, S)$ -- латентные переменные (недоступные значения и сигналы). Пусть $\Xi_t = (X_{t, m_t}, S_t)$ -- набор латентных переменных, соответствующих наблюдению $X_t$, причем для отдельных наблюдений $X_{t, m_t}=\varnothing$. Алгоритм состоит из двух шагов:
 \begin{itemize}
