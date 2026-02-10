@@ -4,7 +4,7 @@ DIST_RATIO = 0.5
 
 def MCAR(X: np.ndarray,
          mis_cols: int|np.ndarray, 
-         share_mv: int|np.ndarray,
+         share_mv: float|np.ndarray,
          rs: int = 42) -> np.ndarray:
     '''
     Реализует создание абсолютно случайных пропусков.
@@ -18,12 +18,11 @@ def MCAR(X: np.ndarray,
         Целое число (int), либо np.ndarray. 
         Указывает на индексы столбцов, в которые следует добавить пропуски.
     share_mv: int|np.ndarray
-        Целое число (int), либо np.ndarray. 
+        Вещественное число (float), либо np.ndarray. 
         Указывает на долю пропусков, которые следует добавить 
         в каждый столбец из числа указанных в mis_cols.
     rs: int
-        Randomstate для выбора 
-        конкретных позиций, где будут размещены пропуски.
+        Randomstate для выбора конкретных позиций, где будут размещены пропуски.
 
     Returns
     ---------------------------------------------------------------------------
@@ -69,6 +68,13 @@ def MCAR(X: np.ndarray,
 def signal_variance(signal_pressure: float, distance: float) -> float:
     """
     На основе давления сигнала и расстояния определяет ковариацию сигнала.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    signal_pressure: float
+        Приведенное давление сигнала.
+    distance: float
+        Расстояние между источником сигнала и центром антенны.
     """
     return (signal_pressure / distance) ** 2
 
@@ -76,11 +82,19 @@ def signal_variance(signal_pressure: float, distance: float) -> float:
 def noise_variance(noise_pressure: float) -> float:
     """
     На основе давления шума и расстояния определяет ковариацию шума.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    noise_pressure: float
+        Приведенное давление шума.
     """
     return noise_pressure ** 2
 
 
-def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
+def gss(K: int, 
+        T: int, 
+        Cov: np.ndarray, 
+        rs: int|None = None) -> np.ndarray:
     """
     Генерирует детерминированные сигналы, 
     представляющие из себя комплексные нормальные вектора 
@@ -90,31 +104,35 @@ def gss(K: int, G: int, Cov: np.ndarray, seed: int = None) -> np.ndarray:
     ---------------------------------------------------------------------------
     K: int
         Число источников.
-    G: int
+    T: int
         Число наблюдений.
     Cov: np.ndarray
         Ковариационная матрица исходных сигналов.
+    rs: int|None
+        RandomState.
 
     Returns
     ---------------------------------------------------------------------------
     signals: np.ndarray
-        Сгенерированные сигналы в формате двумерного массива размера (G,K).
+        Сгенерированные сигналы в формате двумерного массива размера (T,K).
     """
-    if seed is None:
-        seed = 70
-    n = 2 * K # Размер ковариационной матрицы совместного распределения
+    if rs is None:
+        rs = 70
+    n = 2 * K # Длина столбца ковариационной матрицы
     C = np.zeros((n,n), dtype=np.float64)
     C[:K,:K] = Cov.real
     C[K:,K:] = Cov.real
     C[:K,K:] = -Cov.imag
     C[K:,:K] = Cov.imag
     mu = np.zeros(n)
-    B = np.random.RandomState(seed).multivariate_normal(mu, 0.5*C, G)
+    B = np.random.RandomState(rs).multivariate_normal(mu, 0.5*C, T)
     signals = B[:,:K] + 1j * B[:, K:]
     return signals
 
 
-def complex_cov(X: np.ndarray, ddof: int = 0, reg=True) -> np.ndarray:
+def complex_cov(X: np.ndarray, 
+                ddof: int = 0, 
+                reg: bool = True) -> np.ndarray:
     """
     Вычисляет оценку пространственной ковариационной матрицы, таким образом, 
     чтобы обнулить мнимую часть диагональных элементов, которая возникает из-за
@@ -146,8 +164,16 @@ def initial_Cov(X: np.ndarray):
     """
     Начальная оценка матрицы ковариации для набора наблюдений с пропусками.
     
-    X: shape (n_samples, n_features)
-        Выборка.
+    Parameters
+    ---------------------------------------------------------------------------
+    X: np.ndarray
+        Выборка. Число строк - число наблюдений, 
+        число столбцов - число компонентов наблюдения.
+
+    Returns
+    ---------------------------------------------------------------------------
+    R: ndarray
+        Начальная оценка ковариации.
     """
     # Строки без пропусков
     observed_rows = np.where(~np.isnan(X).any(axis=1))[0]
@@ -155,7 +181,6 @@ def initial_Cov(X: np.ndarray):
     # если достаточно полных наблюдений
     if len(observed_rows) >= X.shape[1]:
         R = complex_cov(X[observed_rows, :])
-        #print('Way First')
     else:
         # Заполнение средним (mean imputation) по столбцам
         X_filled = X.copy()
@@ -163,12 +188,6 @@ def initial_Cov(X: np.ndarray):
         inds = np.where(np.isnan(X_filled))
         X_filled[inds] = np.take(col_means, inds[1])
         R = complex_cov(X_filled)
-        #print('Way Second')
-
-    # На крайний случай
-    if np.isnan(R).any() or not np.all(np.isfinite(R)):
-        R = np.diag(np.nanvar(X, axis=0))
-        #print('Way Third')
 
     R += 1e-6 * np.eye(R.shape[0])
     return R
@@ -211,23 +230,41 @@ def is_diagonal(A: np.ndarray) -> bool:
 
 def is_pd(A: np.ndarray, tol: float = 1e-6) -> bool:
     """
-    Проверяет, что матрица A симметрична и положительно определена.
+    Проверяет, является ли матрица A эрмитовой 
+    и положительно определенной.
+
+    Parameters
+    ---------------------------------------------------
+    A: np.ndarray
+        Матрица, подлежащая проверке.
+    tol: float
+        Допустимая погрешность (когда речь идет о сравнении A и A.conj().T).
+    
+    Returns
+    ans: bool
+        Ответ (True/False).
+    ---------------------------------------------------
     """
     # Проверка эрмитовости
     if not np.allclose(A, A.conj().T, atol=tol):
         return False
     # Проверка положительной определенности.
     evals = np.linalg.eigvalsh(A)
-    #res = evals.min() >= -1e-8
     res = evals.min() > 0
     #print(f'min={evals.min()}')
     return res
 
 
-def cov_correcter(A: np.ndarray, reg_coef=1e-3) -> np.ndarray:
+def cov_correcter(A: np.ndarray, 
+                  reg_coef: float = 1e-3) -> np.ndarray:
     """
-    Реализует операцию (A+A^H)/2 + lambda*E 
+    Реализует операцию (A+A^H)/2 + reg_coef * E 
     для повышения численной стабильности результатов.
+
+    A: np.ndarray
+        Матрица, которую следует откорректировать.
+    reg_coef: float
+        Коэффициент регуляризации.
     """
     if A.ndim == 2:
         return 0.5 * (A + A.conj().T) + reg_coef * np.eye(A.shape[0])
@@ -236,7 +273,11 @@ def cov_correcter(A: np.ndarray, reg_coef=1e-3) -> np.ndarray:
             + reg_coef * np.eye(A.shape[1])
     
 
-def SNR(A: np.ndarray, P: np.ndarray, Q: np.ndarray, metrics='avg', scale='linear') -> np.float64:
+def SNR(A: np.ndarray, 
+        P: np.ndarray, 
+        Q: np.ndarray, 
+        metrics: str = 'avg', 
+        scale: str = 'linear') -> np.float64:
     """
     Вычисляет отношение сигнал-шум для всей антенной решетки.
 
@@ -278,4 +319,12 @@ def SNR(A: np.ndarray, P: np.ndarray, Q: np.ndarray, metrics='avg', scale='linea
         return ans
     else:
         raise ValueError(f"Указан неизвестный тип шкалы {scale}")
+    
+
+def db_to_var(dB_magnitude: float) -> float:
+    """
+    Сопоставляет децибелам (которые характеризуют мощность сигнала/шума)
+    дисперсию.
+    """
+    return 10 ** (dB_magnitude / 10)
 

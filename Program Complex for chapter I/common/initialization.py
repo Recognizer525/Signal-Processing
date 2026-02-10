@@ -105,11 +105,11 @@ def init_est_kn2(K: int,
         Ковариация шума.
     R: np.ndarray
         Оценка ковариации наблюдений.
-    L: int
+    L: int|None
         Количество сенсоров в антенной решетке.
     eps: float
         Минимальное значение мощности источника.
-    seed: int
+    seed: int|None
         Randomstate для генерации данных.
 
     Returns

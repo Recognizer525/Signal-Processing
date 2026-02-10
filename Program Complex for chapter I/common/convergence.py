@@ -24,8 +24,8 @@ def if_params_converged(angles:np.ndarray,
     return False
 
 
-def if_lkhd_converged(old_lkhd: float,
-                      lkhd: float,
+def if_lkhd_converged(old_lkhd: np.float64,
+                      lkhd: np.float64,
                       rtol: float = 1e-6) -> bool:
     """
     Проверяет степень близости старого и нового значения 

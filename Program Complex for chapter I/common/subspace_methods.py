@@ -97,18 +97,42 @@ def trunc_MUSIC(data: np.ndarray, num_sources: int) -> np.ndarray:
     """
     Из наблюдений исключаются столбцы с пропусками,
     по ковариации оставшихся данных реализуется MUSIC.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    data: np.ndarray
+        Данные, по которым оценивается ковариация.
+    num_sources: int
+        Число источников.
+
+    Returns
+    ---------------------------------------------------------------------------
+    DoA: np.ndarray
+        Оценки угловых координат.
     """
     mask1 = ~np.isnan(data).any(axis=0)
     truncated_data = data[:, mask1]
     R = sn.complex_cov(truncated_data)
-    res = MUSIC_DoA(R, num_sources)
-    return res
+    DoA = MUSIC_DoA(R, num_sources)
+    return DoA
 
 
 def trunc_ESPRIT(data: np.ndarray, num_sources: int) -> np.ndarray:
     """
     Из наблюдений исключаются столбцы с пропусками,
     по ковариации оставшихся данных реализуется ESPRIT.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    data: np.ndarray
+        Данные, по которым оценивается ковариация.
+    num_sources: int
+        Число источников.
+
+    Returns
+    ---------------------------------------------------------------------------
+    DoA: np.ndarray
+        Оценки угловых координат.
     """
     mask1 = ~np.isnan(data).any(axis=0)
     truncated_data = data[:, mask1]
@@ -122,6 +146,18 @@ def mean_imput_MUSIC(data: np.ndarray, num_sources: int) -> np.ndarray:
     Применяется mean imputation к столбцам с пропусками,
     оценивается ковариация полученного набора,
     по ковариации оставшихся данных реализуется MUSIC.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    data: np.ndarray
+        Данные, по которым оценивается ковариация.
+    num_sources: int
+        Число источников.
+
+    Returns
+    ---------------------------------------------------------------------------
+    DoA: np.ndarray
+        Оценки угловых координат.
     """
     col_means = np.nanmean(data, axis=0)
     inds = np.where(np.isnan(data))
@@ -137,6 +173,18 @@ def mean_imput_ESPRIT(data: np.ndarray, num_sources: int) -> np.ndarray:
     Применяется mean imputation к столбцам с пропусками,
     оценивается ковариация полученного набора,
     по ковариации оставшихся данных реализуется ESPRIT.
+
+    Parameters
+    ---------------------------------------------------------------------------
+    data: np.ndarray
+        Данные, по которым оценивается ковариация.
+    num_sources: int
+        Число источников.
+
+    Returns
+    ---------------------------------------------------------------------------
+    DoA: np.ndarray
+        Оценки угловых координат.
     """
     col_means = np.nanmean(data, axis=0)
     inds = np.where(np.isnan(data))

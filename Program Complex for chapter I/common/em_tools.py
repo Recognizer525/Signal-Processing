@@ -20,7 +20,7 @@ def EM(angles: np.ndarray,
        rtol_lkhd: float = 1e-6,
        reg_coef: float = 0,
        show_lkhd: bool = True,
-       show_params: bool = True,
+       show_angles: bool = True,
        debug: bool = True) -> tuple[np.ndarray,
                                     np.ndarray,
                                     np.float64]:
@@ -47,8 +47,8 @@ def EM(angles: np.ndarray,
         Коэффициент регуляризации для смягчения численной нестабильности.
     show_lkhd: bool
         Показывать ли значение неполного правдоподобия после каждого обновления параметров.
-    show_params: bool
-        Показывать ли новую оценку параметров после каждого их обновления.
+    show_angles: bool
+        Показывать ли новую оценку угловых координат после каждого их обновления.
     debug: bool
         Проверять ли на ошибки массивы и матрицы, возникающие после Е-шага.
 
@@ -161,9 +161,8 @@ def EM(angles: np.ndarray,
         new_P = sn.cov_correcter(Sigma_SS, reg_coef)
         new_P[:] = new_P[np.ix_(idx, idx)]
 
-        if show_params:
+        if show_angles:
             print(f"new_angles={new_angles}")
-            print(f"new_P:\n{new_P}")
 
         new_lkhd = lf.incomplete_lkhd(X, new_angles, new_P, Q)
 
@@ -202,7 +201,7 @@ def multistart_EM(X: np.ndarray,
                   rtol_lkhd: float = 1e-6,
                   reg_coef: float = 0,
                   show_lkhd: bool = True,
-                  show_params: bool = True,
+                  show_angles: bool = True,
                   show_time: bool = True,
                   debug: bool = True) -> tuple[np.ndarray,
                                                 np.ndarray,
@@ -232,8 +231,8 @@ def multistart_EM(X: np.ndarray,
         Коэффициент регуляризации для смягчения численной нестабильности.
     show_lkhd: bool
         Показывать ли значение неполного правдоподобия после каждого обновления параметров.
-    show_params: bool
-        Показывать ли новую оценку параметров после каждого их обновления.
+    show_angles: bool
+        Показывать ли новую оценку угловых координат после каждого их обновления.
     debug: bool
         Проверять ли на ошибки массивы и матрицы, возникающие после Е-шага.
 
@@ -267,7 +266,7 @@ def multistart_EM(X: np.ndarray,
                                                                          rtol_lkhd=rtol_lkhd, 
                                                                          reg_coef=reg_coef,
                                                                          show_lkhd=show_lkhd,
-                                                                         show_params=show_params,
+                                                                         show_angles=show_angles,
                                                                          debug=debug)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
@@ -291,7 +290,7 @@ def multistart_EM2(X: np.ndarray,
                    rtol_lkhd: float = 1e-6,
                    reg_coef: float = 0,
                    show_lkhd: bool = True,
-                   show_params: bool = True,
+                   show_angles: bool = True,
                    show_time: bool = True,
                    debug: bool = True) -> tuple[np.ndarray,
                                                 np.ndarray,
@@ -319,8 +318,8 @@ def multistart_EM2(X: np.ndarray,
         Коэффициент регуляризации для смягчения численной нестабильности.
     show_lkhd: bool
         Показывать ли значение неполного правдоподобия после каждого обновления параметров.
-    show_params: bool
-        Показывать ли новую оценку параметров после каждого их обновления.
+    show_angles: bool
+        Показывать ли новую оценку угловых координат после каждого их обновления.
     debug: bool
         Проверять ли на ошибки массивы и матрицы, возникающие после Е-шага.
 
@@ -354,7 +353,7 @@ def multistart_EM2(X: np.ndarray,
                                                                          rtol_lkhd=rtol_lkhd, 
                                                                          reg_coef=reg_coef,
                                                                          show_lkhd=show_lkhd,
-                                                                         show_params=show_params,
+                                                                         show_angles=show_angles,
                                                                          debug=debug)
         if est_lhd > best_lhd:
             best_lhd, best_start = est_lhd, i
