@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 from . import sensors as sn
-#from common import estim_angles_pgd as ead
+from . import estim_angles_pgd as ead
 from . import optim_estim_angles as oea
 from . import diff_sensor_structures as dss
 from . import debug_funcs as df
@@ -66,7 +66,6 @@ def EM(angles: np.ndarray,
         Список значений углов по итерациям.
     """
     Q_inv = np.linalg.inv(Q)
-    Q_inv_sqrt = np.sqrt(Q_inv)
 
     lkhd = lf.incomplete_lkhd(X, angles, P, Q)
 
@@ -154,7 +153,7 @@ def EM(angles: np.ndarray,
             df.is_valid_result(Sigma_XS,'Sigma_XS', expected_shape=(L, K))
             df.is_valid_result(Sigma_SS,'Sigma_SS', expected_shape=(K, K), check_pd=True)
 
-        new_angles = oea.find_angles(Sigma_XS, angles, Sigma_SS, Q_inv_sqrt)
+        new_angles = oea.find_angles(Sigma_XS, angles, Sigma_SS, Q_inv)
         idx = np.argsort(new_angles)
         new_angles[:] = new_angles[idx]
 
